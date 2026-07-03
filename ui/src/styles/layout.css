@@ -64,6 +64,29 @@
   padding-top: 0;
 }
 
+.shell--geo {
+  grid-template-columns: 0 minmax(0, 1fr);
+  grid-template-rows: 0 1fr;
+}
+
+.shell--geo .topbar {
+  display: none;
+}
+
+.shell--geo .shell-nav {
+  display: none;
+}
+
+.shell--geo .content {
+  padding: 0;
+}
+
+@supports (height: 100dvh) {
+  .shell--geo {
+    height: 100dvh;
+  }
+}
+
 /* ===========================================
    Topbar
    =========================================== */

@@ -67,6 +67,7 @@ import {
   normalizeBasePath,
   normalizePath,
   pathForTab,
+  resolveRouteFromPathname,
   tabFromPath,
   type Tab,
 } from "./navigation.ts";
@@ -633,27 +634,40 @@ export function syncTabWithLocation(host: SettingsHost, replace: boolean) {
   if (typeof window === "undefined") {
     return;
   }
-  const resolved = tabFromPath(window.location.pathname, host.basePath) ?? "chat";
-  setTabFromRoute(host, resolved);
-  syncUrlWithTab(host, resolved, replace);
+  const route = resolveRouteFromPathname(window.location.pathname, host.basePath);
+  setTabFromRoute(host, route.tab);
+  if (route.canonicalPathname) {
+    const url = new URL(window.location.href);
+    url.pathname = route.canonicalPathname;
+    url.searchParams.delete("session");
+    updateBrowserHistory(url, replace);
+    return;
+  }
+  syncUrlWithTab(host, route.tab, replace);
 }
 
 export function onPopState(host: SettingsHost) {
   if (typeof window === "undefined") {
     return;
   }
-  const resolved = tabFromPath(window.location.pathname, host.basePath);
-  if (!resolved) {
-    return;
-  }
+  const route = resolveRouteFromPathname(window.location.pathname, host.basePath);
 
   const url = new URL(window.location.href);
   const session = normalizeOptionalString(url.searchParams.get("session"));
-  if (session) {
+  if (session && route.tab === "chat") {
     applySessionSelection(host, session);
   }
 
-  setTabFromRoute(host, resolved);
+  setTabFromRoute(host, route.tab);
+
+  if (route.canonicalPathname) {
+    const canonical = new URL(window.location.href);
+    canonical.pathname = route.canonicalPathname;
+    canonical.searchParams.delete("session");
+    updateBrowserHistory(canonical, true);
+    return;
+  }
+  syncUrlWithTab(host, route.tab, true);
 }
 
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
@@ -742,10 +756,13 @@ export function syncUrlWithTab(host: SettingsHost, tab: Tab, replace: boolean) {
 }
 
 export function syncUrlWithSessionKey(
-  _hostValue: SettingsHost,
+  host: SettingsHost,
   sessionKey: string,
   replace: boolean,
 ) {
+  if (host.tab !== "chat") {
+    return;
+  }
   const href = typeof window === "undefined" ? undefined : window.location?.href;
   if (!href) {
     return;

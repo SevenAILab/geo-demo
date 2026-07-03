@@ -399,6 +399,7 @@ export const en: TranslationMap = {
   },
   tabs: {
     agents: "Agents",
+    geo: "GEO",
     activity: "Activity",
     overview: "Overview",
     workboard: "Workboard",
@@ -424,6 +425,7 @@ export const en: TranslationMap = {
   },
   subtitles: {
     agents: "Workspaces, tools, identities.",
+    geo: "独立站 GEO 优化与 AI 可见性分析。",
     activity: "Browser-local tool activity summaries.",
     overview: "Status, entry points, health.",
     workboard: "Agent work queue and session handoff.",
@@ -454,6 +456,58 @@ export const en: TranslationMap = {
       boardTitle: "Board view",
       today: "Today",
       todayTitle: "Today view",
+    },
+  },
+  geo: {
+    siteUrl: "网站 URL",
+    siteUrlPlaceholder: "输入网站 URL，免费测你的 AI 就绪度",
+    startExperience: "开始体检 →",
+    starting: "正在进入…",
+    back: "返回",
+    backToConsole: "返回控制台",
+    humanEye: "HUMAN EYE · 人眼所见",
+    chatTitle: "GEO 分析对话",
+    landing: {
+      navLabel: "主导航",
+      navProduct: "Product",
+      navSolutions: "Solutions",
+      navResources: "Resources",
+      navCompany: "Company",
+      login: "Login",
+      getStarted: "Get Started",
+      eyebrow: "AI VISIBILITY ENGINE",
+      heroTitle: "让 AI 开始推荐你",
+      heroSubtitle:
+        "现在，买家直接去 ChatGPT、Perplexity 问「这行谁最好」。我们把你的专业，变成 AI 读得懂、愿意引用、会主动推荐的品牌实体。",
+      examples: "例如：tesla.com（92 分）/ notion.so（88 分）",
+      stepsTitle: "打造 AI 就绪品牌的闭环",
+      footerNote: "AI 知名度基准参考",
+      steps: {
+        scan: {
+          title: "1. 体检",
+          body: "扫描主流大模型（GPT-4、Claude），评估当前品牌实体在 AI 知识库中的权重与准确率。",
+        },
+        fix: {
+          title: "2. 修复",
+          body: "生成结构化 Schema 标记与 AI 友好文档，填补知识盲区，纠正模型的错误认知。",
+        },
+        track: {
+          title: "3. 追踪",
+          body: "持续监控 AI 推荐趋势，当竞争对手被更频繁引用时，提供实时预警与优化建议。",
+        },
+      },
+    },
+    analysis: {
+      reportBadge: "Report",
+      exportReport: "导出报告",
+      alertTitle: "网关拦截警告：AI 搜索引擎将您识别为「通用实体」",
+      alertBody:
+        "由于缺乏权威的结构化数据支撑，您在主流大语言模型（LLM）中的首要引用概率低于行业基准。",
+      viewReason: "查看原因",
+      previewTitle: "网站预览：{url}",
+      previewFallback: "该站点不允许嵌入预览，已显示参考布局。",
+      initialPrompt:
+        "请对 {url} 做 GEO 分析：AI 可见度、Schema/实体识别、内容可引用性，并给出可执行的优化建议。",
     },
   },
   activity: {

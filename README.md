@@ -2,30 +2,42 @@
 开发循环：
 
 ```bash
-# 
-pnpm ui:dev
-pnpm gateway:watch:raw
-
-openclaw gateway run
-
 # 安装
 pnpm install
-#  Gateway 主机上生成：
-pnpm openclaw doctor --generate-gateway-token
-pnpm openclaw dashboard --no-open
-
 
 # 首次运行（或重置本地 OpenClaw 配置/工作区后）
 pnpm openclaw setup
+pnpm openclaw doctor --fix
+
+# Gateway 主机上生成 token
+pnpm openclaw doctor --generate-gateway-token
 
 # 可选：首次启动前预构建 Control UI
 pnpm ui:build
 
 # 开发循环（源码/配置变更时自动重载）
-pnpm gateway:watch
+pnpm gateway:watch:raw
 
+# 或前台调试：
 
+# 或 UI 热重载开发：
+---------------------------------------------
+pnpm ui:dev
+pnpm openclaw gateway run
+pnpm openclaw dashboard --no-open
+openclaw onboard
+
+# Control UI
+pnpm openclaw dashboard --no-open
+
+pnpm openclaw gateway stop    
+
+pnpm gateway:watch:raw
+
+openclaw dashboard
 ```
+
+> **注意**：在源码仓库内开发时，请始终使用 `pnpm openclaw …`，不要用全局安装的 `openclaw`（版本可能落后，会导致插件/配置校验失败）。
 
 **OpenClaw** 是一款运行在你自己设备上的_个人 AI 助手_。
 它在你已使用的消息渠道上回复你，支持在 macOS/iOS/Android 上语音交互，并可渲染你可控的实时 Canvas。Gateway 只是控制平面——产品本体是助手。

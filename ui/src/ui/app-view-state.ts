@@ -1,4 +1,5 @@
 import type { ActivityEntry, ActivityStatus } from "./activity-model.ts";
+import type { GeoPhase } from "./controllers/geo.ts";
 import type { ChatAbortOptions, ChatSendOptions } from "./app-chat.ts";
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
@@ -101,6 +102,11 @@ export type AppViewState = {
   chatMessages: unknown[];
   chatToolMessages: unknown[];
   activityEntries: ActivityEntry[];
+  geoSiteUrl: string;
+  geoPhase: GeoPhase;
+  geoStarting: boolean;
+  geoBootstrappedUrl: string | null;
+  geoPreviewBlocked: boolean;
   activityFilterText: string;
   activityStatusFilters: Record<ActivityStatus, boolean>;
   activityToolFilter: string;

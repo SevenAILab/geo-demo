@@ -8,6 +8,7 @@ import {
   normalizeBasePath,
   normalizePath,
   pathForTab,
+  resolveRouteFromPathname,
   subtitleForTab,
   tabFromPath,
   titleForTab,
@@ -28,6 +29,7 @@ describe("iconForTab", () => {
   it("returns stable icons for every tab", () => {
     expect(Object.fromEntries(ALL_TABS.map((tab) => [tab, iconForTab(tab)]))).toEqual({
       chat: "messageSquare",
+      geo: "search",
       overview: "barChart",
       activity: "activity",
       workboard: "folder",
@@ -64,6 +66,7 @@ describe("titleForTab", () => {
   it("returns expected titles for every tab", () => {
     expect(Object.fromEntries(ALL_TABS.map((tab) => [tab, titleForTab(tab)]))).toEqual({
       chat: "Chat",
+      geo: "GEO",
       overview: "Overview",
       activity: "Activity",
       workboard: "Workboard",
@@ -94,6 +97,7 @@ describe("subtitleForTab", () => {
   it("returns expected subtitles for every tab", () => {
     expect(Object.fromEntries(ALL_TABS.map((tab) => [tab, subtitleForTab(tab)]))).toEqual({
       chat: "Gateway chat for quick interventions.",
+      geo: "独立站 GEO 优化与 AI 可见性分析。",
       overview: "Status, entry points, health.",
       activity: "Browser-local tool activity summaries.",
       workboard: "Agent work queue and session handoff.",
@@ -174,6 +178,7 @@ describe("tabFromPath", () => {
   it("returns tab for valid path", () => {
     expect(tabFromPath("/chat")).toBe("chat");
     expect(tabFromPath("/overview")).toBe("overview");
+    expect(tabFromPath("/geo")).toBe("geo");
     expect(tabFromPath("/activity")).toBe("activity");
     expect(tabFromPath("/sessions")).toBe("sessions");
     expect(tabFromPath("/dreaming")).toBe("dreams");
@@ -197,6 +202,25 @@ describe("tabFromPath", () => {
     expect(tabFromPath("/CHAT")).toBe("chat");
     expect(tabFromPath("/Overview")).toBe("overview");
   });
+  it("maps /geo/chat legacy path to geo tab", () => {
+    expect(tabFromPath("/geo/chat")).toBe("geo");
+  });
+});
+
+describe("resolveRouteFromPathname", () => {
+  it("canonicalizes /geo/chat to /geo", () => {
+    expect(resolveRouteFromPathname("/geo/chat")).toEqual({
+      tab: "geo",
+      canonicalPathname: "/geo",
+    });
+  });
+
+  it("leaves normal geo path unchanged", () => {
+    expect(resolveRouteFromPathname("/geo")).toEqual({
+      tab: "geo",
+      canonicalPathname: null,
+    });
+  });
 });
 
 describe("inferBasePathFromPathname", () => {
@@ -214,6 +238,11 @@ describe("inferBasePathFromPathname", () => {
   it("infers base path from nested paths", () => {
     expect(inferBasePathFromPathname("/ui/chat")).toBe("/ui");
     expect(inferBasePathFromPathname("/apps/openclaw/sessions")).toBe("/apps/openclaw");
+  });
+
+  it("does not treat tab-on-tab paths as deployment bases", () => {
+    expect(inferBasePathFromPathname("/geo/chat")).toBe("");
+    expect(inferBasePathFromPathname("/geo")).toBe("");
   });
 
   it("handles index.html suffix", () => {

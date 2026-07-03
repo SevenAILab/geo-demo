@@ -6,7 +6,7 @@ export const TAB_GROUPS = [
   { label: "chat", tabs: ["chat"] },
   {
     label: "control",
-    tabs: ["overview", "activity", "workboard", "instances", "sessions", "usage", "cron"],
+    tabs: ["geo", "overview", "activity", "workboard", "instances", "sessions", "usage", "cron"],
   },
   { label: "agent", tabs: ["agents", "skills", "skillWorkshop", "nodes", "dreams"] },
   {
@@ -17,6 +17,7 @@ export const TAB_GROUPS = [
 
 export type Tab =
   | "agents"
+  | "geo"
   | "activity"
   | "overview"
   | "workboard"
@@ -55,6 +56,7 @@ export const SETTINGS_TABS = [
 
 const TAB_PATHS: Record<Tab, string> = {
   agents: "/agents",
+  geo: "/geo",
   activity: "/activity",
   overview: "/overview",
   workboard: "/workboard",
@@ -168,10 +170,36 @@ export function tabFromPath(pathname: string, basePath = ""): Tab | null {
   if (normalized.endsWith("/index.html")) {
     normalized = "/";
   }
+  if (normalized === "/geo/chat") {
+    return "geo";
+  }
   if (normalized === "/") {
     return "chat";
   }
   return PATH_TO_TAB.get(normalized) ?? null;
+}
+
+export type ResolvedRoute = {
+  tab: Tab;
+  canonicalPathname: string | null;
+};
+
+export function resolveRouteFromPathname(pathname: string, basePath = ""): ResolvedRoute {
+  const tab = tabFromPath(pathname, basePath) ?? "chat";
+  const base = normalizeBasePath(basePath);
+  let path = pathname || "/";
+  if (base) {
+    if (path === base) {
+      path = "/";
+    } else if (path.startsWith(`${base}/`)) {
+      path = path.slice(base.length);
+    }
+  }
+  const normalized = normalizeLowercaseStringOrEmpty(normalizePath(path));
+  if (normalized === "/geo/chat") {
+    return { tab: "geo", canonicalPathname: pathForTab("geo", basePath) };
+  }
+  return { tab, canonicalPathname: null };
 }
 
 export function inferBasePathFromPathname(pathname: string): string {
@@ -190,6 +218,10 @@ export function inferBasePathFromPathname(pathname: string): string {
     const candidate = normalizeLowercaseStringOrEmpty(`/${segments.slice(i).join("/")}`);
     if (PATH_TO_TAB.has(candidate)) {
       const prefix = segments.slice(0, i);
+      // Tab-on-tab paths like /geo/chat are route segments, not deployment bases.
+      if (prefix.length > 0 && prefix.every((segment) => PATH_TO_TAB.has(`/${segment}`))) {
+        return "";
+      }
       return prefix.length ? `/${prefix.join("/")}` : "";
     }
   }
@@ -204,6 +236,8 @@ export function iconForTab(tab: Tab): IconName {
       return "messageSquare";
     case "overview":
       return "barChart";
+    case "geo":
+      return "search";
     case "activity":
       return "activity";
     case "workboard":

@@ -110,9 +110,10 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
+import type { GeoPhase } from "./controllers/geo.ts";
 import { importCustomThemeFromUrl } from "./custom-theme.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
-import type { Tab } from "./navigation.ts";
+import { inferBasePathFromPathname, resolveRouteFromPathname, type Tab } from "./navigation.ts";
 import { resolveAgentIdFromSessionKey } from "./session-key.ts";
 import type { SidebarContent } from "./sidebar-content.ts";
 import { loadLocalUserIdentity, loadSettings, type UiSettings } from "./storage.ts";
@@ -150,6 +151,14 @@ declare global {
   interface Window {
     __OPENCLAW_CONTROL_UI_BASE_PATH__?: string;
   }
+}
+
+function resolveInitialTab(): Tab {
+  if (typeof window === "undefined") {
+    return "chat";
+  }
+  const basePath = inferBasePathFromPathname(window.location.pathname);
+  return resolveRouteFromPathname(window.location.pathname, basePath).tab;
 }
 
 const bootAssistantIdentity = normalizeAssistantIdentity({});
@@ -200,7 +209,7 @@ export class OpenClawApp extends LitElement {
   @state() password = "";
   @state() loginShowGatewayToken = false;
   @state() loginShowGatewayPassword = false;
-  @state() tab: Tab = "chat";
+  @state() tab: Tab = resolveInitialTab();
   @state() onboarding = resolveOnboardingMode();
   @state() connected = false;
   @state() theme: ThemeName = this.settings.theme ?? "claw";
@@ -248,6 +257,11 @@ export class OpenClawApp extends LitElement {
   @state() chatMessages: unknown[] = [];
   @state() chatToolMessages: unknown[] = [];
   @state() activityEntries: ActivityEntry[] = [];
+  @state() geoSiteUrl = "";
+  @state() geoPhase: GeoPhase = "landing";
+  @state() geoStarting = false;
+  @state() geoBootstrappedUrl: string | null = null;
+  @state() geoPreviewBlocked = false;
   @state() activityFilterText = "";
   @state() activityStatusFilters: Record<ActivityStatus, boolean> = {
     running: true,

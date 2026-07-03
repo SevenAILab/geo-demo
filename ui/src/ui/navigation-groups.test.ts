@@ -17,6 +17,7 @@ describe("TAB_GROUPS", () => {
   it("keeps channel management out of the primary control sidebar", () => {
     const control = TAB_GROUPS.find((group) => group.label === "control");
     expect(control?.tabs).toEqual([
+      "geo",
       "overview",
       "activity",
       "workboard",
