@@ -27,6 +27,15 @@ import {
   formatMissingOperatorReadScopeMessage,
   isMissingOperatorReadScopeError,
 } from "./scope-errors.ts";
+import { syncGeoStateFromChat, type GeoSyncHost } from "../geo-parsers.ts";
+
+function maybeSyncGeoState(state: ChatState): void {
+  const host = state as ChatState & Partial<GeoSyncHost>;
+  if (!host.geoPhase || host.geoPhase === "landing") {
+    return;
+  }
+  syncGeoStateFromChat(host as GeoSyncHost);
+}
 
 const SILENT_REPLY_PATTERN = /^\s*NO_REPLY\s*$/;
 const SYNTHETIC_TRANSCRIPT_REPAIR_RESULT =
@@ -730,6 +739,7 @@ async function loadChatHistoryUncached(
       visibleMessageCount: visibleMessages.length,
       resetStream,
     });
+    maybeSyncGeoState(state);
     return res;
   } catch (err) {
     if (!shouldApplyChatHistoryResult(state, requestVersion, sessionKey, requestAgentId)) {
@@ -1126,6 +1136,7 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
       !isAssistantHeartbeatAckForDisplay(payload.message)
     ) {
       state.chatStream = next;
+      maybeSyncGeoState(state);
     }
   } else if (payload.state === "final") {
     const finalMessage = normalizeFinalAssistantMessage(payload.message);
@@ -1176,5 +1187,6 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     reconcileTerminalRun("interrupted", "failed");
     setChatError(state, payload.errorMessage ?? "chat error");
   }
+  maybeSyncGeoState(state);
   return payload.state;
 }

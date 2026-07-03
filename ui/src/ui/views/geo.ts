@@ -1,25 +1,66 @@
 import { html, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
-import { renderGeoAnalysis, type GeoAnalysisProps } from "./geo-analysis.ts";
+import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
+import type {
+  GeoBrandStory,
+  GeoDataStatus,
+  GeoMonitoring,
+  GeoOutputCenter,
+  GeoRepairPack,
+} from "../geo-parsers.ts";
+import type { GeoPhase } from "../controllers/geo.ts";
+import { renderGeoAssessment } from "./geo-assessment.ts";
+import { renderGeoBrandStory } from "./geo-brand-story.ts";
+import { renderGeoMonitoringPanel } from "./geo-monitoring-panel.ts";
+import { renderGeoOutputCenter } from "./geo-output-center.ts";
+import { renderGeoRepairPack } from "./geo-repair-pack.ts";
 
-export type GeoPhase = "landing" | "analysis";
+export type { GeoPhase };
+
+export type GeoFlowChatProps = {
+  siteUrl: string;
+  chatOpen: boolean;
+  flowChatSlot: TemplateResult;
+  onToggleChat: () => void;
+};
 
 export type GeoLandingProps = {
   siteUrl: string;
   starting: boolean;
+  skillBusy: boolean;
   onSiteUrlChange: (next: string) => void;
   onStartExperience: () => void;
   onExitToConsole: () => void;
 };
 
-export type GeoProps = GeoLandingProps & {
-  phase: GeoPhase;
-  previewBlocked: boolean;
-  analysisChatSlot?: TemplateResult;
-  onBack: () => void;
-  onPreviewBlocked: () => void;
-};
+export type GeoProps = GeoLandingProps &
+  GeoFlowChatProps & {
+    phase: GeoPhase;
+    report: GeoReport | null;
+    reportStatus: GeoReportStatus;
+    brandStory: GeoBrandStory | null;
+    brandStoryStatus: GeoDataStatus;
+    outputCenter: GeoOutputCenter | null;
+    outputStatus: GeoDataStatus;
+    repairPack: GeoRepairPack | null;
+    repairPackStatus: GeoDataStatus;
+    monitoring: GeoMonitoring | null;
+    monitoringStatus: GeoDataStatus;
+    onBack: () => void;
+    onBackToAssessment: () => void;
+    onBackToBrandStory: () => void;
+    onBackToOutputCenter: () => void;
+    onFixGaps: () => void;
+    onConfirmGenerate: () => void;
+    onOpenRepairPack: () => void;
+    onOpenMonitoringPanel: () => void;
+    onReassess: () => void;
+    onRetryBrandStory: () => void;
+    onRetryOutput: () => void;
+    onRetryRepairPack: () => void;
+    onRetryMonitoring: () => void;
+  };
 
 const LANDING_STEPS = [
   {
@@ -43,6 +84,7 @@ const LANDING_STEPS = [
 ] as const;
 
 export function renderGeoLanding(props: GeoLandingProps) {
+  const busy = props.starting || props.skillBusy;
   return html`
     <div class="geo-landing">
       <header class="geo-landing__nav">
@@ -79,7 +121,7 @@ export function renderGeoLanding(props: GeoLandingProps) {
               class="geo-landing__search-input"
               .value=${props.siteUrl}
               placeholder=${t("geo.siteUrlPlaceholder")}
-              ?disabled=${props.starting}
+              ?disabled=${busy}
               @input=${(event: Event) =>
                 props.onSiteUrlChange((event.target as HTMLInputElement).value)}
               @keydown=${(event: KeyboardEvent) => {
@@ -92,10 +134,10 @@ export function renderGeoLanding(props: GeoLandingProps) {
             <button
               type="button"
               class="geo-landing__search-btn"
-              ?disabled=${props.starting || !props.siteUrl.trim()}
+              ?disabled=${busy || !props.siteUrl.trim()}
               @click=${props.onStartExperience}
             >
-              ${props.starting ? t("geo.starting") : t("geo.startExperience")}
+              ${busy ? t("geo.starting") : t("geo.startExperience")}
             </button>
           </div>
           <p class="geo-landing__examples">${t("geo.landing.examples")}</p>
@@ -127,17 +169,73 @@ export function renderGeoLanding(props: GeoLandingProps) {
   `;
 }
 
+const flowChatProps = (props: GeoProps) => ({
+  siteUrl: props.siteUrl,
+  chatOpen: props.chatOpen,
+  chatSlot: props.flowChatSlot,
+  onToggleChat: props.onToggleChat,
+});
+
 export function renderGeo(props: GeoProps) {
-  if (props.phase === "analysis" && props.analysisChatSlot) {
-    const analysisProps: GeoAnalysisProps = {
-      siteUrl: props.siteUrl,
-      previewBlocked: props.previewBlocked,
-      chatSlot: props.analysisChatSlot,
+  if (props.phase === "assessment") {
+    return renderGeoAssessment({
+      ...flowChatProps(props),
+      starting: props.starting,
+      report: props.report,
+      reportStatus: props.reportStatus,
+      skillBusy: props.skillBusy,
       onBack: props.onBack,
       onExitToConsole: props.onExitToConsole,
-      onPreviewBlocked: props.onPreviewBlocked,
-    };
-    return renderGeoAnalysis(analysisProps);
+      onFixGaps: props.onFixGaps,
+    });
+  }
+  if (props.phase === "brandStory") {
+    return renderGeoBrandStory({
+      ...flowChatProps(props),
+      brandStory: props.brandStory,
+      status: props.brandStoryStatus,
+      skillBusy: props.skillBusy,
+      onBack: props.onBackToAssessment,
+      onExitToConsole: props.onExitToConsole,
+      onConfirmGenerate: props.onConfirmGenerate,
+      onRetry: props.onRetryBrandStory,
+    });
+  }
+  if (props.phase === "outputCenter") {
+    return renderGeoOutputCenter({
+      ...flowChatProps(props),
+      output: props.outputCenter,
+      status: props.outputStatus,
+      skillBusy: props.skillBusy,
+      onBack: props.onBackToBrandStory,
+      onExitToConsole: props.onExitToConsole,
+      onOpenRepairPack: props.onOpenRepairPack,
+      onOpenMonitoringPanel: props.onOpenMonitoringPanel,
+      onRetry: props.onRetryOutput,
+    });
+  }
+  if (props.phase === "repairPack") {
+    return renderGeoRepairPack({
+      ...flowChatProps(props),
+      repairPack: props.repairPack,
+      status: props.repairPackStatus,
+      skillBusy: props.skillBusy,
+      onBack: props.onBackToOutputCenter,
+      onExitToConsole: props.onExitToConsole,
+      onReassess: props.onReassess,
+      onRetry: props.onRetryRepairPack,
+    });
+  }
+  if (props.phase === "monitoringPanel") {
+    return renderGeoMonitoringPanel({
+      ...flowChatProps(props),
+      monitoring: props.monitoring,
+      status: props.monitoringStatus,
+      skillBusy: props.skillBusy,
+      onBack: props.onBackToOutputCenter,
+      onExitToConsole: props.onExitToConsole,
+      onRetry: props.onRetryMonitoring,
+    });
   }
   return renderGeoLanding(props);
 }

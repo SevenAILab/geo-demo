@@ -146,7 +146,19 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { captureSessionToWorkboard, getWorkboardState } from "./controllers/workboard.ts";
-import { backToGeoLanding, startGeoExperience } from "./controllers/geo.ts";
+import {
+  backToGeoAssessment,
+  backToGeoBrandStory,
+  backToGeoLanding,
+  backToGeoOutputCenter,
+  openGeoBrandStory,
+  openGeoMonitoringPanel,
+  openGeoOutputCenter,
+  openGeoRepairPack,
+  reassessGeo,
+  restoreGeoSessionForPhase,
+  startGeoExperience,
+} from "./controllers/geo.ts";
 import { getCronJobPayload } from "./cron-payload.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { formatTimeMs } from "./format.ts";
@@ -1339,7 +1351,7 @@ export function renderApp(state: AppViewState) {
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isChat = state.tab === "chat";
   const isGeo = state.tab === "geo";
-  const isGeoAnalysis = isGeo && state.geoPhase === "analysis";
+  const isGeoFlow = isGeo && state.geoPhase !== "landing";
   const headerError = !isChat && state.lastError !== state.chatError ? state.lastError : null;
   const chatViewError = state.lastError;
   const chatHeaderHidden = isChat && (state.onboarding || state.chatHeaderControlsHidden);
@@ -2455,7 +2467,7 @@ export function renderApp(state: AppViewState) {
         </aside>
       </div>
       <main
-        class="content ${isChat ? "content--chat" : ""} ${isGeo ? "content--geo" : ""} ${isGeoAnalysis
+        class="content ${isChat ? "content--chat" : ""} ${isGeo ? "content--geo" : ""} ${isGeoFlow
           ? "content--geo-analysis"
           : ""} ${state.tab === "logs"
           ? "content--logs"
@@ -2593,24 +2605,55 @@ export function renderApp(state: AppViewState) {
                 phase: state.geoPhase,
                 siteUrl: state.geoSiteUrl,
                 starting: state.geoStarting,
-                previewBlocked: state.geoPreviewBlocked,
-                analysisChatSlot:
-                  state.geoPhase === "analysis"
+                skillBusy: state.geoSkillBusy,
+                report: state.geoReport,
+                reportStatus: state.geoReportStatus,
+                brandStory: state.geoBrandStory,
+                brandStoryStatus: state.geoBrandStoryStatus,
+                outputCenter: state.geoOutputCenter,
+                outputStatus: state.geoOutputStatus,
+                repairPack: state.geoRepairPack,
+                repairPackStatus: state.geoRepairPackStatus,
+                monitoring: state.geoMonitoring,
+                monitoringStatus: state.geoMonitoringStatus,
+                chatOpen: state.geoChatSidebarOpen,
+                flowChatSlot:
+                  state.geoPhase !== "landing"
                     ? renderEmbeddedChat(state, embeddedChatContext, { hideWorkspaceFiles: true })
-                    : undefined,
+                    : html``,
+                onToggleChat: () => {
+                  state.geoChatSidebarOpen = !state.geoChatSidebarOpen;
+                },
                 onSiteUrlChange: (next) => {
                   state.geoSiteUrl = next;
                 },
                 onStartExperience: () => {
-                  state.geoPreviewBlocked = false;
                   void startGeoExperience(state as never);
                 },
                 onBack: () => backToGeoLanding(state),
+                onBackToAssessment: () => {
+                  backToGeoAssessment(state);
+                  restoreGeoSessionForPhase(state);
+                },
+                onBackToBrandStory: () => {
+                  backToGeoBrandStory(state);
+                  restoreGeoSessionForPhase(state);
+                },
+                onBackToOutputCenter: () => {
+                  backToGeoOutputCenter(state);
+                  restoreGeoSessionForPhase(state);
+                },
+                onFixGaps: () => void openGeoBrandStory(state as never),
+                onConfirmGenerate: () => void openGeoOutputCenter(state as never),
+                onOpenRepairPack: () => void openGeoRepairPack(state as never),
+                onOpenMonitoringPanel: () => void openGeoMonitoringPanel(state as never),
+                onReassess: () => void reassessGeo(state as never),
+                onRetryBrandStory: () => void openGeoBrandStory(state as never),
+                onRetryOutput: () => void openGeoOutputCenter(state as never),
+                onRetryRepairPack: () => void openGeoRepairPack(state as never),
+                onRetryMonitoring: () => void openGeoMonitoringPanel(state as never),
                 onExitToConsole: () => {
                   state.setTab("overview" as Tab);
-                },
-                onPreviewBlocked: () => {
-                  state.geoPreviewBlocked = true;
                 },
               }),
             )

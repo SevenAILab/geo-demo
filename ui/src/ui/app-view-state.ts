@@ -1,5 +1,13 @@
 import type { ActivityEntry, ActivityStatus } from "./activity-model.ts";
-import type { GeoPhase } from "./controllers/geo.ts";
+import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
+import type {
+  GeoBrandStory,
+  GeoDataStatus,
+  GeoMonitoring,
+  GeoOutputCenter,
+  GeoRepairPack,
+  GeoSkillAction,
+} from "./geo-parsers.ts";
 import type { ChatAbortOptions, ChatSendOptions } from "./app-chat.ts";
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
@@ -105,8 +113,21 @@ export type AppViewState = {
   geoSiteUrl: string;
   geoPhase: GeoPhase;
   geoStarting: boolean;
-  geoBootstrappedUrl: string | null;
   geoPreviewBlocked: boolean;
+  geoReport: GeoReport | null;
+  geoReportStatus: GeoReportStatus;
+  geoPendingSkill: GeoSkillAction | null;
+  geoSkillBusy: boolean;
+  geoBrandStory: GeoBrandStory | null;
+  geoBrandStoryStatus: GeoDataStatus;
+  geoOutputCenter: GeoOutputCenter | null;
+  geoOutputStatus: GeoDataStatus;
+  geoRepairPack: GeoRepairPack | null;
+  geoRepairPackStatus: GeoDataStatus;
+  geoMonitoring: GeoMonitoring | null;
+  geoMonitoringStatus: GeoDataStatus;
+  geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
+  geoChatSidebarOpen: boolean;
   activityFilterText: string;
   activityStatusFilters: Record<ActivityStatus, boolean>;
   activityToolFilter: string;

@@ -86,6 +86,13 @@ type LifecycleHost = {
   logsScrollFrame?: number | null;
   activityScrollFrame?: number | null;
   sessionsChangedReloadTimer?: number | ReturnType<typeof globalThis.setTimeout> | null;
+  activeRunSessionRefreshTimer?: number | ReturnType<typeof globalThis.setTimeout> | null;
+  activeRunSessionRefreshRequest?: {
+    sessionKey: string;
+    agentId?: string | null;
+    startedAt: number;
+    runIdBeforeRefresh: string | null;
+  } | null;
   controlUiTabPaintSeq?: number;
   controlUiResponsivenessObserver?: { disconnect: () => void } | null;
   controlUiBootstrapReady?: Promise<void> | null;
@@ -210,6 +217,9 @@ export function handleDisconnected(host: LifecycleHost) {
   host.chatScrollTimeout = null;
   clearHostGlobalTimeout(host.sessionsChangedReloadTimer);
   host.sessionsChangedReloadTimer = null;
+  clearHostGlobalTimeout(host.activeRunSessionRefreshTimer);
+  host.activeRunSessionRefreshTimer = null;
+  host.activeRunSessionRefreshRequest = null;
   host.realtimeTalkSession?.stop();
   host.realtimeTalkSession = null;
   host.realtimeTalkActive = false;

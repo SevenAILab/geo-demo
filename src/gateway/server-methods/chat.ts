@@ -2602,6 +2602,13 @@ async function handleChatHistoryRequest({
   respond(true, payload);
 }
 
+const GEO_SKILL_LOG_RE = /skills\/geo-(assessment|brand-story|content|fixpack|monitoring)/;
+
+function matchGeoSkillFromMessage(message: string): string | null {
+  const match = message.match(GEO_SKILL_LOG_RE);
+  return match?.[0] ?? null;
+}
+
 export const chatHandlers: GatewayRequestHandlers = {
   "chat.history": async (opts) => {
     await handleChatHistoryRequest({ ...opts, method: "chat.history" });
@@ -2966,6 +2973,16 @@ export const chatHandlers: GatewayRequestHandlers = {
     const rawSessionKey = p.sessionKey;
     const agentIdOverride = normalizeOptionalText(p.agentId);
     const clientRunId = p.idempotencyKey;
+    const geoSkillLog = matchGeoSkillFromMessage(inboundMessage);
+    if (geoSkillLog) {
+      context.logGateway.info("geo.chat.send", {
+        sessionKey: rawSessionKey,
+        skill: geoSkillLog,
+        runId: clientRunId,
+        messageChars: inboundMessage.length,
+        preview: inboundMessage.slice(0, 200),
+      });
+    }
     const requestedAgentId = resolveRequestedChatAgentId({
       cfg: (context as { getRuntimeConfig?: () => OpenClawConfig }).getRuntimeConfig?.(),
       requestedSessionKey: rawSessionKey,
@@ -3581,7 +3598,8 @@ export const chatHandlers: GatewayRequestHandlers = {
               images: replyOptionImages,
               imageOrder: imageOrder.length > 0 ? imageOrder : undefined,
               cwd: normalizeOptionalText(p.cwd),
-              thinkingLevelOverride: p.thinking,
+              thinkingLevelOverride:
+                p.thinking ?? (geoSkillLog ? ("off" as const) : undefined),
               fastModeOverride: p.fastMode,
               userTurnTranscriptRecorder: userTurnRecorder,
               onAgentRunStart: (runId) => {
@@ -3804,6 +3822,14 @@ export const chatHandlers: GatewayRequestHandlers = {
                   const displayReply =
                     extractAssistantDisplayTextFromContent(assistantContent) ??
                     buildTranscriptReplyText(finalPayloads);
+                  if (geoSkillLog) {
+                    context.logGateway.info("geo.chat.final", {
+                      sessionKey,
+                      skill: geoSkillLog,
+                      runId: clientRunId,
+                      preview: (displayReply ?? "").slice(0, 300),
+                    });
+                  }
                   const transcriptReply =
                     mediaMessage?.transcriptText ||
                     buildTranscriptReplyText(finalPayloads) ||

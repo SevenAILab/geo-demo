@@ -150,6 +150,13 @@ type GatewayHost = {
   updateAvailable: UpdateAvailable | null;
   reconcileWebPushState?: () => Promise<void> | void;
   sessionsChangedReloadTimer?: number | ReturnType<typeof globalThis.setTimeout> | null;
+  activeRunSessionRefreshTimer?: number | ReturnType<typeof globalThis.setTimeout> | null;
+  activeRunSessionRefreshRequest?: {
+    sessionKey: string;
+    agentId?: string | null;
+    startedAt: number;
+    runIdBeforeRefresh: string | null;
+  } | null;
   controlUiBootstrapReady?: Promise<void> | null;
 };
 
@@ -175,6 +182,7 @@ type GatewayHostWithSideResults = GatewayHost & {
 };
 
 const SESSIONS_CHANGED_RELOAD_DEBOUNCE_MS = 5_000;
+const ACTIVE_RUN_SESSION_REFRESH_DEBOUNCE_MS = 1_500;
 const DEFERRED_SESSION_MESSAGE_REPLAY_POLL_MS = 250;
 const DEFERRED_SESSION_MESSAGE_REPLAY_TIMEOUT_MS = 10_000;
 
@@ -234,6 +242,63 @@ function scheduleSessionsChangedReload(host: GatewayHost) {
     }
     void loadSessions(host as unknown as SessionsState);
   }, SESSIONS_CHANGED_RELOAD_DEBOUNCE_MS);
+}
+
+function clearActiveRunSessionRefresh(host: GatewayHost) {
+  if (host.activeRunSessionRefreshTimer != null) {
+    globalThis.clearTimeout(host.activeRunSessionRefreshTimer);
+    host.activeRunSessionRefreshTimer = null;
+  }
+  host.activeRunSessionRefreshRequest = null;
+}
+
+function scheduleActiveRunSessionRefresh(
+  host: GatewayHost,
+  sessionKey: string,
+  agentId: string | undefined | null,
+  runIdBeforeRefresh: string | null,
+) {
+  const existing = host.activeRunSessionRefreshRequest;
+  if (existing) {
+    existing.sessionKey = sessionKey;
+    existing.agentId = agentId;
+  } else {
+    host.activeRunSessionRefreshRequest = {
+      sessionKey,
+      agentId,
+      startedAt: Date.now(),
+      runIdBeforeRefresh,
+    };
+  }
+  if (host.activeRunSessionRefreshTimer != null) {
+    globalThis.clearTimeout(host.activeRunSessionRefreshTimer);
+  }
+  host.activeRunSessionRefreshTimer = globalThis.setTimeout(() => {
+    host.activeRunSessionRefreshTimer = null;
+    void flushActiveRunSessionRefresh(host);
+  }, ACTIVE_RUN_SESSION_REFRESH_DEBOUNCE_MS);
+}
+
+async function flushActiveRunSessionRefresh(host: GatewayHost) {
+  const request = host.activeRunSessionRefreshRequest;
+  host.activeRunSessionRefreshRequest = null;
+  if (!request || !host.chatRunId) {
+    return;
+  }
+  const { sessionKey, agentId, startedAt, runIdBeforeRefresh } = request;
+  await loadSessions(host as unknown as SessionsState, {
+    ...createChatSessionsLoadOverrides(host),
+    ...scopedAgentListParamsForSession(host, host.sessionKey),
+    publishChatRunStatus: false,
+  }).finally(() =>
+    replayDeferredSessionMessageReloadAfterSessionsRefresh(
+      host,
+      sessionKey,
+      agentId,
+      startedAt,
+      runIdBeforeRefresh,
+    ),
+  );
 }
 
 type ConnectGatewayOptions = {
@@ -924,6 +989,7 @@ function handleTerminalChatEvent(
   if (state !== "final" && state !== "error" && state !== "aborted") {
     return false;
   }
+  clearActiveRunSessionRefresh(host);
   if (isEventForDifferentActiveRun(payload, activeRunIdBeforeEvent)) {
     return false;
   }
@@ -1117,21 +1183,7 @@ function handleSessionMessageGatewayEvent(
   // first LLM delta arrives.
   if (host.chatRunId) {
     deferredReloadHost.pendingSessionMessageReloadSessionKey = sessionKey;
-    const refreshStartedAt = Date.now();
-    const runIdBeforeRefresh = host.chatRunId;
-    void loadSessions(host as unknown as SessionsState, {
-      ...createChatSessionsLoadOverrides(host),
-      ...scopedAgentListParamsForSession(host, host.sessionKey),
-      publishChatRunStatus: false,
-    }).finally(() =>
-      replayDeferredSessionMessageReloadAfterSessionsRefresh(
-        host,
-        sessionKey,
-        payload?.agentId,
-        refreshStartedAt,
-        runIdBeforeRefresh,
-      ),
-    );
+    scheduleActiveRunSessionRefresh(host, sessionKey, payload?.agentId, host.chatRunId);
     return;
   }
   deferredReloadHost.pendingSessionMessageReloadSessionKey = null;

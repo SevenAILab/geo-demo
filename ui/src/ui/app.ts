@@ -110,7 +110,15 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
-import type { GeoPhase } from "./controllers/geo.ts";
+import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
+import type {
+  GeoBrandStory,
+  GeoDataStatus,
+  GeoMonitoring,
+  GeoOutputCenter,
+  GeoRepairPack,
+  GeoSkillAction,
+} from "./geo-parsers.ts";
 import { importCustomThemeFromUrl } from "./custom-theme.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import { inferBasePathFromPathname, resolveRouteFromPathname, type Tab } from "./navigation.ts";
@@ -257,11 +265,24 @@ export class OpenClawApp extends LitElement {
   @state() chatMessages: unknown[] = [];
   @state() chatToolMessages: unknown[] = [];
   @state() activityEntries: ActivityEntry[] = [];
-  @state() geoSiteUrl = "";
+  @state() geoSiteUrl = "https://merlord.com";
   @state() geoPhase: GeoPhase = "landing";
   @state() geoStarting = false;
-  @state() geoBootstrappedUrl: string | null = null;
   @state() geoPreviewBlocked = false;
+  @state() geoReport: GeoReport | null = null;
+  @state() geoReportStatus: GeoReportStatus = "idle";
+  @state() geoPendingSkill: GeoSkillAction | null = null;
+  @state() geoSkillBusy = false;
+  @state() geoBrandStory: GeoBrandStory | null = null;
+  @state() geoBrandStoryStatus: GeoDataStatus = "idle";
+  @state() geoOutputCenter: GeoOutputCenter | null = null;
+  @state() geoOutputStatus: GeoDataStatus = "idle";
+  @state() geoRepairPack: GeoRepairPack | null = null;
+  @state() geoRepairPackStatus: GeoDataStatus = "idle";
+  @state() geoMonitoring: GeoMonitoring | null = null;
+  @state() geoMonitoringStatus: GeoDataStatus = "idle";
+  @state() geoSessionKeys: Partial<Record<GeoSkillAction, string>> = {};
+  @state() geoChatSidebarOpen = true;
   @state() activityFilterText = "";
   @state() activityStatusFilters: Record<ActivityStatus, boolean> = {
     running: true,
@@ -711,6 +732,13 @@ export class OpenClawApp extends LitElement {
   logsPollInterval: number | null = null;
   debugPollInterval: number | null = null;
   sessionsChangedReloadTimer: number | ReturnType<typeof globalThis.setTimeout> | null = null;
+  activeRunSessionRefreshTimer: number | ReturnType<typeof globalThis.setTimeout> | null = null;
+  activeRunSessionRefreshRequest: {
+    sessionKey: string;
+    agentId?: string | null;
+    startedAt: number;
+    runIdBeforeRefresh: string | null;
+  } | null = null;
   logsScrollFrame: number | null = null;
   activityScrollFrame: number | null = null;
   controlUiResponsivenessObserver: { disconnect: () => void } | null = null;

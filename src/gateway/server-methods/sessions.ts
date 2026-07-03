@@ -1014,6 +1014,13 @@ async function handleSessionSend(params: {
     });
   }
 }
+
+const sessionsListInFlight = new Map<string, Promise<Record<string, unknown>>>();
+
+function buildSessionsListInFlightKey(params: Record<string, unknown>): string {
+  return JSON.stringify(params);
+}
+
 export const sessionsHandlers: GatewayRequestHandlers = {
   "sessions.list": async ({ params, respond, context }) => {
     if (!assertValidParams(params, validateSessionsListParams, "sessions.list", respond)) {
@@ -1021,91 +1028,98 @@ export const sessionsHandlers: GatewayRequestHandlers = {
     }
     const p = params;
     const cfg = context.getRuntimeConfig();
-    const configuredAgentsOnly = p.configuredAgentsOnly === true;
-    const payload = await measureDiagnosticsTimelineSpan(
-      "gateway.sessions.list",
-      async () => {
-        const { storePath, store } = measureDiagnosticsTimelineSpanSync(
-          "gateway.sessions.list.store_load",
-          () =>
-            loadCombinedSessionStoreForGateway(cfg, {
-              agentId: p.agentId,
-            }),
-          {
-            config: cfg,
-            phase: "sessions.list",
-            attributes: {
-              agentId: p.agentId ?? null,
-              configuredAgentsOnly,
-            },
-          },
-        );
-        const listStore = configuredAgentsOnly
-          ? filterSessionStoreToConfiguredAgents(cfg, store)
-          : store;
-        const modelCatalog = await measureDiagnosticsTimelineSpan(
-          "gateway.sessions.list.model_catalog",
-          () => loadOptionalServerMethodModelCatalog(context, "sessions.list"),
-          {
-            config: cfg,
-            phase: "sessions.list",
-          },
-        );
-        const result = await measureDiagnosticsTimelineSpan(
-          "gateway.sessions.list.rows",
-          () =>
-            listSessionsFromStoreAsync({
-              cfg,
-              storePath,
-              store: listStore,
-              modelCatalog,
-              opts: p,
-            }),
-          {
-            config: cfg,
-            phase: "sessions.list",
-            attributes: {
-              storeEntries: Object.keys(listStore).length,
-            },
-          },
-        );
-        const sessions = measureDiagnosticsTimelineSpanSync(
-          "gateway.sessions.list.active_run_flags",
-          () => {
-            return result.sessions.map((session) =>
-              Object.assign({}, session, {
-                hasActiveRun: hasTrackedActiveSessionRun({
-                  context,
-                  requestedKey: session.key,
-                  canonicalKey: session.key,
-                  ...(session.key === "global" && p.agentId ? { agentId: p.agentId } : {}),
-                  defaultAgentId: resolveDefaultAgentId(cfg),
-                }),
+    const inFlightKey = buildSessionsListInFlightKey(p);
+    if (!sessionsListInFlight.has(inFlightKey)) {
+      const configuredAgentsOnly = p.configuredAgentsOnly === true;
+      const promise = measureDiagnosticsTimelineSpan(
+        "gateway.sessions.list",
+        async () => {
+          const { storePath, store } = measureDiagnosticsTimelineSpanSync(
+            "gateway.sessions.list.store_load",
+            () =>
+              loadCombinedSessionStoreForGateway(cfg, {
+                agentId: p.agentId,
               }),
-            );
-          },
-          {
-            config: cfg,
-            phase: "sessions.list",
-            attributes: {
-              sessions: result.sessions.length,
+            {
+              config: cfg,
+              phase: "sessions.list",
+              attributes: {
+                agentId: p.agentId ?? null,
+                configuredAgentsOnly,
+              },
             },
-          },
-        );
-        return {
-          ...result,
-          sessions,
-        };
-      },
-      {
-        config: cfg,
-        phase: "sessions.list",
-        attributes: {
-          agentId: p.agentId ?? null,
-          configuredAgentsOnly,
+          );
+          const listStore = configuredAgentsOnly
+            ? filterSessionStoreToConfiguredAgents(cfg, store)
+            : store;
+          const modelCatalog = await measureDiagnosticsTimelineSpan(
+            "gateway.sessions.list.model_catalog",
+            () => loadOptionalServerMethodModelCatalog(context, "sessions.list"),
+            {
+              config: cfg,
+              phase: "sessions.list",
+            },
+          );
+          const result = await measureDiagnosticsTimelineSpan(
+            "gateway.sessions.list.rows",
+            () =>
+              listSessionsFromStoreAsync({
+                cfg,
+                storePath,
+                store: listStore,
+                modelCatalog,
+                opts: p,
+              }),
+            {
+              config: cfg,
+              phase: "sessions.list",
+              attributes: {
+                storeEntries: Object.keys(listStore).length,
+              },
+            },
+          );
+          const sessions = measureDiagnosticsTimelineSpanSync(
+            "gateway.sessions.list.active_run_flags",
+            () => {
+              return result.sessions.map((session) =>
+                Object.assign({}, session, {
+                  hasActiveRun: hasTrackedActiveSessionRun({
+                    context,
+                    requestedKey: session.key,
+                    canonicalKey: session.key,
+                    ...(session.key === "global" && p.agentId ? { agentId: p.agentId } : {}),
+                    defaultAgentId: resolveDefaultAgentId(cfg),
+                  }),
+                }),
+              );
+            },
+            {
+              config: cfg,
+              phase: "sessions.list",
+              attributes: {
+                sessions: result.sessions.length,
+              },
+            },
+          );
+          return {
+            ...result,
+            sessions,
+          };
         },
-      },
-    );
+        {
+          config: cfg,
+          phase: "sessions.list",
+          attributes: {
+            agentId: p.agentId ?? null,
+            configuredAgentsOnly,
+          },
+        },
+      ).finally(() => {
+        sessionsListInFlight.delete(inFlightKey);
+      });
+      sessionsListInFlight.set(inFlightKey, promise);
+    }
+    const payload = await sessionsListInFlight.get(inFlightKey)!;
     respond(true, payload, undefined);
   },
   "sessions.cleanup": async ({ params, respond, context }) => {

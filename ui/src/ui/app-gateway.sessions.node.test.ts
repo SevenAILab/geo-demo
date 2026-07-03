@@ -691,54 +691,102 @@ describe("handleGatewayEvent session.message", () => {
   });
 
   it("refreshes sessions instead of reloading history while a chat run is active", async () => {
-    loadChatHistoryMock.mockReset();
-    applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
-    loadSessionsMock.mockReset().mockResolvedValue(undefined);
-    const host = createHost();
-    host.sessionKey = "agent:qa:main";
-    host.chatRunId = "run-123";
+    vi.useFakeTimers();
+    try {
+      loadChatHistoryMock.mockReset();
+      applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
+      loadSessionsMock.mockReset().mockResolvedValue(undefined);
+      const host = createHost();
+      host.sessionKey = "agent:qa:main";
+      host.chatRunId = "run-123";
 
-    handleGatewayEvent(host, {
-      type: "event",
-      event: "session.message",
-      payload: { sessionKey: "agent:qa:main" },
-      seq: 1,
-    });
+      handleGatewayEvent(host, {
+        type: "event",
+        event: "session.message",
+        payload: { sessionKey: "agent:qa:main" },
+        seq: 1,
+      });
 
-    expect(loadChatHistoryMock).not.toHaveBeenCalled();
-    expect(loadSessionsMock).toHaveBeenCalledWith(host, {
-      activeMinutes: 10,
-      limit: 25,
-      agentId: "qa",
-      publishChatRunStatus: false,
-    });
-    await Promise.resolve();
-    expect(loadChatHistoryMock).not.toHaveBeenCalled();
+      expect(loadChatHistoryMock).not.toHaveBeenCalled();
+      expect(loadSessionsMock).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(loadSessionsMock).toHaveBeenCalledWith(host, {
+        activeMinutes: 10,
+        limit: 25,
+        agentId: "qa",
+        publishChatRunStatus: false,
+      });
+      await Promise.resolve();
+      expect(loadChatHistoryMock).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("coalesces active-run session refreshes into one debounced sessions.list", async () => {
+    vi.useFakeTimers();
+    try {
+      loadChatHistoryMock.mockReset();
+      applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
+      loadSessionsMock.mockReset().mockResolvedValue(undefined);
+      const host = createHost();
+      host.sessionKey = "agent:qa:main";
+      host.chatRunId = "run-123";
+
+      handleGatewayEvent(host, {
+        type: "event",
+        event: "session.message",
+        payload: { sessionKey: "agent:qa:main" },
+        seq: 1,
+      });
+      await vi.advanceTimersByTimeAsync(1_000);
+      handleGatewayEvent(host, {
+        type: "event",
+        event: "session.message",
+        payload: { sessionKey: "agent:qa:main" },
+        seq: 2,
+      });
+
+      await vi.advanceTimersByTimeAsync(1_499);
+      expect(loadSessionsMock).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      expect(loadSessionsMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("scopes selected-global session.message refreshes while a chat run is active", async () => {
-    loadChatHistoryMock.mockReset();
-    applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
-    loadSessionsMock.mockReset().mockResolvedValue(undefined);
-    const host = createHost();
-    host.sessionKey = "global";
-    host.assistantAgentId = "work";
-    host.chatRunId = "run-123";
+    vi.useFakeTimers();
+    try {
+      loadChatHistoryMock.mockReset();
+      applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
+      loadSessionsMock.mockReset().mockResolvedValue(undefined);
+      const host = createHost();
+      host.sessionKey = "global";
+      host.assistantAgentId = "work";
+      host.chatRunId = "run-123";
 
-    handleGatewayEvent(host, {
-      type: "event",
-      event: "session.message",
-      payload: { sessionKey: "global", agentId: "work" },
-      seq: 1,
-    });
+      handleGatewayEvent(host, {
+        type: "event",
+        event: "session.message",
+        payload: { sessionKey: "global", agentId: "work" },
+        seq: 1,
+      });
 
-    expect(loadChatHistoryMock).not.toHaveBeenCalled();
-    expect(loadSessionsMock).toHaveBeenCalledWith(host, {
-      activeMinutes: 10,
-      limit: 25,
-      agentId: "work",
-      publishChatRunStatus: false,
-    });
+      expect(loadChatHistoryMock).not.toHaveBeenCalled();
+      expect(loadSessionsMock).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1_500);
+      expect(loadSessionsMock).toHaveBeenCalledWith(host, {
+        activeMinutes: 10,
+        limit: 25,
+        agentId: "work",
+        publishChatRunStatus: false,
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("ignores selected-global session.message events from other agents", () => {
@@ -791,52 +839,58 @@ describe("handleGatewayEvent session.message", () => {
   });
 
   it("replays deferred history reload after session refresh clears a stale active run", async () => {
-    loadChatHistoryMock.mockReset();
-    applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
-    clearPendingQueueItemsForRunMock.mockReset();
-    flushChatQueueForEventMock.mockReset();
-    loadSessionsMock.mockReset().mockImplementation(async (state) => {
-      state.chatRunId = null;
-      state.sessionsResult = {
-        ts: 1,
-        path: "(multiple)",
-        count: 1,
-        defaults: { modelProvider: null, model: null, contextTokens: null },
-        sessions: [
-          {
-            key: "agent:qa:main",
-            kind: "direct",
-            updatedAt: 1,
-            hasActiveRun: false,
-            status: "done",
-          },
-        ],
-      };
-    });
-    const host = createHost();
-    host.sessionKey = "agent:qa:main";
-    host.chatRunId = "run-stale";
+    vi.useFakeTimers();
+    try {
+      loadChatHistoryMock.mockReset();
+      applySessionsChangedEventMock.mockReset().mockReturnValue({ applied: false });
+      clearPendingQueueItemsForRunMock.mockReset();
+      flushChatQueueForEventMock.mockReset();
+      loadSessionsMock.mockReset().mockImplementation(async (state) => {
+        state.chatRunId = null;
+        state.sessionsResult = {
+          ts: 1,
+          path: "(multiple)",
+          count: 1,
+          defaults: { modelProvider: null, model: null, contextTokens: null },
+          sessions: [
+            {
+              key: "agent:qa:main",
+              kind: "direct",
+              updatedAt: 1,
+              hasActiveRun: false,
+              status: "done",
+            },
+          ],
+        };
+      });
+      const host = createHost();
+      host.sessionKey = "agent:qa:main";
+      host.chatRunId = "run-stale";
 
-    handleGatewayEvent(host, {
-      type: "event",
-      event: "session.message",
-      payload: { sessionKey: "agent:qa:main" },
-      seq: 1,
-    });
+      handleGatewayEvent(host, {
+        type: "event",
+        event: "session.message",
+        payload: { sessionKey: "agent:qa:main" },
+        seq: 1,
+      });
 
-    await Promise.resolve();
-    await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(1_500);
+      await Promise.resolve();
+      await Promise.resolve();
 
-    expect(host.chatRunId).toBeNull();
-    expect((host as typeof host & { chatRunStatus?: unknown }).chatRunStatus).toMatchObject({
-      phase: "done",
-      runId: "run-stale",
-      sessionKey: "agent:qa:main",
-    });
-    expect(clearPendingQueueItemsForRunMock).toHaveBeenCalledWith(host, "run-stale");
-    expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
-    expect(loadChatHistoryMock).toHaveBeenCalledWith(host);
-    expect(flushChatQueueForEventMock).toHaveBeenCalledWith(host);
+      expect(host.chatRunId).toBeNull();
+      expect((host as typeof host & { chatRunStatus?: unknown }).chatRunStatus).toMatchObject({
+        phase: "done",
+        runId: "run-stale",
+        sessionKey: "agent:qa:main",
+      });
+      expect(clearPendingQueueItemsForRunMock).toHaveBeenCalledWith(host, "run-stale");
+      expect(loadChatHistoryMock).toHaveBeenCalledTimes(1);
+      expect(loadChatHistoryMock).toHaveBeenCalledWith(host);
+      expect(flushChatQueueForEventMock).toHaveBeenCalledWith(host);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("waits for an in-flight sessions refresh before replaying deferred history", async () => {
@@ -857,6 +911,7 @@ describe("handleGatewayEvent session.message", () => {
         seq: 1,
       });
 
+      await vi.advanceTimersByTimeAsync(1_500);
       await Promise.resolve();
       expect(loadChatHistoryMock).not.toHaveBeenCalled();
 

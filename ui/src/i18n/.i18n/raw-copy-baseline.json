@@ -446,6 +446,104 @@
       "count": 1,
       "kind": "object-property",
       "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "答案就绪度"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "实体关联"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "搜索覆盖度"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "信息可信度"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "llms.txt 指令"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Schema.org 标记"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "买家在问 'OpenBrand vs 其他方案'"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "针对 'Pre-seed SaaS 创始人' 的核心痛点分析"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Entity Graphs for LLM Discovery"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Global Expansion via AI Visibility"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "How to optimize AI overviews?"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Optimizing Semantic SEO for SaaS..."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "The Future of AI-Driven Brand Gov..."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Why Entity-Based SEO is the Future"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
       "path": "ui/src/ui/navigation.ts",
       "text": "agent"
     },
@@ -3976,6 +4074,55 @@
       "name": "text",
       "path": "ui/src/ui/views/dreaming.ts",
       "text": "Z"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-assessment.ts",
+      "text": "OpenBrand"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-brand-story.ts",
+      "text": "Audience:"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-brand-story.ts",
+      "text": "Entity:"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-brand-story.ts",
+      "text": "OpenBrand"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-brand-story.ts",
+      "text": "Type:"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-output-center.ts",
+      "text": "OpenBrand"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo.ts",
+      "text": "OpenBrand"
     },
     {
       "count": 1,
