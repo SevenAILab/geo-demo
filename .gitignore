@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Package-manager local state
+.pnpm-store/
+
+# Build outputs
+dist/
+dist-runtime/
+
+# Local artifacts and caches
+.artifacts/
+coverage/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment files
+.env
+.env.*
+!.env.example
