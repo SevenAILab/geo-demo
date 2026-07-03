@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -201,6 +202,60 @@ export function controlUiBrowserOnlySharedModuleAliases(): Plugin {
   };
 }
 
+type DevGatewayNativeAuth = {
+  gatewayUrl?: string;
+  token?: string;
+  password?: string;
+};
+
+function resolveOpenClawConfigPath(): string {
+  const explicit = process.env.OPENCLAW_CONFIG_PATH?.trim();
+  if (explicit) {
+    return explicit;
+  }
+  const home = process.env.OPENCLAW_HOME?.trim() || os.homedir();
+  return path.join(home, ".openclaw", "openclaw.json");
+}
+
+/** Loopback dev only: hydrate Control UI auth from env or local openclaw.json. */
+export function resolveDevGatewayNativeAuth(): DevGatewayNativeAuth | null {
+  const envToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
+  if (envToken) {
+    return { token: envToken };
+  }
+  const envPassword = process.env.OPENCLAW_GATEWAY_PASSWORD?.trim();
+  if (envPassword) {
+    return { password: envPassword };
+  }
+  try {
+    const configPath = resolveOpenClawConfigPath();
+    if (!fs.existsSync(configPath)) {
+      return null;
+    }
+    const raw = fs.readFileSync(configPath, "utf8");
+    const cfg = JSON.parse(raw) as {
+      gateway?: { auth?: { mode?: string; token?: string; password?: string } };
+    };
+    const auth = cfg.gateway?.auth;
+    if (!auth) {
+      return null;
+    }
+    const mode = auth.mode ?? (auth.token ? "token" : auth.password ? "password" : undefined);
+    if (mode === "password") {
+      const password = auth.password?.trim();
+      return password ? { password } : null;
+    }
+    const token = auth.token?.trim();
+    return token ? { token } : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderDevNativeAuthScript(auth: DevGatewayNativeAuth): string {
+  return `<script>window.__OPENCLAW_NATIVE_CONTROL_AUTH__=${JSON.stringify(auth)};</script>`;
+}
+
 function controlUiServiceWorkerBuildIdPlugin(buildId: string): Plugin {
   return {
     name: "control-ui-service-worker-build-id",
@@ -267,7 +322,25 @@ export default function controlUiViteConfig(): UserConfig {
       controlUiServiceWorkerBuildIdPlugin(controlUiBuildId),
       {
         name: "control-ui-dev-stubs",
+        apply: "serve",
+        transformIndexHtml(html) {
+          const auth = resolveDevGatewayNativeAuth();
+          if (!auth) {
+            return html;
+          }
+          return html.replace("<head>", `<head>\n    ${renderDevNativeAuthScript(auth)}`);
+        },
         configureServer(server) {
+          const auth = resolveDevGatewayNativeAuth();
+          if (auth?.token) {
+            server.config.logger.info(
+              "[control-ui] dev auth: gateway token loaded from local config/env",
+            );
+          } else if (auth?.password) {
+            server.config.logger.info(
+              "[control-ui] dev auth: gateway password loaded from local config/env",
+            );
+          }
           server.middlewares.use("/__openclaw/control-ui-config.json", (_req, res) => {
             res.setHeader("Content-Type", "application/json");
             res.end(

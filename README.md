@@ -6,6 +6,8 @@
 pnpm ui:dev
 pnpm gateway:watch:raw
 
+openclaw gateway run
+
 # 安装
 pnpm install
 #  Gateway 主机上生成：
