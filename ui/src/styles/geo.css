@@ -521,6 +521,14 @@
   min-height: 0;
 }
 
+.geo-chat-pane__body .chat-workbench {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.geo-chat-pane__body .chat-workspace-rail {
+  display: none;
+}
+
 @media (max-width: 960px) {
   .geo-landing__nav-inner {
     grid-template-columns: 1fr auto;

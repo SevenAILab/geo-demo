@@ -892,7 +892,25 @@ type EmbeddedChatRenderContext = {
   requestHostUpdate?: () => void;
 };
 
-function renderEmbeddedChat(state: AppViewState, ctx: EmbeddedChatRenderContext) {
+function renderEmbeddedChat(
+  state: AppViewState,
+  ctx: EmbeddedChatRenderContext,
+  options?: { hideWorkspaceFiles?: boolean },
+) {
+  const workspaceFiles = options?.hideWorkspaceFiles
+    ? undefined
+    : {
+        agentId: ctx.chatAgentId,
+        list:
+          ctx.chatWorkspaceFiles.list?.agentId === ctx.chatAgentId
+            ? ctx.chatWorkspaceFiles.list
+            : null,
+        loading: ctx.chatWorkspaceFiles.loading,
+        error: ctx.chatWorkspaceFiles.error,
+        activeName: ctx.chatWorkspaceFiles.activeName,
+        onRefresh: ctx.refreshChatWorkspaceFiles,
+        onOpenFile: ctx.openChatWorkspaceFile,
+      };
   return renderChat({
     sessionKey: state.sessionKey,
     onSessionKeyChange: (next) => {
@@ -929,18 +947,7 @@ function renderEmbeddedChat(state: AppViewState, ctx: EmbeddedChatRenderContext)
     onDismissError: () => dismissChatError(state),
     sessions: state.sessionsResult,
     composerControls: renderGuardedChatControls(state),
-    workspaceFiles: {
-      agentId: ctx.chatAgentId,
-      list:
-        ctx.chatWorkspaceFiles.list?.agentId === ctx.chatAgentId
-          ? ctx.chatWorkspaceFiles.list
-          : null,
-      loading: ctx.chatWorkspaceFiles.loading,
-      error: ctx.chatWorkspaceFiles.error,
-      activeName: ctx.chatWorkspaceFiles.activeName,
-      onRefresh: ctx.refreshChatWorkspaceFiles,
-      onOpenFile: ctx.openChatWorkspaceFile,
-    },
+    workspaceFiles,
     autoExpandToolCalls: false,
     onRefresh: () => {
       state.chatSideResult = null;
@@ -2126,7 +2133,7 @@ export function renderApp(state: AppViewState) {
     resetToolsEffectiveState(state);
   };
   if (
-    (isChat || isGeoAnalysis) &&
+    isChat &&
     state.connected &&
     state.agentsList &&
     !chatWorkspaceFiles.loading &&
@@ -2589,7 +2596,7 @@ export function renderApp(state: AppViewState) {
                 previewBlocked: state.geoPreviewBlocked,
                 analysisChatSlot:
                   state.geoPhase === "analysis"
-                    ? renderEmbeddedChat(state, embeddedChatContext)
+                    ? renderEmbeddedChat(state, embeddedChatContext, { hideWorkspaceFiles: true })
                     : undefined,
                 onSiteUrlChange: (next) => {
                   state.geoSiteUrl = next;
