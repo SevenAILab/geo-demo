@@ -49,3 +49,18 @@ Thumbs.db
 Desktop.ini
 .idea/
 .history
+
+# Runtime databases and agent state
+agents/
+
+# UI build outputs and coverage
+ui/dist/
+ui/coverage/
+
+# UI caches and tool outputs
+ui/.eslintcache
+ui/.parcel-cache/
+ui/.rollup.cache/
+ui/.turbo/
+ui/playwright-report/
+ui/test-results/
