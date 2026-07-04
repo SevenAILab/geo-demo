@@ -3,7 +3,7 @@ import type { GeoVisibilityTrendPoint } from "../geo-report.ts";
 
 const CHART_WIDTH = 320;
 const CHART_HEIGHT = 140;
-const PADDING = { top: 10, right: 12, bottom: 28, left: 44 };
+const PADDING = { top: 10, right: 12, bottom: 28, left: 32 };
 const AXIS_FILL = "#94a3b8";
 const GRID_STROKE = "#e2e8f0";
 
@@ -80,7 +80,7 @@ export function renderVisibilityTrendChart(
       <svg
         class="geo-assessment-v2__chart-svg"
         viewBox="0 0 ${CHART_WIDTH} ${CHART_HEIGHT}"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMinYMid meet"
         overflow="visible"
         aria-hidden="true"
       >
@@ -99,9 +99,9 @@ export function renderVisibilityTrendChart(
               />
               <text
                 class="geo-assessment-v2__chart-label"
-                x="${PADDING.left - 8}"
+                x="0"
                 y="${y}"
-                text-anchor="end"
+                text-anchor="start"
                 dominant-baseline="middle"
                 fill="${AXIS_FILL}"
               >

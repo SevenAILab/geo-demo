@@ -2708,50 +2708,69 @@
 }
 
 .geo-assessment-v2__ranking-row--custom {
-  width: 100%;
-  padding: 10px 12px;
-  font: inherit;
-  color: inherit;
-  text-align: inherit;
-  appearance: none;
-  cursor: pointer;
-  background: transparent;
   border: 1px dashed rgba(15, 23, 42, 0.12);
-  border-radius: 10px;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
 }
 
-.geo-assessment-v2__ranking-row--custom:focus-visible {
-  outline: 2px solid rgba(124, 58, 237, 0.45);
-  outline-offset: 2px;
+.geo-assessment-v2__ranking-badge--empty {
+  background: rgba(15, 23, 42, 0.06);
+  color: #94a3b8;
 }
 
-.geo-assessment-v2__ranking-row--custom:hover {
-  border-color: rgba(124, 58, 237, 0.35);
-  background: rgba(124, 58, 237, 0.04);
-}
-
-.geo-assessment-v2__competitor-modal {
-  color: #0f172a;
-}
-
-.geo-assessment-v2__competitor-field {
-  margin-top: 14px;
-}
-
-.geo-assessment-v2__ranking-custom {
-  color: #64748b;
-}
-
-.geo-assessment-v2__ranking-empty {
-  display: inline-block;
-  width: 48px;
-  height: 28px;
+.geo-assessment-v2__custom-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 6px;
   background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.geo-assessment-v2__custom-input::placeholder {
+  color: #94a3b8;
+}
+
+.geo-assessment-v2__custom-input:focus {
+  outline: none;
+  border-color: rgba(124, 58, 237, 0.45);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+}
+
+.geo-assessment-v2__ranking-score--input {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.geo-assessment-v2__custom-score-input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+
+.geo-assessment-v2__custom-score-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.geo-assessment-v2__custom-score-input:focus {
+  outline: none;
+  border-color: rgba(124, 58, 237, 0.45);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+}
+
+.geo-assessment-v2__custom-score-suffix {
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .geo-assessment-v2__gaps {

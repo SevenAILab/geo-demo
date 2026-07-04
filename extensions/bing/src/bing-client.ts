@@ -17,6 +17,10 @@ import {
 const DEFAULT_BING_BASE_URL = "https://cn.bing.com/search";
 const DEFAULT_TIMEOUT_SECONDS = 30;
 const DEFAULT_MARKET = "zh-CN";
+// cn.bing.com and www.bing.com redirect to each other; keep both under one allowlist.
+const BING_SEARCH_SSRF_POLICY = {
+  hostnameAllowlist: ["*.bing.com"],
+} as const;
 
 const BING_SEARCH_CACHE = new Map<
   string,
@@ -126,6 +130,7 @@ export async function runBingSearch(params: {
     {
       url: url.toString(),
       timeoutSeconds,
+      policy: BING_SEARCH_SSRF_POLICY,
       init: {
         method: "GET",
         headers: {

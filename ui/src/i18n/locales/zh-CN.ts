@@ -575,6 +575,8 @@ export const zh_CN: TranslationMap = {
       yourRanking: "暂无 - 您的排名",
       ownedTag: "拥有",
       customCompetitor: "自定义竞品",
+      customCompetitorNamePlaceholder: "输入竞品名称",
+      customCompetitorScorePlaceholder: "0-100",
       gapsToggle: "关键结构缺口分析 ({count})",
       currentPeriod: "当前期间",
       compareCompetitors: "比较竞争对手",

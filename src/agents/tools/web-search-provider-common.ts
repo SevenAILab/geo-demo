@@ -1,6 +1,7 @@
 import { normalizeLowercaseStringOrEmpty } from "@openclaw/normalization-core/string-coerce";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { normalizeResolvedSecretInputString } from "../../config/types.secrets.js";
+import type { SsrFPolicy } from "../../infra/net/ssrf.js";
 import { createLazyImportLoader } from "../../shared/lazy-promise.js";
 import { normalizeSecretInput } from "../../utils/normalize-secret-input.js";
 import {
@@ -88,6 +89,7 @@ export async function withTrustedWebSearchEndpoint<T>(
     timeoutSeconds: number;
     init: RequestInit;
     signal?: AbortSignal;
+    policy?: SsrFPolicy;
   },
   run: (response: Response) => Promise<T>,
 ): Promise<T> {
@@ -98,6 +100,7 @@ export async function withTrustedWebSearchEndpoint<T>(
       init: params.init,
       timeoutSeconds: params.timeoutSeconds,
       signal: params.signal,
+      policy: params.policy,
     },
     async ({ response }) => run(response),
   );
