@@ -4143,14 +4143,7 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/ui/views/geo-brand-story.ts",
-      "text": "Audience:"
-    },
-    {
-      "count": 1,
-      "kind": "html-text",
-      "name": "text",
-      "path": "ui/src/ui/views/geo-brand-story.ts",
-      "text": "Entity:"
+      "text": "i"
     },
     {
       "count": 1,
@@ -4163,14 +4156,14 @@
       "count": 1,
       "kind": "html-text",
       "name": "text",
-      "path": "ui/src/ui/views/geo-brand-story.ts",
-      "text": "Type:"
+      "path": "ui/src/ui/views/geo-output-center.ts",
+      "text": "OpenBrand"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
-      "path": "ui/src/ui/views/geo-output-center.ts",
+      "path": "ui/src/ui/views/geo-repair-pack.ts",
       "text": "OpenBrand"
     },
     {

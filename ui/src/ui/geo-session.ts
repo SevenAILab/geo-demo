@@ -46,6 +46,20 @@ function canBeginGeoSkillSession(host: GeoSessionHost): boolean {
   );
 }
 
+const GEO_SESSION_READY_POLL_MS = 100;
+const GEO_SESSION_READY_TIMEOUT_MS = 30_000;
+
+async function waitForGeoSkillSessionReady(host: GeoSessionHost): Promise<boolean> {
+  const deadline = Date.now() + GEO_SESSION_READY_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (canBeginGeoSkillSession(host)) {
+      return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, GEO_SESSION_READY_POLL_MS));
+  }
+  return canBeginGeoSkillSession(host);
+}
+
 export function phaseToSkillAction(phase: GeoPhase): GeoSkillAction | null {
   switch (phase) {
     case "assessment":
@@ -67,7 +81,7 @@ export async function beginGeoSkillSession(
   host: GeoSessionHost,
   action: GeoSkillAction,
 ): Promise<string | null> {
-  if (!canBeginGeoSkillSession(host)) {
+  if (!(await waitForGeoSkillSessionReady(host))) {
     return null;
   }
 

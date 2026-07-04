@@ -111,6 +111,52 @@ function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function extractBalancedJsonObject(textContent: string): unknown | null {
+  const start = textContent.indexOf("{");
+  if (start === -1) {
+    return null;
+  }
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < textContent.length; index += 1) {
+    const char = textContent[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(textContent.slice(start, index + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
 export function extractJsonFromText(textContent: string): unknown | null {
   const trimmed = textContent.trim();
   if (!trimmed) {
@@ -125,19 +171,25 @@ export function extractJsonFromText(textContent: string): unknown | null {
     try {
       return JSON.parse(block);
     } catch {
-      // try earlier blocks
+      const balanced = extractBalancedJsonObject(block);
+      if (balanced !== null) {
+        return balanced;
+      }
     }
   }
   const start = trimmed.indexOf("{");
   const end = trimmed.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) {
-    return null;
+  if (start !== -1 && end !== -1 && end > start) {
+    try {
+      return JSON.parse(trimmed.slice(start, end + 1));
+    } catch {
+      const balanced = extractBalancedJsonObject(trimmed);
+      if (balanced !== null) {
+        return balanced;
+      }
+    }
   }
-  try {
-    return JSON.parse(trimmed.slice(start, end + 1));
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 function parseMetric(raw: unknown): GeoReportMetric | null {
@@ -327,15 +379,41 @@ export function resolveValuePropLabels(story: GeoBrandStory): string[] {
   return labels;
 }
 
+function deriveBrandNameFromSiteUrl(siteUrl: string): string {
+  try {
+    const hostname = new URL(siteUrl).hostname.replace(/^www\./, "");
+    const label = hostname.split(".")[0] ?? "OpenBrand";
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  } catch {
+    return "OpenBrand";
+  }
+}
+
+export function enrichGeoBrandStory(
+  story: GeoBrandStory,
+  siteUrl?: string,
+): GeoBrandStory {
+  const trimmedUrl = siteUrl?.trim();
+  if (story.brandName.trim() || !trimmedUrl) {
+    return story;
+  }
+  const fallbackName = deriveBrandNameFromSiteUrl(trimmedUrl);
+  return {
+    ...story,
+    brandName: fallbackName,
+    aiPreview: {
+      ...story.aiPreview,
+      entity: story.aiPreview.entity.trim() || fallbackName,
+    },
+  };
+}
+
 export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
   const item = normalizeBrandStoryRaw(raw as Record<string, unknown>);
   const brandName = text(item.brandName);
-  if (!brandName) {
-    return null;
-  }
   const industry = text(item.industry);
   const valuePropOptions = parseValuePropOptions(item.valuePropOptions);
   const valueProps = parseValueProps(item.valueProps);
@@ -368,26 +446,46 @@ const BRAND_STORY_FIELD_ALIASES: Record<string, string> = {
   brand_name: "brandName",
   brand: "brandName",
   target_audience: "audience",
+  targetAudience: "audience",
   differentiators: "differentiator",
   ai_preview: "aiPreview",
+  value_propositions: "valuePropOptions",
+  valuePropositions: "valuePropOptions",
+  competitor_urls: "competitors",
+  competitorUrls: "competitors",
 };
+
+function normalizeValuePropOptionsRaw(raw: unknown): unknown {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return raw;
+  }
+  if (typeof raw[0] === "string") {
+    return raw.map((label, index) => ({
+      id: `vp-${index + 1}`,
+      label,
+      suggested: index === 0,
+    }));
+  }
+  return raw;
+}
 
 function normalizeBrandStoryRaw(raw: Record<string, unknown>): Record<string, unknown> {
   const normalized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(raw)) {
     const target = BRAND_STORY_FIELD_ALIASES[key] ?? key;
-    if (target === "aiPreview" && value && typeof value === "object" && !Array.isArray(value)) {
+    const nextValue = target === "valuePropOptions" ? normalizeValuePropOptionsRaw(value) : value;
+    if (target === "aiPreview" && nextValue && typeof nextValue === "object" && !Array.isArray(nextValue)) {
       const existing =
         normalized.aiPreview &&
         typeof normalized.aiPreview === "object" &&
         !Array.isArray(normalized.aiPreview)
           ? (normalized.aiPreview as Record<string, unknown>)
           : {};
-      normalized.aiPreview = { ...existing, ...(value as Record<string, unknown>) };
+      normalized.aiPreview = { ...existing, ...(nextValue as Record<string, unknown>) };
       continue;
     }
     if (!(target in normalized)) {
-      normalized[target] = value;
+      normalized[target] = nextValue;
     }
   }
   return normalized;
@@ -640,6 +738,7 @@ export type GeoSyncHost = {
   geoPhase?: string;
   geoStarting: boolean;
   geoSkillBusy?: boolean;
+  geoSiteUrl?: string;
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
   sessionKey?: string;
   geoReport: GeoReport | null;
@@ -700,7 +799,7 @@ function shouldPreserveReadySnapshot<T>(
 function sessionMatchesSkill(host: GeoSyncHost, action: GeoSkillAction): boolean {
   const expected = host.geoSessionKeys[action];
   if (!expected || !host.sessionKey) {
-    return true;
+    return false;
   }
   return host.sessionKey === expected;
 }
@@ -752,7 +851,12 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
   const skillBusy = Boolean(host.geoSkillBusy);
 
   if (shouldSyncSkill(host, "brandStory", "brandStory")) {
-    const story = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoBrandStoryJson);
+    const parsedStory = resolveParsedFromChat(
+      host.chatMessages,
+      host.chatStream,
+      parseGeoBrandStoryJson,
+    );
+    const story = parsedStory ? enrichGeoBrandStory(parsedStory, host.geoSiteUrl) : null;
     const preserveStory = shouldPreserveReadySnapshot(
       story,
       host.geoBrandStory,

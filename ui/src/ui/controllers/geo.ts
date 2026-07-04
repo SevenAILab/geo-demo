@@ -207,6 +207,13 @@ export function updateGeoBrandStoryValueProps(
   host.requestUpdate?.();
 }
 
+export function saveGeoBrandStoryDraft(host: GeoHost): void {
+  if (!host.geoBrandStory) {
+    return;
+  }
+  updateGeoRunFromHost(host);
+}
+
 export function backToGeoOutputCenter(host: GeoHost): void {
   host.geoPhase = "outputCenter";
   restoreGeoSession(host, "content");

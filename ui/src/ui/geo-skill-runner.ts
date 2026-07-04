@@ -1,5 +1,6 @@
 import { t } from "../i18n/index.ts";
-import { handleSendChat, type ChatHost } from "./app-chat.ts";
+import { handleSendChat, isChatBusy, type ChatHost } from "./app-chat.ts";
+import { loadChatHistory, type ChatState } from "./controllers/chat.ts";
 import {
   createDemoGeoBrandStory,
   createDemoGeoMonitoring,
@@ -9,6 +10,7 @@ import {
 import { scheduleGeoRunPersist, type GeoHistoryHost } from "./geo-history.ts";
 import {
   type GeoBrandStory,
+  type GeoDataStatus,
   type GeoSkillAction,
   type GeoSyncHost,
   resolveValuePropLabels,
@@ -104,6 +106,26 @@ export function buildGeoSkillPrompt(
   }
 }
 
+function setGeoSkillStatus(host: GeoSkillHost, action: GeoSkillAction, status: GeoDataStatus): void {
+  switch (action) {
+    case "assessment":
+      host.geoReportStatus = status;
+      break;
+    case "brandStory":
+      host.geoBrandStoryStatus = status;
+      break;
+    case "content":
+      host.geoOutputStatus = status;
+      break;
+    case "fixpack":
+      host.geoRepairPackStatus = status;
+      break;
+    case "monitoring":
+      host.geoMonitoringStatus = status;
+      break;
+  }
+}
+
 function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): void {
   switch (action) {
     case "assessment":
@@ -126,6 +148,22 @@ function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): voi
       break;
   }
   host.geoPendingSkill = null;
+}
+
+const GEO_SKILL_RUN_POLL_MS = 250;
+const GEO_SKILL_RUN_TIMEOUT_MS = 180_000;
+
+async function waitForSkillChatRun(host: GeoSkillHost, sessionKey: string): Promise<void> {
+  const deadline = Date.now() + GEO_SKILL_RUN_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (host.sessionKey !== sessionKey) {
+      return;
+    }
+    if (!isChatBusy(host)) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, GEO_SKILL_RUN_POLL_MS));
+  }
 }
 
 export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): Promise<boolean> {
@@ -156,6 +194,8 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
   try {
     const sessionKey = await beginGeoSkillSession(host as never, action);
     if (!sessionKey) {
+      host.geoPendingSkill = null;
+      setGeoSkillStatus(host, action, "error");
       return false;
     }
     const prompt = buildGeoSkillPrompt(action, {
@@ -164,6 +204,10 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
       brandStory: host.geoBrandStory,
     });
     await handleSendChat(host, prompt);
+    await waitForSkillChatRun(host, sessionKey);
+    if (host.sessionKey === sessionKey) {
+      await loadChatHistory(host as unknown as ChatState);
+    }
     syncGeoStateFromChat(host);
     maybePersistGeoRun(host);
     return true;
