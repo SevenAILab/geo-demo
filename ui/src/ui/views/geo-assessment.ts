@@ -11,6 +11,7 @@ import type {
 } from "../geo-report.ts";
 import { icons } from "../icons.ts";
 import { renderVisibilityTrendChart } from "./geo-assessment-chart.ts";
+import "./geo-assessment-ranking.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoAssessmentProps = {
@@ -176,38 +177,7 @@ function renderIndustrySection(report: GeoReport) {
           </div>
         </div>
         <div class="geo-assessment-v2__industry-ranking">
-          <h3 class="geo-assessment-v2__section-title">${t("geo.assessment.visibilityRanking")}</h3>
-          <p class="geo-assessment-v2__your-ranking">${industryAnalysis.yourRanking}</p>
-          <div class="geo-assessment-v2__ranking-table">
-            <div class="geo-assessment-v2__ranking-head">
-              <span>${t("geo.assessment.assetColumn")}</span>
-              <span>${t("geo.assessment.scoreColumn")}</span>
-            </div>
-            ${industryAnalysis.rankings.map(
-              (item, index) => html`
-                <div class="geo-assessment-v2__ranking-row">
-                  <span class="geo-assessment-v2__ranking-asset">
-                    <span class="geo-assessment-v2__ranking-index">${index + 1}</span>
-                    <span class="geo-assessment-v2__ranking-badge">${item.initial}</span>
-                    <span>${item.name}</span>
-                    ${item.owned
-                      ? html`<span class="geo-assessment-v2__owned-tag">${t("geo.assessment.ownedTag")}</span>`
-                      : nothing}
-                  </span>
-                  <span class="geo-assessment-v2__ranking-score">${item.score}%</span>
-                </div>
-              `,
-            )}
-            <div class="geo-assessment-v2__ranking-row geo-assessment-v2__ranking-row--custom">
-              <span class="geo-assessment-v2__ranking-asset">
-                <span class="geo-assessment-v2__ranking-index">${industryAnalysis.rankings.length + 1}</span>
-                <span class="geo-assessment-v2__ranking-custom">${t("geo.assessment.customCompetitor")}</span>
-              </span>
-              <span class="geo-assessment-v2__ranking-score">
-                <span class="geo-assessment-v2__ranking-empty"></span>
-              </span>
-            </div>
-          </div>
+          <geo-assessment-ranking .industryAnalysis=${industryAnalysis}></geo-assessment-ranking>
         </div>
       </div>
     </section>

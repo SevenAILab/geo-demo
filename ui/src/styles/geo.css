@@ -2441,9 +2441,18 @@
 }
 
 .geo-assessment-v2__industry-chart {
+  --geo-chart-title-size: 13px;
+  --geo-chart-value-size: 22px;
+  --geo-chart-meta-size: 11px;
+  --geo-chart-axis-size: 7.7px;
   display: grid;
   gap: 8px;
   min-width: 0;
+}
+
+.geo-assessment-v2__industry-chart .geo-assessment-v2__section-title {
+  font-size: var(--geo-chart-title-size);
+  font-weight: 600;
 }
 
 .geo-assessment-v2__section-title {
@@ -2467,13 +2476,13 @@
 }
 
 .geo-assessment-v2__chart-value strong {
-  font-size: 24px;
+  font-size: var(--geo-chart-value-size, 22px);
   color: #0f172a;
 }
 
 .geo-assessment-v2__chart-delta {
   color: #94a3b8;
-  font-size: 16px;
+  font-size: var(--geo-chart-meta-size, 11px);
 }
 
 .geo-assessment-v2__chart-svg {
@@ -2488,10 +2497,10 @@
   stroke-width: 1;
 }
 
-.geo-assessment-v2__chart-axis,
-.geo-assessment-v2__chart-date {
+.geo-assessment-v2__chart-label {
   fill: #94a3b8;
-  font-size: 10px;
+  font-size: var(--geo-chart-axis-size, 7.7px);
+  font-weight: 400;
 }
 
 .geo-assessment-v2__chart-line {
@@ -2518,7 +2527,7 @@
   align-items: center;
   gap: 6px;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: var(--geo-chart-meta-size, 11px);
 }
 
 .geo-assessment-v2__legend-item--active {
@@ -2600,8 +2609,37 @@
 }
 
 .geo-assessment-v2__ranking-row--custom {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  appearance: none;
+  cursor: pointer;
   background: transparent;
   border: 1px dashed rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.geo-assessment-v2__ranking-row--custom:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.45);
+  outline-offset: 2px;
+}
+
+.geo-assessment-v2__ranking-row--custom:hover {
+  border-color: rgba(124, 58, 237, 0.35);
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.geo-assessment-v2__competitor-modal {
+  color: #0f172a;
+}
+
+.geo-assessment-v2__competitor-field {
+  margin-top: 14px;
 }
 
 .geo-assessment-v2__ranking-custom {

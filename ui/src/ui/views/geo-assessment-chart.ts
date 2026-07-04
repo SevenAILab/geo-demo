@@ -22,8 +22,7 @@ function buildNiceYTicks(min: number, max: number, count = 4): number[] {
 }
 
 function formatTickLabel(value: number): string {
-  const rounded = Math.round(value * 10) / 10;
-  return Number.isInteger(rounded) ? `${rounded}%` : `${rounded.toFixed(1)}%`;
+  return `${(Math.round(value * 10) / 10).toFixed(1)}%`;
 }
 
 function formatTrendDate(date: string): string {
@@ -34,12 +33,8 @@ function formatTrendDate(date: string): string {
   return date;
 }
 
-function formatXLabel(point: GeoVisibilityTrendPoint, index: number): string {
-  const dateLabel = formatTrendDate(point.date);
-  if (index === 0) {
-    return `${point.value.toFixed(1)}% ${dateLabel}`;
-  }
-  return dateLabel;
+function formatXLabel(point: GeoVisibilityTrendPoint): string {
+  return formatTrendDate(point.date);
 }
 
 function buildLinePath(
@@ -103,12 +98,12 @@ export function renderVisibilityTrendChart(
                 stroke-width="1"
               />
               <text
-                class="geo-assessment-v2__chart-axis"
+                class="geo-assessment-v2__chart-label"
                 x="${PADDING.left - 8}"
-                y="${y + 4}"
+                y="${y}"
                 text-anchor="end"
+                dominant-baseline="middle"
                 fill="${AXIS_FILL}"
-                font-size="10"
               >
                 ${formatTickLabel(tick)}
               </text>
@@ -119,14 +114,14 @@ export function renderVisibilityTrendChart(
             const x = PADDING.left + (index / Math.max(points.length - 1, 1)) * plotW;
             return svg`
               <text
-                class="geo-assessment-v2__chart-date"
+                class="geo-assessment-v2__chart-label"
                 x="${x}"
-                y="${CHART_HEIGHT - 6}"
+                y="${CHART_HEIGHT - 10}"
                 text-anchor="middle"
+                dominant-baseline="middle"
                 fill="${AXIS_FILL}"
-                font-size="10"
               >
-                ${formatXLabel(point, index)}
+                ${formatXLabel(point)}
               </text>
             `;
           })}
