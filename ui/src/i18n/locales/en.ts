@@ -479,6 +479,10 @@ export const en: TranslationMap = {
       dismiss: "开始新的",
       restore: "恢复",
       score: "{score} 分",
+      delete: "删除",
+      deleteConfirm: "确认删除此记录？",
+      deleteYes: "确认",
+      deleteCancel: "取消",
       resumeBanner: "您有未完成的 GEO 分析（{url}），是否继续？",
       progress: {
         started: "已开始",

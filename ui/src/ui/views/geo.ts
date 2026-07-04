@@ -38,10 +38,14 @@ export type GeoLandingProps = {
   skillBusy: boolean;
   history: GeoRunSnapshot[];
   resumeRun: GeoRunSnapshot | null;
+  confirmingDeleteRunId: string | null;
   onSiteUrlChange: (next: string) => void;
   onStartExperience: () => void;
   onExitToConsole: () => void;
   onRestoreRun: (runId: string) => void;
+  onRequestDeleteRun: (runId: string) => void;
+  onConfirmDeleteRun: (runId: string) => void;
+  onCancelDeleteRun: () => void;
   onContinueResume: () => void;
   onDismissResume: () => void;
 };
@@ -78,23 +82,65 @@ export type GeoProps = GeoLandingProps &
     brandStoryDraftFlash: boolean;
   };
 
-function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string) => void) {
+type GeoHistoryItemProps = {
+  run: GeoRunSnapshot;
+  confirmingDelete: boolean;
+  onRestoreRun: (runId: string) => void;
+  onRequestDeleteRun: (runId: string) => void;
+  onConfirmDeleteRun: (runId: string) => void;
+  onCancelDeleteRun: () => void;
+};
+
+function renderGeoHistoryItem(props: GeoHistoryItemProps) {
+  const { run, confirmingDelete } = props;
   const score = run.report?.totalScore;
   return html`
-    <button type="button" class="geo-history__item" @click=${() => onRestoreRun(run.id)}>
-      <span class="geo-history__site">${formatGeoRunSiteLabel(run.siteUrl)}</span>
-      <span class="geo-history__meta">
-        <span class="geo-history__phase">${t(geoPhaseProgressLabel(run.phase))}</span>
-        <span class="geo-history__time">${formatRelativeTimestamp(run.updatedAt)}</span>
-        ${score != null
-          ? html`<span class="geo-history__score"
-              >${t("geo.history.score", {
-                score: String(score),
-              })}</span
-            >`
-          : nothing}
-      </span>
-    </button>
+    <div class="geo-history__item">
+      <button type="button" class="geo-history__body" @click=${() => props.onRestoreRun(run.id)}>
+        <span class="geo-history__site">${formatGeoRunSiteLabel(run.siteUrl)}</span>
+        <span class="geo-history__meta">
+          <span class="geo-history__phase">${t(geoPhaseProgressLabel(run.phase))}</span>
+          <span class="geo-history__time">${formatRelativeTimestamp(run.updatedAt)}</span>
+          ${score != null
+            ? html`<span class="geo-history__score"
+                >${t("geo.history.score", {
+                  score: String(score),
+                })}</span
+              >`
+            : nothing}
+        </span>
+      </button>
+      ${confirmingDelete
+        ? html`
+            <div class="geo-history__confirm">
+              <span class="geo-history__confirm-text">${t("geo.history.deleteConfirm")}</span>
+              <button
+                type="button"
+                class="geo-history__confirm-yes"
+                @click=${() => props.onConfirmDeleteRun(run.id)}
+              >
+                ${t("geo.history.deleteYes")}
+              </button>
+              <button
+                type="button"
+                class="geo-history__confirm-cancel"
+                @click=${props.onCancelDeleteRun}
+              >
+                ${t("geo.history.deleteCancel")}
+              </button>
+            </div>
+          `
+        : html`
+            <button
+              type="button"
+              class="geo-history__delete"
+              aria-label=${t("geo.history.delete")}
+              @click=${() => props.onRequestDeleteRun(run.id)}
+            >
+              ${icons.trash}
+            </button>
+          `}
+    </div>
   `;
 }
 
@@ -187,7 +233,16 @@ export function renderGeoLanding(props: GeoLandingProps) {
               <section class="geo-history" aria-label=${t("geo.history.title")}>
                 <h2 class="geo-history__title">${t("geo.history.title")}</h2>
                 <div class="geo-history__list">
-                  ${props.history.map((run) => renderGeoHistoryItem(run, props.onRestoreRun))}
+                  ${props.history.map((run) =>
+                    renderGeoHistoryItem({
+                      run,
+                      confirmingDelete: props.confirmingDeleteRunId === run.id,
+                      onRestoreRun: props.onRestoreRun,
+                      onRequestDeleteRun: props.onRequestDeleteRun,
+                      onConfirmDeleteRun: props.onConfirmDeleteRun,
+                      onCancelDeleteRun: props.onCancelDeleteRun,
+                    }),
+                  )}
                 </div>
               </section>
             `

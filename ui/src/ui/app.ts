@@ -289,6 +289,7 @@ export class OpenClawApp extends LitElement {
   @state() geoSessionKeys: Partial<Record<GeoSkillAction, string>> = {};
   @state() geoChatSidebarOpen = false;
   @state() geoHistoryRuns: GeoRunSnapshot[] = [];
+  @state() geoHistoryConfirmDeleteRunId: string | null = null;
   @state() geoActiveRunId: string | null = null;
   @state() geoResumeDismissed = false;
   @state() activityFilterText = "";

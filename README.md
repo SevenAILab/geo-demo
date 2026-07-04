@@ -18,6 +18,7 @@ pnpm openclaw gateway run
 openclaw onboard
 
 pnpm openclaw dashboard --no-open
+pnpm openclaw gateway stop
 
 
 局域网（需先停止已有 Gateway：`pnpm openclaw gateway stop`）

@@ -132,6 +132,7 @@ export type AppViewState = {
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
   geoChatSidebarOpen: boolean;
   geoHistoryRuns: GeoRunSnapshot[];
+  geoHistoryConfirmDeleteRunId: string | null;
   geoActiveRunId: string | null;
   geoResumeDismissed: boolean;
   activityFilterText: string;

@@ -255,6 +255,18 @@ export function clearGeoActiveRun(host: GeoHistoryHost): void {
   clearGeoFlowActive();
 }
 
+export function deleteGeoRun(host: GeoHistoryHost, runId: string): void {
+  const store = loadGeoHistoryStore(host.settings.gatewayUrl);
+  store.runs = store.runs.filter((run) => run.id !== runId);
+  if (store.activeRunId === runId) {
+    delete store.activeRunId;
+    host.geoActiveRunId = null;
+    clearGeoFlowActive();
+  }
+  persistStore(host, store);
+  host.requestUpdate?.();
+}
+
 export function isGeoRunIncomplete(run: GeoRunSnapshot): boolean {
   return run.phase !== "landing";
 }

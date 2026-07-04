@@ -1,0 +1,86 @@
+{
+  "totalScore": 18,
+  "rating": "weak",
+  "summary": "Merlord 是一个纯 SPA 构建的独立站，通过 llms.txt 为 AI 提供了结构化内容入口，但首页和子页面均以 JS 动态渲染，无服务端 HTML 内容可被爬虫/AI 解析，且缺乏任何 Schema.org 结构化数据标记。品牌在搜索引擎和 AI 引文来源中的可见度极低。",
+  "metrics": [
+    {
+      "id": "schema",
+      "label": "Schema.org",
+      "value": 5,
+      "statusLabel": "严重缺失 — 未发现任何 JSON-LD 结构化数据（Organization、Product、BreadcrumbList、FAQPage），搜索引擎与AI无法提取品牌实体信息"
+    },
+    {
+      "id": "entity",
+      "label": "实体连通性",
+      "value": 25,
+      "statusLabel": "弱 — llms.txt 提供了品牌名称、产品线、购买指南等结构化描述，但首页无社交链接（sameAs）、无权威外链，品牌名在搜索引擎中的索引记录几乎为零"
+    },
+    {
+      "id": "aiResponse",
+      "label": "AI 响应",
+      "value": 25,
+      "statusLabel": "弱 — 具备 llms.txt（含产品目录、购买指南、FAQ 等可引用内容），但站点为纯 SPA，所有页面在无 JS 环境下仅返回壳模板，AI 爬虫无法直接读取页面正文"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-01",
+      "title": "缺少 Schema.org JSON-LD 结构化数据",
+      "impact": "high",
+      "description": "首页及所有页面未输出任何 JSON-LD（Organization、Product、BreadcrumbList、FAQPage）。AI/GPT 等生成引擎无法可靠识别品牌实体、产品信息和层级结构，在回答淋浴房选购问题时极大概率忽略 Merlord 或仅引用 llms.txt 中有限信息。"
+    },
+    {
+      "id": "gap-02",
+      "title": "纯 SPA 架构导致爬虫和 AI 无法解析页面正文",
+      "impact": "high",
+      "description": "全站使用 JS 客户端渲染（Next.js/React），所有页面返回相同的最小 HTML 占位壳。搜索引擎爬虫和 AI 内容抓取工具（如 GPTBot、CCBot）若未执行 JS，仅能读到空模板，无法提取任何产品描述、价格、规格等可索引内容。"
+    },
+    {
+      "id": "gap-03",
+      "title": "缺少 robots.txt 和有效 sitemap.xml",
+      "impact": "medium",
+      "description": "robots.txt 和 sitemap.xml 均返回 SPA 首页 HTML（SPA 路由回退），而非标准文本格式。搜索引擎和 AI 爬虫无法获知站内页面路径，导致大量产品页和文章页面未被收录。即使 llms.txt 列出了页面链接，爬虫也无法通过 sitemap 确认页面变更频率和优先级。"
+    },
+    {
+      "id": "gap-04",
+      "title": "品牌实体缺乏外部权威引用",
+      "impact": "high",
+      "description": "在搜索中未发现 Merlord 在行业评测、家居博客、论坛或电商平台的第三方引用和 backlinks。AI 在评估品牌可信度时缺少外部信号支撑，影响了在生成式回复中的品牌提及概率。"
+    },
+    {
+      "id": "gap-05",
+      "title": "FAQ 内容未使用 FAQPage Schema 标记",
+      "impact": "medium",
+      "description": "llms.txt 提及了 FAQ 页面，但页面为 SPA 渲染，且未使用 FAQPage + Question + Answer 的 JSON-LD 标记。AI 无法结构化解构 FAQ 内容用于直接引用回答，也失去在 Google 等搜索中获得精选摘要的机会。"
+    },
+    {
+      "id": "gap-06",
+      "title": "价值主张和品牌差异化缺乏结构化表达",
+      "impact": "medium",
+      "description": "llms.txt 中提到了「工厂直销」「免费全美配送」「10年质保」「AI 设计工作室」等差异化信息，但在首页和产品页中未以事实块（fact blocks）或结构化 Q&A 形式呈现，AI 难以定位和引用这些核心卖点。"
+    },
+    {
+      "id": "gap-07",
+      "title": "缺少竞品对比和行业洞察内容",
+      "impact": "low",
+      "description": "站内购买指南提供了规格选择内容（如低铁玻璃 vs 普通、厚度对比等），但缺少与 DreamLine、Basco、Delta 等主流竞品的直接对比。AI 在生成「最佳淋浴房品牌对比」类回答时缺乏可引用的 Merlord 竞品分析材料。"
+    }
+  ],
+  "industryAnalysis": {
+    "currentVisibility": 18,
+    "yourRanking": "#5 - 您的排名",
+    "trend": [
+      { "date": "1/26", "value": 12 },
+      { "date": "3/26", "value": 14 },
+      { "date": "5/26", "value": 16 },
+      { "date": "7/26", "value": 18 }
+    ],
+    "rankings": [
+      { "id": "dreamline", "initial": "D", "name": "DreamLine", "score": 68, "owned": false },
+      { "id": "delta", "initial": "D", "name": "Delta Faucet", "score": 62, "owned": false },
+      { "id": "basco", "initial": "B", "name": "Basco", "score": 55, "owned": false },
+      { "id": "vigo", "initial": "V", "name": "Vigo Industries", "score": 42, "owned": false },
+      { "id": "owned", "initial": "M", "name": "Merlord", "score": 18, "owned": true }
+    ]
+  }
+}
