@@ -82,9 +82,9 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
         <button type="button" class="btn btn--sm" @click=${props.onBack}>
           ${t("geo.brandStory.backToAssessment")}
         </button>
-        <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
-          ${t("geo.backToConsole")}
-        </button>
+        // <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
+        //   ${t("geo.backToConsole")}
+        // </button>
       </div>
     </header>
   `;

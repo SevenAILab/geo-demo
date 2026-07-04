@@ -98,9 +98,9 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
         <button type="button" class="btn btn--sm" @click=${props.onBack}>
           ${t("geo.monitoringPanel.backToOutputCenter")}
         </button>
-        <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
-          ${t("geo.backToConsole")}
-        </button>
+        // <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
+        //   ${t("geo.backToConsole")}
+        // </button>
       </div>
     </header>
   `;

@@ -196,17 +196,13 @@ export function renderGeoLanding(props: GeoLandingProps) {
               </section>
             `
           : nothing}
-<<<<<<< HEAD
 
-
-=======
->>>>>>> 9fc13f82b316477ef7efec7f0947ed0f0645fe16
       </main>
 
       <footer class="geo-landing__footer">
-        <button type="button" class="geo-landing__console-link" @click=${props.onExitToConsole}>
-          ${t("geo.backToConsole")}
-        </button>
+        // <button type="button" class="geo-landing__console-link" @click=${props.onExitToConsole}>
+        //   ${t("geo.backToConsole")}
+        // </button>
         <p class="geo-landing__footer-note">${t("geo.landing.footerNote")}</p>
       </footer>
     </div>

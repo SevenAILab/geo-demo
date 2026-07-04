@@ -106,9 +106,9 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
         <button type="button" class="btn btn--sm" @click=${props.onBack}>
           ${t("geo.outputCenter.backToBrandStory")}
         </button>
-        <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
-          ${t("geo.backToConsole")}
-        </button>
+        // <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
+        //   ${t("geo.backToConsole")}
+        // </button>
       </div>
     </header>
   `;
