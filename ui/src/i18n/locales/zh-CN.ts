@@ -550,7 +550,7 @@ export const zh_CN: TranslationMap = {
       fixpackPrompt:
         "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成可粘贴的 JSON-LD 与 llms.txt，只描述可见事实。\n\n在回复末尾输出唯一一个 JSON 代码块，含 jsonLd 与 llmsTxt 字符串字段，严格符合 skills/geo-fixpack 输出契约。\n\nllmsTxt 中的品牌事实段落使用简体中文；# Instructions for LLMs 等规范标题可保留英文。JSON 中其他面向用户的字符串字段必须使用简体中文。",
       monitoringPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、文章预览。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。\n\nJSON 中所有面向用户的字符串字段（含 dimensions.label、topics.title、recentPublishes.title/ago、articlePreview）必须使用简体中文；枚举/id 等技术字段保持英文。",
+        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论（含 references/dimensions.md 与 references/scores.json）。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n修复包（若已生成）：\n```json\n{repairPackJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、最近发布摘要、文章预览。\n\n请依据体检 gaps 与修复包状态计算各维 value 与 readinessDelta（相对体检 totalScore 的差值说明）。topics 与 articlePreview 必须引用品牌故事中的品牌名、竞品与差异化，禁止泛化占位。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。无需写入文件。\n\nJSON 中所有面向用户的字符串字段（含 dimensions.label、topics.title、recentPublishes.title/ago、articlePreview、readinessDelta）必须使用简体中文；枚举/id 等技术字段保持英文。",
     },
     assessment: {
       badge: "体检报告",
@@ -1638,7 +1638,7 @@ export const zh_CN: TranslationMap = {
     },
     jobs: {
       title: "任务列表",
-      subtitle: "网关中存储的所有定时任务。",
+      subtitle: "网关中存储的所有定时任务���",
       shownOf: "显示 {shown} / 共 {total}",
       searchJobs: "搜索任务",
       searchPlaceholder: "名称、描述或代理",

@@ -2,7 +2,7 @@
   "gateway": {
     "mode": "local",
     "controlUi": {
-      "geoDevSkipSkillWait": true,
+      "geoDevSkipSkillWait": false,
       "geoPersistHistory": true
     }
   }
