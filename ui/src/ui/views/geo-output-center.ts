@@ -29,7 +29,11 @@ function resolveAssets(output: GeoOutputCenter | null, status: GeoDataStatus): G
   return [];
 }
 
-function renderAssetCard(asset: GeoOutputAsset) {
+function renderAssetCard(
+  asset: GeoOutputAsset,
+  onOptimize: () => void,
+  disabled: boolean,
+) {
   const typeLabel =
     asset.type === "article"
       ? t("geo.outputCenter.typeArticle")
@@ -48,7 +52,12 @@ function renderAssetCard(asset: GeoOutputAsset) {
         </span>
       </div>
       <h3 class="geo-output-card__title">${asset.title}</h3>
-      <button type="button" class="btn btn--sm geo-output-card__btn" disabled>
+      <button
+        type="button"
+        class="btn btn--sm geo-output-card__btn"
+        ?disabled=${disabled}
+        @click=${onOptimize}
+      >
         ${t("geo.outputCenter.optimize")}
       </button>
     </article>
@@ -75,9 +84,6 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
       </div>
       <div class="geo-page__header-actions">
         <span class="geo-page__pill">${t("geo.outputCenter.activityBadge")}</span>
-        <button type="button" class="btn btn--sm" ?disabled=${loading} @click=${props.onOpenRepairPack}>
-          ${t("geo.outputCenter.technicalFix")}
-        </button>
         <button
           type="button"
           class="btn btn--sm"
@@ -117,7 +123,9 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
         <p class="geo-output-center__subtitle">${t("geo.outputCenter.subtitle")}</p>
         <div class="geo-output-center__grid">
           ${assets.length > 0
-            ? assets.map((asset) => renderAssetCard(asset))
+            ? assets.map((asset) =>
+                renderAssetCard(asset, props.onOpenRepairPack, loading),
+              )
             : html`<p class="geo-phase-empty">${t("geo.skills.loading")}</p>`}
         </div>
       </main>
@@ -126,6 +134,14 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
           <h2 class="geo-side-card__title">${t("geo.outputCenter.contextRules")}</h2>
           <p class="geo-side-card__hint">${brandVoice}</p>
           <p class="geo-side-card__hint">${constraints}</p>
+          <button
+            type="button"
+            class="geo-page__cta geo-page__cta--block"
+            ?disabled=${loading}
+            @click=${props.onOpenRepairPack}
+          >
+            ${t("geo.outputCenter.optimizeAll")}
+          </button>
           <button type="button" class="geo-page__cta geo-page__cta--block" disabled>
             ${t("geo.outputCenter.deployLlms")}
           </button>

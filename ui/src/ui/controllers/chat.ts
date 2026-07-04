@@ -28,13 +28,17 @@ import {
   isMissingOperatorReadScopeError,
 } from "./scope-errors.ts";
 import { syncGeoStateFromChat, type GeoSyncHost } from "../geo-parsers.ts";
+import { scheduleGeoRunPersist, type GeoHistoryHost } from "../geo-history.ts";
 
 function maybeSyncGeoState(state: ChatState): void {
-  const host = state as ChatState & Partial<GeoSyncHost>;
+  const host = state as ChatState & Partial<GeoSyncHost> & Partial<GeoHistoryHost>;
   if (!host.geoPhase || host.geoPhase === "landing") {
     return;
   }
   syncGeoStateFromChat(host as GeoSyncHost);
+  if (host.geoActiveRunId) {
+    scheduleGeoRunPersist(host as GeoHistoryHost);
+  }
 }
 
 const SILENT_REPLY_PATTERN = /^\s*NO_REPLY\s*$/;

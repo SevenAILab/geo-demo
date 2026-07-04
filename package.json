@@ -1853,6 +1853,7 @@
     "tui:pty:test:watch:local": "node --import tsx scripts/dev/tui-pty-test-watch.ts --mode local",
     "ui:build": "node scripts/ui.js build",
     "ui:dev": "node scripts/ui.js dev",
+    "ui:dev:build": "node scripts/ui.js dev-build",
     "ui:i18n:check": "node --import tsx scripts/control-ui-i18n.ts check",
     "ui:i18n:report": "node --import tsx scripts/control-ui-i18n-report.ts",
     "ui:i18n:sync": "node --import tsx scripts/control-ui-i18n.ts sync --write",

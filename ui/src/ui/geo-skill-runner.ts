@@ -1,10 +1,12 @@
 import { t } from "../i18n/index.ts";
 import { handleSendChat, type ChatHost } from "./app-chat.ts";
+import { scheduleGeoRunPersist, type GeoHistoryHost } from "./geo-history.ts";
 import type { GeoReport } from "./geo-report.ts";
 import {
   type GeoBrandStory,
   type GeoSkillAction,
   type GeoSyncHost,
+  resolveValuePropLabels,
   syncGeoStateFromChat,
 } from "./geo-parsers.ts";
 import { beginGeoSkillSession } from "./geo-session.ts";
@@ -18,14 +20,33 @@ export const GEO_SKILL_PATHS: Record<GeoSkillAction, string> = {
 };
 
 export type GeoSkillHost = GeoSyncHost &
-  ChatHost & {
+  ChatHost &
+  Partial<GeoHistoryHost> & {
     geoSiteUrl: string;
     geoSkillBusy: boolean;
     requestUpdate?: () => void;
   };
 
+function maybePersistGeoRun(host: GeoSkillHost): void {
+  if (host.geoActiveRunId) {
+    scheduleGeoRunPersist(host as GeoHistoryHost);
+  }
+}
+
 function jsonBlock(value: unknown): string {
   return JSON.stringify(value, null, 2);
+}
+
+function brandStoryForPrompt(story: GeoBrandStory): Record<string, unknown> {
+  return {
+    brandName: story.brandName,
+    industry: story.industry,
+    valueProps: resolveValuePropLabels(story),
+    audience: story.audience,
+    differentiator: story.differentiator,
+    competitors: story.competitors,
+    aiPreview: story.aiPreview,
+  };
 }
 
 export function buildGeoSkillPrompt(
@@ -38,7 +59,7 @@ export function buildGeoSkillPrompt(
 ): string {
   const skillPath = GEO_SKILL_PATHS[action];
   const reportJson = context.report ? jsonBlock(context.report) : "（无）";
-  const brandJson = context.brandStory ? jsonBlock(context.brandStory) : "（无）";
+  const brandJson = context.brandStory ? jsonBlock(brandStoryForPrompt(context.brandStory)) : "（无）";
 
   switch (action) {
     case "assessment":
@@ -97,10 +118,12 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
     });
     await handleSendChat(host, prompt);
     syncGeoStateFromChat(host);
+    maybePersistGeoRun(host);
     return true;
   } finally {
     host.geoSkillBusy = false;
     syncGeoStateFromChat(host);
+    maybePersistGeoRun(host);
     host.requestUpdate?.();
   }
 }

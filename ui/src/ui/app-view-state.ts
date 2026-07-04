@@ -1,4 +1,5 @@
 import type { ActivityEntry, ActivityStatus } from "./activity-model.ts";
+import type { GeoRunSnapshot } from "./geo-history.ts";
 import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
 import type {
   GeoBrandStory,
@@ -128,6 +129,9 @@ export type AppViewState = {
   geoMonitoringStatus: GeoDataStatus;
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
   geoChatSidebarOpen: boolean;
+  geoHistoryRuns: GeoRunSnapshot[];
+  geoActiveRunId: string | null;
+  geoResumeDismissed: boolean;
   activityFilterText: string;
   activityStatusFilters: Record<ActivityStatus, boolean>;
   activityToolFilter: string;

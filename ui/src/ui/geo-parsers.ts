@@ -5,10 +5,20 @@ export type GeoDataStatus = "idle" | "loading" | "ready" | "error";
 
 export type GeoSkillAction = "assessment" | "brandStory" | "content" | "fixpack" | "monitoring";
 
+export const GEO_VALUE_PROP_OTHER_ID = "__other__";
+
+export type GeoValuePropOption = {
+  id: string;
+  label: string;
+  suggested?: boolean;
+};
+
 export type GeoBrandStory = {
   brandName: string;
   industry: string;
-  valueProp: string;
+  valuePropOptions: GeoValuePropOption[];
+  valueProps: string[];
+  valuePropOther?: string;
   audience: string;
   differentiator: string;
   competitors: string[];
@@ -175,6 +185,53 @@ export function parseGeoReportJson(raw: unknown): GeoReport | null {
   };
 }
 
+function parseValuePropOption(raw: unknown): GeoValuePropOption | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const id = text(item.id);
+  const label = text(item.label);
+  if (!id || !label) {
+    return null;
+  }
+  return {
+    id,
+    label,
+    suggested: item.suggested === true ? true : undefined,
+  };
+}
+
+function parseValuePropOptions(raw: unknown): GeoValuePropOption[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.map(parseValuePropOption).filter((option): option is GeoValuePropOption => option !== null);
+}
+
+function parseValueProps(raw: unknown): string[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0);
+}
+
+export function resolveValuePropLabels(story: GeoBrandStory): string[] {
+  const labels: string[] = [];
+  for (const id of story.valueProps) {
+    if (id === GEO_VALUE_PROP_OTHER_ID) {
+      const other = text(story.valuePropOther);
+      if (other) {
+        labels.push(other);
+      }
+      continue;
+    }
+    const option = story.valuePropOptions.find((entry) => entry.id === id);
+    labels.push(option?.label ?? id);
+  }
+  return labels;
+}
+
 export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -185,7 +242,9 @@ export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
     return null;
   }
   const industry = text(item.industry);
-  const valueProp = text(item.valueProp);
+  const valuePropOptions = parseValuePropOptions(item.valuePropOptions);
+  const valueProps = parseValueProps(item.valueProps);
+  const valuePropOther = text(item.valuePropOther) || undefined;
   const audience = text(item.audience);
   const differentiator = text(item.differentiator);
   const competitors = Array.isArray(item.competitors)
@@ -199,7 +258,9 @@ export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
   return {
     brandName,
     industry,
-    valueProp,
+    valuePropOptions,
+    valueProps,
+    valuePropOther,
     audience,
     differentiator,
     competitors,
@@ -210,8 +271,6 @@ export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
 const BRAND_STORY_FIELD_ALIASES: Record<string, string> = {
   brand_name: "brandName",
   brand: "brandName",
-  value_proposition: "valueProp",
-  value_prop: "valueProp",
   target_audience: "audience",
   differentiators: "differentiator",
   ai_preview: "aiPreview",
@@ -237,10 +296,16 @@ function normalizeBrandStoryRaw(raw: Record<string, unknown>): Record<string, un
 }
 
 export function isGeoBrandStoryComplete(story: GeoBrandStory | null): boolean {
-  if (!story) {
+  if (!story || !story.differentiator) {
     return false;
   }
-  return Boolean(story.valueProp && story.differentiator);
+  if (story.valueProps.length === 0) {
+    return false;
+  }
+  if (story.valueProps.includes(GEO_VALUE_PROP_OTHER_ID)) {
+    return Boolean(text(story.valuePropOther));
+  }
+  return true;
 }
 
 function resolveScoreTone(raw: unknown, score: number): GeoOutputAsset["scoreTone"] | null {
@@ -480,6 +545,29 @@ function resolveStatus(hasData: boolean, runActive: boolean, starting: boolean, 
   return prev === "ready" ? "ready" : "error";
 }
 
+export function isGeoStepReady(host: GeoSyncHost, action: GeoSkillAction): boolean {
+  switch (action) {
+    case "assessment":
+      return Boolean(host.geoReport && host.geoReportStatus === "ready");
+    case "brandStory":
+      return Boolean(host.geoBrandStory && host.geoBrandStoryStatus === "ready");
+    case "content":
+      return Boolean(host.geoOutputCenter && host.geoOutputStatus === "ready");
+    case "fixpack":
+      return Boolean(host.geoRepairPack && host.geoRepairPackStatus === "ready");
+    case "monitoring":
+      return Boolean(host.geoMonitoring && host.geoMonitoringStatus === "ready");
+  }
+}
+
+function shouldPreserveReadySnapshot<T>(
+  parsed: T | null,
+  existing: T | null,
+  status: GeoDataStatus,
+): boolean {
+  return parsed === null && existing !== null && status === "ready";
+}
+
 function sessionMatchesSkill(host: GeoSyncHost, action: GeoSkillAction): boolean {
   const expected = host.geoSessionKeys[action];
   if (!expected || !host.sessionKey) {
@@ -505,9 +593,20 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "assessment", "assessment")) {
     const report = resolveGeoReportFromChat(host.chatMessages, host.chatStream);
-    const nextStatus = resolveStatus(Boolean(report), runActive, host.geoStarting, host.geoReportStatus);
-    if (host.geoReport !== report || host.geoReportStatus !== nextStatus) {
-      host.geoReport = report;
+    const preserveReport = shouldPreserveReadySnapshot(report, host.geoReport, host.geoReportStatus);
+    const nextStatus = resolveStatus(
+      Boolean(preserveReport ? host.geoReport : report),
+      runActive,
+      host.geoStarting,
+      host.geoReportStatus,
+    );
+    if (
+      (!preserveReport && host.geoReport !== report) ||
+      host.geoReportStatus !== nextStatus
+    ) {
+      if (!preserveReport) {
+        host.geoReport = report;
+      }
       host.geoReportStatus = nextStatus;
       changed = true;
     }
@@ -520,9 +619,20 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "brandStory", "brandStory")) {
     const story = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoBrandStoryJson);
-    const nextStatus = resolveStatus(Boolean(story), runActive, skillBusy, host.geoBrandStoryStatus);
-    if (host.geoBrandStory !== story || host.geoBrandStoryStatus !== nextStatus) {
-      host.geoBrandStory = story;
+    const preserveStory = shouldPreserveReadySnapshot(story, host.geoBrandStory, host.geoBrandStoryStatus);
+    const nextStatus = resolveStatus(
+      Boolean(preserveStory ? host.geoBrandStory : story),
+      runActive,
+      skillBusy,
+      host.geoBrandStoryStatus,
+    );
+    if (
+      (!preserveStory && host.geoBrandStory !== story) ||
+      host.geoBrandStoryStatus !== nextStatus
+    ) {
+      if (!preserveStory) {
+        host.geoBrandStory = story;
+      }
       host.geoBrandStoryStatus = nextStatus;
       changed = true;
     }
@@ -533,9 +643,24 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "content", "outputCenter")) {
     const output = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoOutputCenterJson);
-    const nextStatus = resolveStatus(Boolean(output), runActive, skillBusy, host.geoOutputStatus);
-    if (host.geoOutputCenter !== output || host.geoOutputStatus !== nextStatus) {
-      host.geoOutputCenter = output;
+    const preserveOutput = shouldPreserveReadySnapshot(
+      output,
+      host.geoOutputCenter,
+      host.geoOutputStatus,
+    );
+    const nextStatus = resolveStatus(
+      Boolean(preserveOutput ? host.geoOutputCenter : output),
+      runActive,
+      skillBusy,
+      host.geoOutputStatus,
+    );
+    if (
+      (!preserveOutput && host.geoOutputCenter !== output) ||
+      host.geoOutputStatus !== nextStatus
+    ) {
+      if (!preserveOutput) {
+        host.geoOutputCenter = output;
+      }
       host.geoOutputStatus = nextStatus;
       changed = true;
     }
@@ -546,9 +671,20 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "fixpack", "repairPack")) {
     const pack = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoRepairPackJson);
-    const nextStatus = resolveStatus(Boolean(pack), runActive, skillBusy, host.geoRepairPackStatus);
-    if (host.geoRepairPack !== pack || host.geoRepairPackStatus !== nextStatus) {
-      host.geoRepairPack = pack;
+    const preservePack = shouldPreserveReadySnapshot(pack, host.geoRepairPack, host.geoRepairPackStatus);
+    const nextStatus = resolveStatus(
+      Boolean(preservePack ? host.geoRepairPack : pack),
+      runActive,
+      skillBusy,
+      host.geoRepairPackStatus,
+    );
+    if (
+      (!preservePack && host.geoRepairPack !== pack) ||
+      host.geoRepairPackStatus !== nextStatus
+    ) {
+      if (!preservePack) {
+        host.geoRepairPack = pack;
+      }
       host.geoRepairPackStatus = nextStatus;
       changed = true;
     }
@@ -559,9 +695,24 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "monitoring", "monitoringPanel")) {
     const monitoring = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoMonitoringJson);
-    const nextStatus = resolveStatus(Boolean(monitoring), runActive, skillBusy, host.geoMonitoringStatus);
-    if (host.geoMonitoring !== monitoring || host.geoMonitoringStatus !== nextStatus) {
-      host.geoMonitoring = monitoring;
+    const preserveMonitoring = shouldPreserveReadySnapshot(
+      monitoring,
+      host.geoMonitoring,
+      host.geoMonitoringStatus,
+    );
+    const nextStatus = resolveStatus(
+      Boolean(preserveMonitoring ? host.geoMonitoring : monitoring),
+      runActive,
+      skillBusy,
+      host.geoMonitoringStatus,
+    );
+    if (
+      (!preserveMonitoring && host.geoMonitoring !== monitoring) ||
+      host.geoMonitoringStatus !== nextStatus
+    ) {
+      if (!preserveMonitoring) {
+        host.geoMonitoring = monitoring;
+      }
       host.geoMonitoringStatus = nextStatus;
       changed = true;
     }

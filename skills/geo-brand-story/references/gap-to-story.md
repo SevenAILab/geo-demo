@@ -2,7 +2,7 @@
 
 | gap 类型 | 应补字段 |
 |---------|---------|
-| 价值主张未结构化 | valueProp |
+| 价值主张未结构化 | valuePropOptions, valueProps |
 | 差异化不清 | differentiator |
 | 实体类型模糊 | aiPreview.type |
 | 受众不明 | audience, aiPreview.audience |
