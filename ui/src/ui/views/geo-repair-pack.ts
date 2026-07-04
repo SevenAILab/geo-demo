@@ -69,7 +69,7 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
   const header = html`
     <header class="geo-page__header">
       <div class="geo-page__brand">
-        <span class="geo-assessment__logo">OpenBrand</span>
+        <span class="geo-assessment__logo">BrandGEO</span>
         <span class="geo-page__badge">${t("geo.repairPack.title")}</span>
       </div>
       <div class="geo-page__header-actions">

@@ -599,7 +599,7 @@ export const en: TranslationMap = {
       reportErrorBody: "Agent 未返回有效 JSON 报告。请查看右侧对话，或重新发起分析。",
     },
     brandStory: {
-      badge: "Brand Story",
+      badge: "品牌故事",
       title: "完善品牌档案",
       subtitle: "确认已提取信息，补齐关键缺口。",
       bannerSummary: "已识别 {identified} 个关键字段，还需补齐 {gaps} 个缺口后生成 AI 建议。",

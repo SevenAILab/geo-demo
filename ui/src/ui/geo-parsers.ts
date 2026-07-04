@@ -415,10 +415,10 @@ export function resolveValuePropLabels(story: GeoBrandStory): string[] {
 function deriveBrandNameFromSiteUrl(siteUrl: string): string {
   try {
     const hostname = new URL(siteUrl).hostname.replace(/^www\./, "");
-    const label = hostname.split(".")[0] ?? "OpenBrand";
+    const label = hostname.split(".")[0] ?? "BrandGEO";
     return label.charAt(0).toUpperCase() + label.slice(1);
   } catch {
-    return "OpenBrand";
+    return "BrandGEO";
   }
 }
 
