@@ -8,6 +8,7 @@ import {
   createDemoGeoReport,
 } from "./geo-demo-data.ts";
 import { scheduleGeoRunPersist, type GeoHistoryHost } from "./geo-history.ts";
+import { fetchLiveGeoReport } from "./geo-live-score.ts";
 import {
   type GeoBrandStory,
   type GeoSkillAction,
@@ -33,6 +34,9 @@ export type GeoSkillHost = GeoSyncHost &
     geoSkillBusy: boolean;
     controlUiBootstrapReady?: Promise<void> | null;
     geoDevSkipSkillWait?: boolean;
+    // 联调开关：dev 模式下 assessment 走真实评分后端（默认开）；probe 需后端有 key（默认关）。
+    geoLiveScore?: boolean;
+    geoLiveProbe?: boolean;
     requestUpdate?: () => void;
   };
 
@@ -105,10 +109,26 @@ export function buildGeoSkillPrompt(
   }
 }
 
-function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): void {
+// 联调：assessment 阶段优先拉真实 scorecard；后端不可达/报错时回退 demo，保证流程不断。
+async function resolveDevGeoReport(host: GeoSkillHost) {
+  if (host.geoLiveScore === false) {
+    return createDemoGeoReport(host.geoSiteUrl);
+  }
+  try {
+    return await fetchLiveGeoReport(host.geoSiteUrl, {
+      probe: host.geoLiveProbe === true,
+      brand: host.geoBrandStory?.brandName,
+    });
+  } catch (error) {
+    console.warn("[geo] live score unavailable, fallback to demo report:", error);
+    return createDemoGeoReport(host.geoSiteUrl);
+  }
+}
+
+async function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): Promise<void> {
   switch (action) {
     case "assessment":
-      host.geoReport = createDemoGeoReport(host.geoSiteUrl);
+      host.geoReport = await resolveDevGeoReport(host);
       host.geoReportStatus = "ready";
       break;
     case "brandStory":
@@ -141,7 +161,7 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
     host.geoPendingSkill = action;
     host.requestUpdate?.();
     try {
-      applyDevGeoSkillResult(host, action);
+      await applyDevGeoSkillResult(host, action);
       return true;
     } finally {
       host.geoSkillBusy = false;

@@ -11,8 +11,12 @@
 //   GET /               表单页（url 输入，默认案例站）
 //   GET /report?url=..  HTML 打分报告（多个页用逗号分隔当优先页）
 //   GET /api/score?url= 纯 JSON scorecard（程序调用）
+import fs from "node:fs";
 import http from "node:http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { crawl } from "./geo-crawl.mjs";
+import { probe as runProbe } from "./geo-probe.mjs";
 import { scoreSite } from "./geo-score.mjs";
 import { siteChecks } from "./geo-site-checks.mjs";
 
@@ -20,8 +24,23 @@ const PORT = Number(process.env.PORT) || 8799;
 const HOST = "127.0.0.1";
 const DEFAULT_URL = "https://www.cloudflare.com/"; // 案例默认站，可在表单里改
 
+// probe 输入文件（有 key 才用；缺失/无 key 时 scoreUrl 静默降级为 on-page）
+const KIT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url))); // geo-scoring-kit/
+const QUERY_SET_FILE = path.join(KIT_DIR, "out", "probe.query_set.json");
+const COMPETITORS_FILE = path.join(KIT_DIR, "out", "probe.competitors.json");
+const readJsonSafe = (p) => {
+  try {
+    return JSON.parse(fs.readFileSync(p, "utf8"));
+  } catch {
+    return null;
+  }
+};
+const brandFromUrl = (u) => new URL(u).hostname.replace(/^www\./, "").split(".")[0];
+
 // ── 核心：一个 URL(或逗号分隔多页) → scorecard ──
-async function scoreUrl(input) {
+// opts.probe=true 时，若 out/ 有 query_set 且 env 有对应 key，则真实跑 probe 带上 MR/SoV；
+// 否则（缺 key / 缺输入 / 调用失败）静默降级为纯 on-page 评分。
+async function scoreUrl(input, opts = {}) {
   const urls = String(input)
     .split(",")
     .map((s) => s.trim())
@@ -29,8 +48,47 @@ async function scoreUrl(input) {
   if (!urls.length) throw new Error("empty url");
   const origin = new URL(urls[0]).origin;
   const [checks, pages] = await Promise.all([siteChecks(origin), crawl(urls)]);
-  const scorecard = scoreSite(pages, { checks });
-  return { scorecard, checks, pages, origin };
+
+  let scoreOpts = { checks };
+  let probeInfo = { requested: !!opts.probe, ran: false, reason: "" };
+  if (opts.probe) {
+    const querySet = readJsonSafe(QUERY_SET_FILE) || [];
+    const competitors = readJsonSafe(COMPETITORS_FILE) || [];
+    if (!querySet.length) {
+      probeInfo.reason = "缺 out/probe.query_set.json";
+    } else {
+      const brand = opts.brand || brandFromUrl(urls[0]);
+      const models = opts.models || "deepseek";
+      const runs = Number(opts.runs) || 2;
+      try {
+        const r = await runProbe({ brand, querySet, competitors, models, runs });
+        scoreOpts = {
+          checks,
+          probeRuns: r.probe_runs,
+          querySet,
+          modelCount: r.modelCount,
+          R: r.R,
+        };
+        probeInfo = { requested: true, ran: true, brand, models, runs, count: r.probe_runs.length };
+      } catch (e) {
+        probeInfo.reason = e.message; // 常见：缺 API key → 降级
+        console.error("[probe skip]", e.message);
+      }
+    }
+  }
+
+  const scorecard = scoreSite(pages, scoreOpts);
+  return { scorecard, checks, pages, origin, probeInfo };
+}
+
+// probe 参数从 query string 解析
+function probeOptsFrom(searchParams) {
+  return {
+    probe: searchParams.get("probe") === "1" || searchParams.get("probe") === "true",
+    brand: searchParams.get("brand") || "",
+    models: searchParams.get("models") || "",
+    runs: searchParams.get("runs") || "",
+  };
 }
 
 // ── HTML 渲染 ──
@@ -182,6 +240,12 @@ const STYLE = `<style>
 </style>`;
 
 // ── HTTP ──
+// dev-only：开放 CORS，让 UI（网关服务的浏览器页）能跨端口 fetch 本评分后端做联调。
+function cors(res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+}
 function send(res, code, body, type = "text/html; charset=utf-8") {
   res.writeHead(code, { "content-type": type });
   res.end(body);
@@ -189,6 +253,11 @@ function send(res, code, body, type = "text/html; charset=utf-8") {
 
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${HOST}:${PORT}`);
+  cors(res);
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    return res.end();
+  }
   try {
     if (u.pathname === "/") {
       return send(res, 200, formPage(u.searchParams.get("url") || DEFAULT_URL));
@@ -197,18 +266,19 @@ const server = http.createServer(async (req, res) => {
       const url = u.searchParams.get("url");
       if (!url) return send(res, 200, formPage(DEFAULT_URL, "请输入 URL"));
       console.error(`[report] ${url}`);
-      const data = await scoreUrl(url);
+      const data = await scoreUrl(url, probeOptsFrom(u.searchParams));
       return send(res, 200, reportPage(url, data));
     }
     if (u.pathname === "/api/score") {
       const url = u.searchParams.get("url");
       if (!url) return send(res, 400, JSON.stringify({ error: "missing url" }), "application/json");
-      console.error(`[api] ${url}`);
-      const data = await scoreUrl(url);
+      const opts = probeOptsFrom(u.searchParams);
+      console.error(`[api] ${url}${opts.probe ? " (+probe)" : ""}`);
+      const data = await scoreUrl(url, opts);
       return send(
         res,
         200,
-        JSON.stringify(data.scorecard, null, 2),
+        JSON.stringify({ ...data.scorecard, _probe: data.probeInfo }, null, 2),
         "application/json; charset=utf-8",
       );
     }
