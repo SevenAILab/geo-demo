@@ -96,7 +96,7 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
   const header = html`
     <header class="geo-page__header geo-output-center__header">
       <div class="geo-page__brand">
-        <span class="geo-assessment__logo">OpenBrand</span>
+        <span class="geo-assessment__logo">BrandGEO</span>
         <span class="geo-page__status">${statusText}</span>
       </div>
       <div class="geo-page__header-actions">

@@ -1,0 +1,33 @@
+{
+  "id": "bing",
+  "activation": {
+    "onStartup": false
+  },
+  "uiHints": {
+    "webSearch.market": {
+      "label": "Bing Market",
+      "help": "Optional Bing market code such as zh-CN, en-US, or ja-JP."
+    }
+  },
+  "contracts": {
+    "webSearchProviders": ["bing"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "webSearch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "baseUrl": {
+            "type": "string"
+          },
+          "market": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,7 @@ import { fetchLiveGeoReport } from "./geo-live-score.ts";
 import {
   type GeoBrandStory,
   type GeoDataStatus,
+  type GeoRepairPack,
   type GeoSkillAction,
   type GeoSyncHost,
   resolveValuePropLabels,
@@ -71,6 +72,7 @@ export function buildGeoSkillPrompt(
     siteUrl: string;
     report?: GeoReport | null;
     brandStory?: GeoBrandStory | null;
+    repairPack?: GeoRepairPack | null;
   },
 ): string {
   const skillPath = GEO_SKILL_PATHS[action];
@@ -78,6 +80,7 @@ export function buildGeoSkillPrompt(
   const brandJson = context.brandStory
     ? jsonBlock(brandStoryForPrompt(context.brandStory))
     : "（无）";
+  const repairPackJson = context.repairPack ? jsonBlock(context.repairPack) : "（无）";
 
   switch (action) {
     case "assessment":
@@ -108,6 +111,7 @@ export function buildGeoSkillPrompt(
         skillPath,
         reportJson,
         brandJson,
+        repairPackJson,
       });
   }
 }
@@ -292,6 +296,7 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
       siteUrl: host.geoSiteUrl,
       report: host.geoReport,
       brandStory: host.geoBrandStory,
+      repairPack: host.geoRepairPack,
     });
     await handleSendChat(host, prompt);
     await waitForSkillChatRun(host, sessionKey);

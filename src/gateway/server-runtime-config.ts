@@ -131,11 +131,12 @@ export async function resolveGatewayRuntimeConfig(params: {
     (authMode === "token" && hasToken) || (authMode === "password" && hasPassword);
   const hooksConfig = resolveHooksConfig(params.cfg);
   const trustedProxies = params.cfg.gateway?.trustedProxies ?? [];
-  const controlUiAllowedOrigins = (params.cfg.gateway?.controlUi?.allowedOrigins ?? [])
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const dangerouslyAllowHostHeaderOriginFallback =
-    params.cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
+  // geo-demo: allowedOrigins 启动校验已注释，以下变量暂保留供恢复
+  // const controlUiAllowedOrigins = (params.cfg.gateway?.controlUi?.allowedOrigins ?? [])
+  //   .map((value) => value.trim())
+  //   .filter(Boolean);
+  // const dangerouslyAllowHostHeaderOriginFallback =
+  //   params.cfg.gateway?.controlUi?.dangerouslyAllowHostHeaderOriginFallback === true;
 
   assertGatewayAuthConfigured(resolvedAuth, params.cfg.gateway?.auth);
   if (tailscaleMode === "funnel" && authMode !== "password") {
@@ -155,18 +156,19 @@ export async function resolveGatewayRuntimeConfig(params: {
   //     `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD; legacy CLAWDBOT_* and MOLTBOT_* environment variables are ignored)`,
   //   );
   // }
-  if (
-    controlUiEnabled &&
-    !isLoopbackHost(bindHost) &&
-    controlUiAllowedOrigins.length === 0 &&
-    !dangerouslyAllowHostHeaderOriginFallback
-  ) {
-    // Remote Control UI must use explicit origins unless the operator deliberately accepts
-    // Host-header fallback; otherwise any reachable host name can become a browser origin.
-    throw new Error(
-      "non-loopback Control UI requires gateway.controlUi.allowedOrigins (set explicit origins), or set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true to use Host-header origin fallback mode",
-    );
-  }
+  // geo-demo: 注释非 loopback 启动时的 allowedOrigins 强制校验，便于局域网开箱即用
+  // if (
+  //   controlUiEnabled &&
+  //   !isLoopbackHost(bindHost) &&
+  //   controlUiAllowedOrigins.length === 0 &&
+  //   !dangerouslyAllowHostHeaderOriginFallback
+  // ) {
+  //   // Remote Control UI must use explicit origins unless the operator deliberately accepts
+  //   // Host-header fallback; otherwise any reachable host name can become a browser origin.
+  //   throw new Error(
+  //     "non-loopback Control UI requires gateway.controlUi.allowedOrigins (set explicit origins), or set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback=true to use Host-header origin fallback mode",
+  //   );
+  // }
 
   if (authMode === "trusted-proxy") {
     // Trusted-proxy auth trusts headers only after the request has matched an allowed proxy IP.

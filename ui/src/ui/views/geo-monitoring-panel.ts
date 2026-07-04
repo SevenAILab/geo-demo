@@ -1,16 +1,11 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import {
-  DEMO_ARTICLE_PREVIEW,
-  DEMO_DIMENSIONS,
-  DEMO_RECENT_PUBLISHES,
-  DEMO_TOPIC_CARDS,
-} from "../geo-demo-data.ts";
 import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import type {
   GeoDataStatus,
   GeoDimension,
   GeoMonitoring,
+  GeoRecentPublish,
   GeoSkillAction,
   GeoTopicCard,
 } from "../geo-parsers.ts";
@@ -30,24 +25,16 @@ export type GeoMonitoringPanelProps = {
   onRetry: () => void;
 };
 
-function resolveDimensions(data: GeoMonitoring | null, status: GeoDataStatus): GeoDimension[] {
-  if (data?.dimensions?.length) {
-    return data.dimensions;
-  }
-  if (status === "idle") {
-    return DEMO_DIMENSIONS;
-  }
-  return [];
+function resolveDimensions(data: GeoMonitoring | null): GeoDimension[] {
+  return data?.dimensions?.length ? data.dimensions : [];
 }
 
-function resolveTopics(data: GeoMonitoring | null, status: GeoDataStatus): GeoTopicCard[] {
-  if (data?.topics?.length) {
-    return data.topics;
-  }
-  if (status === "idle") {
-    return DEMO_TOPIC_CARDS;
-  }
-  return [];
+function resolveTopics(data: GeoMonitoring | null): GeoTopicCard[] {
+  return data?.topics?.length ? data.topics : [];
+}
+
+function resolveRecentPublishes(data: GeoMonitoring | null): GeoRecentPublish[] {
+  return data?.recentPublishes?.length ? data.recentPublishes : [];
 }
 
 function renderDimensionBar(item: GeoDimension) {
@@ -71,14 +58,12 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
   const loading = props.status === "loading" || props.skillBusy;
   const showError = props.status === "error" && !props.monitoring;
   const data = props.monitoring;
-  const dimensions = resolveDimensions(data, props.status);
-  const topics = resolveTopics(data, props.status);
-  const recentPublishes = data?.recentPublishes?.length
-    ? data.recentPublishes
-    : DEMO_RECENT_PUBLISHES;
-  const articlePreview = data?.articlePreview ?? DEMO_ARTICLE_PREVIEW;
-  const readinessScore = data?.readinessScore ?? 0;
-  const readinessDelta = data?.readinessDelta ?? t("geo.monitoringPanel.readinessDelta");
+  const dimensions = resolveDimensions(data);
+  const topics = resolveTopics(data);
+  const recentPublishes = resolveRecentPublishes(data);
+  const articlePreview = data?.articlePreview ?? "";
+  const readinessScore = data?.readinessScore ?? null;
+  const readinessDelta = data?.readinessDelta ?? "";
 
   const header = html`
     <header class="geo-page__header">
@@ -117,11 +102,13 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
           <h2>${t("geo.monitoringPanel.readinessTitle")}</h2>
           <div class="geo-monitoring__ring-wrap">
             <div class="geo-monitoring__ring">
-              ${data
+              ${readinessScore !== null
                 ? html`<span class="geo-monitoring__ring-score">${readinessScore}</span>`
                 : nothing}
             </div>
-            <span class="geo-monitoring__delta">${readinessDelta}</span>
+            ${readinessDelta
+              ? html`<span class="geo-monitoring__delta">${readinessDelta}</span>`
+              : nothing}
           </div>
         </section>
         <section class="geo-monitoring__dimensions">

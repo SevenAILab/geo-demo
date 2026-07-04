@@ -2,6 +2,7 @@ import {
   applyGeoRunSnapshot,
   clearGeoActiveRun,
   createGeoRun,
+  deleteGeoRun,
   getGeoRunSnapshot,
   markGeoFlowActive,
   persistGeoRunSnapshot,
@@ -100,6 +101,7 @@ export function backToGeoLanding(host: GeoHost): void {
   host.geoStarting = false;
   resetGeoPhaseData(host);
   clearGeoActiveRun(host);
+  refreshGeoHistory(host);
   markGeoFlowActive("landing");
   host.requestUpdate?.();
 }
@@ -268,6 +270,12 @@ export async function restoreGeoRunById(
 ): Promise<boolean> {
   host.geoActiveRunId = runId;
   return restoreGeoRun(host);
+}
+
+export function deleteGeoRunById(host: GeoHost, runId: string): void {
+  deleteGeoRun(host, runId);
+  refreshGeoHistory(host);
+  host.requestUpdate?.();
 }
 
 export { syncGeoReportFromChat, refreshGeoHistory, type GeoRunSnapshot };

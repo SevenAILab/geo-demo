@@ -10,6 +10,7 @@ import type {
 } from "../geo-report.ts";
 import { icons } from "../icons.ts";
 import { renderVisibilityTrendChart } from "./geo-assessment-chart.ts";
+import "./geo-assessment-ranking.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoAssessmentProps = {
@@ -67,12 +68,30 @@ function metricDisplayLabel(id: GeoReportMetricId): string {
   return METRIC_DISPLAY_LABELS[id];
 }
 
+function renderScoreDecorRings() {
+  return html`
+    <div class="geo-assessment-v2__score-decor" aria-hidden="true">
+      <span class="geo-assessment-v2__score-decor-ring"></span>
+      <span
+        class="geo-assessment-v2__score-decor-ring geo-assessment-v2__score-decor-ring--mid"
+      ></span>
+      <span
+        class="geo-assessment-v2__score-decor-ring geo-assessment-v2__score-decor-ring--inner"
+      ></span>
+    </div>
+  `;
+}
+
 function renderScoreRing(score: number, toneClass: string) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
   return html`
-    <svg class="geo-score-ring ${toneClass}" viewBox="0 0 140 140" aria-hidden="true">
+    <svg
+      class="geo-score-ring geo-assessment-v2__score-ring ${toneClass}"
+      viewBox="0 0 140 140"
+      aria-hidden="true"
+    >
       <circle class="geo-score-ring__track" cx="70" cy="70" r=${radius} />
       <circle
         class="geo-score-ring__value"
@@ -112,7 +131,7 @@ function renderScoreCard(report: GeoReport) {
   return html`
     <section class="geo-assessment-v2__card geo-assessment-v2__score-card">
       <div class="geo-assessment-v2__score-ring-wrap">
-        ${renderScoreRing(report.totalScore, toneClass)}
+        ${renderScoreDecorRings()} ${renderScoreRing(report.totalScore, toneClass)}
         <div class="geo-assessment-v2__score-value ${toneClass}">
           <strong>${report.totalScore}</strong>
           <span>/100</span>
@@ -132,23 +151,18 @@ function renderScoreCard(report: GeoReport) {
 function renderAdvantagesCard(report: GeoReport, canFix: boolean, onFixGaps: () => void) {
   return html`
     <section class="geo-assessment-v2__card geo-assessment-v2__advantages">
-      <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
-      <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
-      <div class="geo-assessment-v2__advantages-actions">
+      <div class="geo-assessment-v2__advantages-body">
+        <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
+        <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
+      </div>
+      <div class="geo-assessment-v2__advantages-footer">
         <button
           type="button"
-          class="geo-assessment-v2__btn geo-assessment-v2__btn--secondary"
-          disabled
-        >
-          ${icons.download} ${t("geo.analysis.exportReport")}
-        </button>
-        <button
-          type="button"
-          class="geo-assessment-v2__btn geo-assessment-v2__btn--primary"
+          class="geo-assessment-v2__btn geo-assessment-v2__btn--cta"
           ?disabled=${!canFix}
           @click=${onFixGaps}
         >
-          ${icons.spark} ${t("geo.assessment.startOptimization")}
+          ${icons.rocket} ${t("geo.assessment.startOptimization")}
         </button>
       </div>
     </section>
@@ -218,44 +232,7 @@ function renderIndustrySection(report: GeoReport) {
           </div>
         </div>
         <div class="geo-assessment-v2__industry-ranking">
-          <h3 class="geo-assessment-v2__section-title">${t("geo.assessment.visibilityRanking")}</h3>
-          <p class="geo-assessment-v2__your-ranking">${industryAnalysis.yourRanking}</p>
-          <div class="geo-assessment-v2__ranking-table">
-            <div class="geo-assessment-v2__ranking-head">
-              <span>${t("geo.assessment.assetColumn")}</span>
-              <span>${t("geo.assessment.scoreColumn")}</span>
-            </div>
-            ${industryAnalysis.rankings.map(
-              (item, index) => html`
-                <div class="geo-assessment-v2__ranking-row">
-                  <span class="geo-assessment-v2__ranking-asset">
-                    <span class="geo-assessment-v2__ranking-index">${index + 1}</span>
-                    <span class="geo-assessment-v2__ranking-badge">${item.initial}</span>
-                    <span>${item.name}</span>
-                    ${item.owned
-                      ? html`<span class="geo-assessment-v2__owned-tag"
-                          >${t("geo.assessment.ownedTag")}</span
-                        >`
-                      : nothing}
-                  </span>
-                  <span class="geo-assessment-v2__ranking-score">${item.score}%</span>
-                </div>
-              `,
-            )}
-            <div class="geo-assessment-v2__ranking-row geo-assessment-v2__ranking-row--custom">
-              <span class="geo-assessment-v2__ranking-asset">
-                <span class="geo-assessment-v2__ranking-index"
-                  >${industryAnalysis.rankings.length + 1}</span
-                >
-                <span class="geo-assessment-v2__ranking-custom"
-                  >${t("geo.assessment.customCompetitor")}</span
-                >
-              </span>
-              <span class="geo-assessment-v2__ranking-score">
-                <span class="geo-assessment-v2__ranking-empty"></span>
-              </span>
-            </div>
-          </div>
+          <geo-assessment-ranking .industryAnalysis=${industryAnalysis}></geo-assessment-ranking>
         </div>
       </div>
     </section>
@@ -305,10 +282,15 @@ function renderReportSkeleton() {
           <div class="geo-skeleton__ring"></div>
           <div class="geo-skeleton__line geo-skeleton__line--short"></div>
         </div>
-        <div class="geo-assessment-v2__card geo-skeleton">
-          <div class="geo-skeleton__line geo-skeleton__line--title"></div>
-          <div class="geo-skeleton__line"></div>
-          <div class="geo-skeleton__line"></div>
+        <div class="geo-assessment-v2__card geo-assessment-v2__advantages geo-skeleton">
+          <div class="geo-assessment-v2__advantages-body">
+            <div class="geo-skeleton__line geo-skeleton__line--title"></div>
+            <div class="geo-skeleton__line"></div>
+            <div class="geo-skeleton__line"></div>
+          </div>
+          <div class="geo-assessment-v2__advantages-footer">
+            <div class="geo-skeleton__line geo-skeleton__line--cta"></div>
+          </div>
         </div>
       </div>
       <div class="geo-assessment-v2__metrics-row">

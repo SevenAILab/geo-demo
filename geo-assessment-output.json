@@ -1,0 +1,81 @@
+{
+  "totalScore": 18,
+  "rating": "weak",
+  "summary": "暗壳AI Agent 首页为重度 SPA 架构，核心内容依赖 JavaScript 渲染，搜索引擎与 AI 爬虫只能获取空壳 HTML。完全缺失 Schema.org 结构化数据、llms.txt、Open Graph 等关键 AI 可读基础设施。品牌实体虽在 meta 描述中一致，但缺乏社交图谱关联和外部权威链接，AI 系统难以建立可靠的品牌认知。",
+  "metrics": [
+    {
+      "id": "schema",
+      "label": "Schema.org",
+      "value": 0,
+      "statusLabel": "完全缺失 — 首页无任何 JSON-LD 或 Microdata 结构化标记"
+    },
+    {
+      "id": "entity",
+      "label": "实体连通性",
+      "value": 25,
+      "statusLabel": "品牌名称在 meta 标题与描述中一致（暗壳AI Agent / 暗壳AI），但无 sameAs、社交媒体链接、权威外链，无法形成可引用的实体图谱"
+    },
+    {
+      "id": "aiResponse",
+      "label": "AI 响应",
+      "value": 15,
+      "statusLabel": "SPA 空壳架构，核心内容依赖 JS 渲染，AI 爬虫只能读到导航栏与 meta 标签。无 llms.txt、无 FAQ 页面、无事实结构"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-01",
+      "title": "缺少 Schema.org JSON-LD 结构化数据",
+      "impact": "high",
+      "description": "首页未嵌入任何 Organization、WebSite 或 SoftwareApplication 类型的 JSON-LD。AI 搜索引擎无法理解该网站的品牌归属、服务类型或业务领域，导致在生成式搜索结果中被忽略或错误归类。"
+    },
+    {
+      "id": "gap-02",
+      "title": "SPA 架构导致核心内容对 AI 不可见",
+      "impact": "high",
+      "description": "网站为 Vue 驱动的 SPA（SSR 空壳），70% 以上的营销内容由 JavaScript 动态渲染。多数 AI 爬虫（如 ChatGPT、Claude、Gemini）不执行 JS，只能捕获导航栏和空容器 div，品牌价值主张和产品功能介绍完全丢失。"
+    },
+    {
+      "id": "gap-03",
+      "title": "缺少 llms.txt 和 robots.txt",
+      "impact": "high",
+      "description": " /.well-known/llms.txt 和 /robots.txt 均返回首页 SPA 空壳（未配置）。AI 系统无法获取 LLM 指引文件、允许爬取的路径或内容索引说明，站点在 LLM 生态中沦为盲区。"
+    },
+    {
+      "id": "gap-04",
+      "title": "实体图谱断裂 — 无社交链接与权威外链",
+      "impact": "medium",
+      "description": "HTML 中未发现社交媒体链接（微信、微博、知乎等）、sameAs 引用或权威第三方入站链接。AI 实体识别系统无法验证品牌可信度，难以确认暗壳AI 是一个真实的运营品牌而非概念性站点。"
+    },
+    {
+      "id": "gap-05",
+      "title": "Lang 属性标注错误（en）",
+      "impact": "medium",
+      "description": "根 html 标签 lang=\"en\"，但全站为中文内容。AI 爬虫据此可能误判内容语言，影响在中文查询中的检索优先级，同时降低多语言搜索引擎的信噪比评分。"
+    },
+    {
+      "id": "gap-06",
+      "title": "缺少 FAQ / 事实块结构化内容",
+      "impact": "medium",
+      "description": "首页未以 FAQPage Schema 或清晰的事实问答块呈现产品核心能力说明。AI 系统在生成"AI 空间设计平台有哪些"等查询时，缺乏可直接引用的结构化来源，只能引用其他竞品的 FAQ 数据。"
+    }
+  ],
+  "industryAnalysis": {
+    "currentVisibility": 18,
+    "yourRanking": "暂无 — 您的排名",
+    "trend": [
+      { "date": "3/21", "value": 10 },
+      { "date": "4/21", "value": 12 },
+      { "date": "5/21", "value": 14 },
+      { "date": "6/21", "value": 16 },
+      { "date": "7/4", "value": 18 }
+    ],
+    "rankings": [
+      { "id": "c1", "initial": "酷", "name": "酷家乐（群核科技）", "score": 78, "owned": false },
+      { "id": "c2", "initial": "三", "name": "三维家", "score": 62, "owned": false },
+      { "id": "c3", "initial": "住", "name": "住小帮（字节跳动）", "score": 55, "owned": false },
+      { "id": "c4", "initial": "Pl", "name": "Planner 5D", "score": 48, "owned": false },
+      { "id": "owned", "initial": "暗", "name": "暗壳AI Agent", "score": 18, "owned": true }
+    ]
+  }
+}

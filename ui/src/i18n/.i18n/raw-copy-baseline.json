@@ -552,7 +552,21 @@
       "kind": "object-property",
       "name": "title",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "买家在问 'OpenBrand vs 其他方案'"
+      "text": "买家在问 'BrandGEO vs 其他方案'"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "缺少 canonical 品牌事实页"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "缺少对比型内容"
     },
     {
       "count": 1,
@@ -4136,7 +4150,7 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/ui/views/geo-assessment.ts",
-      "text": "OpenBrand"
+      "text": "BrandGEO"
     },
     {
       "count": 1,
@@ -4150,28 +4164,28 @@
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/ui/views/geo-brand-story.ts",
-      "text": "OpenBrand"
+      "text": "BrandGEO"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/ui/views/geo-output-center.ts",
-      "text": "OpenBrand"
+      "text": "BrandGEO"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/ui/views/geo-repair-pack.ts",
-      "text": "OpenBrand"
+      "text": "BrandGEO"
     },
     {
       "count": 1,
       "kind": "html-text",
       "name": "text",
       "path": "ui/src/ui/views/geo.ts",
-      "text": "OpenBrand"
+      "text": "BrandGEO"
     },
     {
       "count": 1,

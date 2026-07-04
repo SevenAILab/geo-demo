@@ -1,13 +1,11 @@
 {
-  "fallbackKeys": [
-    "geo.outputCenter.optimizeAll"
-  ],
-  "generatedAt": "2026-07-04T01:21:43.822Z",
+  "fallbackKeys": [],
+  "generatedAt": "2026-07-04T10:52:09.213Z",
   "locale": "zh-CN",
   "model": "gpt-5.5",
   "provider": "openai",
-  "sourceHash": "47433f24575cc07be56ef24a3da3cdb6eb88dc45ea0d45a64fff11ee40c18082",
-  "totalKeys": 1481,
-  "translatedKeys": 1480,
+  "sourceHash": "3b73c7b2d22de0f3309c2c674bcfc9a307b6775073ac2abf0ddddfda51ea74ea",
+  "totalKeys": 1524,
+  "translatedKeys": 1524,
   "workflow": 1
 }

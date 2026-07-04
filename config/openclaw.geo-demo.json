@@ -2,6 +2,7 @@
   "gateway": {
     "mode": "local",
     "controlUi": {
+      "geoDevSkipSkillWait": false,
       "geoPersistHistory": true,
       "geoScoreService": true
     }

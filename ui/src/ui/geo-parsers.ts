@@ -255,6 +255,32 @@ function parseRanking(raw: unknown): GeoIndustryRanking | null {
   };
 }
 
+function deriveYourRanking(rankings: GeoIndustryRanking[]): string {
+  const sorted = [...rankings].sort((a, b) => b.score - a.score);
+  const rank = sorted.findIndex((entry) => entry.owned) + 1;
+  return rank > 0 ? `#${rank} - 您的排名` : "暂无 - 您的排名";
+}
+
+function normalizeIndustryAnalysis(
+  currentVisibility: number,
+  trend: GeoVisibilityTrendPoint[],
+  rankings: GeoIndustryRanking[],
+): { trend: GeoVisibilityTrendPoint[]; rankings: GeoIndustryRanking[] } {
+  const owned = rankings.find((entry) => entry.owned);
+  if (!owned) {
+    return { trend, rankings };
+  }
+  // owned.score must match currentVisibility so ranking list aligns with the trend chart headline.
+  owned.score = currentVisibility;
+  const normalizedTrend = trend.map((point, index) =>
+    index === trend.length - 1 ? { ...point, value: currentVisibility } : point,
+  );
+  return {
+    trend: normalizedTrend,
+    rankings: [...rankings].sort((a, b) => b.score - a.score),
+  };
+}
+
 function parseIndustryAnalysis(raw: unknown): GeoReportIndustryAnalysis | null {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -273,7 +299,8 @@ function parseIndustryAnalysis(raw: unknown): GeoReportIndustryAnalysis | null {
     .filter((point): point is GeoVisibilityTrendPoint => point !== null);
   const rankings = item.rankings
     .map(parseRanking)
-    .filter((entry): entry is GeoIndustryRanking => entry !== null);
+    .filter((entry): entry is GeoIndustryRanking => entry !== null)
+    .sort((a, b) => b.score - a.score);
   if (trend.length < 3 || rankings.length < 3) {
     return null;
   }
@@ -281,7 +308,13 @@ function parseIndustryAnalysis(raw: unknown): GeoReportIndustryAnalysis | null {
   if (ownedCount !== 1) {
     return null;
   }
-  return { currentVisibility, yourRanking, trend, rankings };
+  const normalized = normalizeIndustryAnalysis(currentVisibility, trend, rankings);
+  return {
+    currentVisibility,
+    yourRanking: deriveYourRanking(normalized.rankings),
+    trend: normalized.trend,
+    rankings: normalized.rankings,
+  };
 }
 
 export function parseGeoReportJson(raw: unknown): GeoReport | null {

@@ -20,6 +20,7 @@ const BUNDLED_WEB_SEARCH_PROVIDERS = [
   { pluginId: "firecrawl", id: "firecrawl", order: 60 },
   { pluginId: "exa", id: "exa", order: 65 },
   { pluginId: "tavily", id: "tavily", order: 70 },
+  { pluginId: "bing", id: "bing", order: 95 },
   { pluginId: "duckduckgo", id: "duckduckgo", order: 100 },
 ] as const;
 
@@ -43,6 +44,7 @@ let clearLoadPluginMetadataSnapshotMemo: typeof import("./plugin-metadata-snapsh
 
 const DEFAULT_WEB_SEARCH_WORKSPACE = "/tmp/workspace";
 const EXPECTED_BUNDLED_RUNTIME_WEB_SEARCH_PROVIDER_KEYS = [
+  "bing:bing",
   "brave:brave",
   "duckduckgo:duckduckgo",
   "exa:exa",

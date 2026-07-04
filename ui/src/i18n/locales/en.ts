@@ -479,6 +479,10 @@ export const en: TranslationMap = {
       dismiss: "开始新的",
       restore: "恢复",
       score: "{score} 分",
+      delete: "删除",
+      deleteConfirm: "确认删除此记录？",
+      deleteYes: "确认",
+      deleteCancel: "取消",
       resumeBanner: "您有未完成的 GEO 分析（{url}），是否继续？",
       progress: {
         started: "已开始",
@@ -545,7 +549,7 @@ export const en: TranslationMap = {
       fixpackPrompt:
         "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成可粘贴的 JSON-LD 与 llms.txt，只描述可见事实。\n\n在回复末尾输出唯一一个 JSON 代码块，含 jsonLd 与 llmsTxt 字符串字段，严格符合 skills/geo-fixpack 输出契约。\n\nllmsTxt 中的品牌事实段落使用简体中文；# Instructions for LLMs 等规范标题可保留英文。JSON 中其他面向用户的字符串字段必须使用简体中文。",
       monitoringPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、文章预览。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。\n\nJSON 中所有面向用户的字符串字段（含 dimensions.label、topics.title、recentPublishes.title/ago、articlePreview）必须使用简体中文；枚举/id 等技术字段保持英文。",
+        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论（含 references/dimensions.md 与 references/scores.json）。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n修复包（若已生成）：\n```json\n{repairPackJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、最近发布摘要、文章预览。\n\n请依据体检 gaps 与修复包状态计算各维 value 与 readinessDelta（相对体检 totalScore 的差值说明）。topics 与 articlePreview 必须引用品牌故事中的品牌名、竞品与差异化，禁止泛化占位。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。无需写入文件。\n\nJSON 中所有面向用户的字符串字段（含 dimensions.label、topics.title、recentPublishes.title/ago、articlePreview、readinessDelta）必须使用简体中文；枚举/id 等技术字段保持英文。",
     },
     assessment: {
       badge: "体检报告",
@@ -570,6 +574,8 @@ export const en: TranslationMap = {
       yourRanking: "#暂无 - 您的排名",
       ownedTag: "拥有",
       customCompetitor: "自定义竞品",
+      customCompetitorNamePlaceholder: "输入竞品名称",
+      customCompetitorScorePlaceholder: "0-100",
       gapsToggle: "关键结构缺口分析 ({count})",
       currentPeriod: "当前期间",
       compareCompetitors: "比较竞争对手",
@@ -593,7 +599,7 @@ export const en: TranslationMap = {
       reportErrorBody: "Agent 未返回有效 JSON 报告。请查看右侧对话，或重新发起分析。",
     },
     brandStory: {
-      badge: "Brand Story",
+      badge: "品牌故事",
       title: "完善品牌档案",
       subtitle: "确认已提取信息，补齐关键缺口。",
       bannerSummary: "已识别 {identified} 个关键字段，还需补齐 {gaps} 个缺口后生成 AI 建议。",
@@ -653,7 +659,7 @@ export const en: TranslationMap = {
       intro: "复制并粘贴以下内容到你的网站代码中，以提升 AI 可见性。",
       systemReady: "系统就绪",
       backToOutputCenter: "返回产出中心",
-      schemaTag: "博客",
+      schemaTag: "技术修复",
       llmsTag: "技术修复",
       schemaTitle: "Schema.org (JSON-LD) 结构化数据",
       copyJsonLd: "复制 JSON-LD",

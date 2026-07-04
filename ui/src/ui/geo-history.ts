@@ -200,7 +200,10 @@ export function refreshGeoHistory(host: GeoHistoryHost): void {
 export function createGeoRun(host: GeoHistoryHost): string {
   const store = loadGeoHistoryStore(host.settings.gatewayUrl);
   const snapshot = snapshotFromHost(host);
-  store.runs = [snapshot, ...store.runs.filter((run) => run.id !== snapshot.id)].slice(0, MAX_RUNS);
+  // Always mint a fresh run id so a new analysis appends instead of overwriting
+  // an active/resumed run that still has geoActiveRunId set in memory.
+  snapshot.id = generateUUID();
+  store.runs = [snapshot, ...store.runs].slice(0, MAX_RUNS);
   store.activeRunId = snapshot.id;
   host.geoActiveRunId = snapshot.id;
   persistStore(host, store);
@@ -253,6 +256,18 @@ export function clearGeoActiveRun(host: GeoHistoryHost): void {
   saveGeoHistoryStore(host.settings.gatewayUrl, store);
   host.geoActiveRunId = null;
   clearGeoFlowActive();
+}
+
+export function deleteGeoRun(host: GeoHistoryHost, runId: string): void {
+  const store = loadGeoHistoryStore(host.settings.gatewayUrl);
+  store.runs = store.runs.filter((run) => run.id !== runId);
+  if (store.activeRunId === runId) {
+    delete store.activeRunId;
+    host.geoActiveRunId = null;
+    clearGeoFlowActive();
+  }
+  persistStore(host, store);
+  host.requestUpdate?.();
 }
 
 export function isGeoRunIncomplete(run: GeoRunSnapshot): boolean {

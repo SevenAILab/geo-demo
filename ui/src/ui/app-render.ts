@@ -119,6 +119,7 @@ import {
   backToGeoBrandStory,
   backToGeoLanding,
   backToGeoOutputCenter,
+  deleteGeoRunById,
   openGeoBrandStory,
   openGeoMonitoringPanel,
   openGeoOutputCenter,
@@ -2638,8 +2639,19 @@ export function renderApp(state: AppViewState) {
                 },
                 history: state.geoHistoryRuns,
                 resumeRun: shouldShowGeoResumeBanner(state as never),
+                confirmingDeleteRunId: state.geoHistoryConfirmDeleteRunId,
                 onRestoreRun: (runId) => {
                   void restoreGeoRunById(state as never, runId);
+                },
+                onRequestDeleteRun: (runId) => {
+                  state.geoHistoryConfirmDeleteRunId = runId;
+                },
+                onConfirmDeleteRun: (runId) => {
+                  deleteGeoRunById(state as never, runId);
+                  state.geoHistoryConfirmDeleteRunId = null;
+                },
+                onCancelDeleteRun: () => {
+                  state.geoHistoryConfirmDeleteRunId = null;
                 },
                 onContinueResume: () => {
                   const resume = shouldShowGeoResumeBanner(state as never);

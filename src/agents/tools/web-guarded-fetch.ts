@@ -7,6 +7,7 @@ import {
   withTrustedEnvProxyGuardedFetchMode,
 } from "../../infra/net/fetch-guard.js";
 import {
+  mergeSsrFPolicies,
   ssrfPolicyFromHttpBaseUrlFakeIpHostnameAllowlist,
   type SsrFPolicy,
 } from "../../infra/net/ssrf.js";
@@ -25,7 +26,10 @@ type WebToolGuardedFetchOptions = Omit<
   timeoutSeconds?: number;
   useEnvProxy?: boolean;
 };
-type WebToolEndpointFetchOptions = Omit<WebToolGuardedFetchOptions, "policy" | "useEnvProxy">;
+type WebToolEndpointFetchOptions = Omit<WebToolGuardedFetchOptions, "policy" | "useEnvProxy"> & {
+  /** Merged with the request URL hostname allowlist for cross-origin redirects. */
+  policy?: SsrFPolicy;
+};
 
 function resolveTimeoutMs(params: {
   timeoutMs?: number;
@@ -76,10 +80,15 @@ export async function withTrustedWebToolsEndpoint<T>(
   params: WebToolEndpointFetchOptions,
   run: (result: { response: Response; finalUrl: string }) => Promise<T>,
 ): Promise<T> {
-  const trustedPolicy = ssrfPolicyFromHttpBaseUrlFakeIpHostnameAllowlist(params.url) ?? {};
+  const { policy: endpointPolicy, ...fetchParams } = params;
+  const trustedPolicy =
+    mergeSsrFPolicies(
+      ssrfPolicyFromHttpBaseUrlFakeIpHostnameAllowlist(fetchParams.url),
+      endpointPolicy,
+    ) ?? {};
   return await withWebToolsNetworkGuard(
     {
-      ...params,
+      ...fetchParams,
       policy: trustedPolicy,
       useEnvProxy: true,
     },

@@ -4,10 +4,10 @@ import type { GeoReport } from "./geo-report.ts";
 export function deriveBrandNameFromUrl(siteUrl: string): string {
   try {
     const hostname = new URL(siteUrl).hostname.replace(/^www\./, "");
-    const label = hostname.split(".")[0] ?? "OpenBrand";
+    const label = hostname.split(".")[0] ?? "BrandGEO";
     return label.charAt(0).toUpperCase() + label.slice(1);
   } catch {
-    return "OpenBrand";
+    return "BrandGEO";
   }
 }
 
@@ -168,7 +168,7 @@ export const DEMO_DIMENSIONS = [
 export const DEMO_TOPIC_CARDS = [
   {
     id: "compare",
-    title: "买家在问 'OpenBrand vs 其他方案'",
+    title: "买家在问 'BrandGEO vs 其他方案'",
     tag: "missing" as const,
     action: "comparison" as const,
   },
@@ -186,8 +186,8 @@ export const DEMO_RECENT_PUBLISHES = [
   { title: "Entity Graphs for LLM Discovery", ago: "1 week ago" },
 ];
 
-export const DEMO_ARTICLE_PREVIEW = `Why OpenBrand is the standard for AI-First Branding
+export const DEMO_ARTICLE_PREVIEW = `Why BrandGEO is the standard for AI-First Branding
 
 Large Language Models (LLMs) are reshaping how buyers discover brands. Generative Engine Optimization (GEO) ensures your entity is structured, citeable, and recommended.
 
-OpenBrand helps teams publish schema, llms.txt directives, and entity-rich content that LLMs can trust and reference in answers.`;
+BrandGEO helps teams publish schema, llms.txt directives, and entity-rich content that LLMs can trust and reference in answers.`;

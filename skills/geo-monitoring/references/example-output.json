@@ -1,0 +1,22 @@
+{
+  "_note": "输出契约示例，非运行时数据。Agent 应在回复末尾输出类似 JSON，无需写入文件。",
+  "readinessScore": 82,
+  "readinessDelta": "+4（由修复包贡献，search 维度仍受 SPA 架构限制）",
+  "dimensions": [
+    { "id": "schema", "label": "Schema.org 标记", "value": 95, "tone": "good" },
+    { "id": "llms", "label": "llms.txt 指令", "value": 80, "tone": "good" },
+    { "id": "entity", "label": "实体关联", "value": 70, "tone": "purple" },
+    { "id": "answer", "label": "答案就绪度", "value": 65, "tone": "purple" },
+    { "id": "search", "label": "搜索覆盖度", "value": 45, "tone": "warn" },
+    { "id": "trust", "label": "信息可信度", "value": 55, "tone": "warn" }
+  ],
+  "topics": [
+    { "id": "t1", "title": "示例品牌 vs 竞品 A 的 AI 可见度对比", "tag": "missing", "action": "comparison" },
+    { "id": "t2", "title": "为什么目标受众需要 AI 原生内容架构", "tag": "insight", "action": "deep" }
+  ],
+  "recentPublishes": [
+    { "title": "示例品牌 GEO 优化指南：结构化数据最佳实践", "ago": "3 天前" },
+    { "title": "从 SPA 到 SSR：提升 AI 搜索引擎可发现性", "ago": "1 周前" }
+  ],
+  "articlePreview": "## 为什么目标受众需要 AI 原生内容架构\n\n（正文应引用 brandStory 中的品牌名、竞品与差异化，此处仅为契约示例。）"
+}
