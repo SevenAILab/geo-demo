@@ -5,7 +5,6 @@ import { backToGeoLanding, startGeoExperience } from "./geo.ts";
 const runGeoSkillMock = vi.hoisted(() =>
   vi.fn(async (host: GeoHost, action: string) => {
     expect(action).toBe("assessment");
-    expect(host.geoDevSkipSkillWait).toBe(true);
     host.geoReport = {
       totalScore: 42,
       rating: "weak",
@@ -85,7 +84,6 @@ function createHost(): GeoHost {
     geoBrandStory: null,
     geoBrandStoryStatus: "idle",
     geoChatSidebarOpen: false,
-    geoDevSkipSkillWait: false,
     geoHistoryRuns: [],
     geoMonitoring: null,
     geoMonitoringStatus: "idle",
@@ -110,9 +108,7 @@ function createHost(): GeoHost {
     sessionKey: "main",
     settings: { gatewayUrl: "wss://gw.example/openclaw" },
   } as unknown as GeoHost;
-  host.controlUiBootstrapReady = Promise.resolve().then(() => {
-    host.geoDevSkipSkillWait = true;
-  });
+  host.controlUiBootstrapReady = Promise.resolve();
   return host;
 }
 
@@ -121,7 +117,7 @@ beforeEach(() => {
 });
 
 describe("startGeoExperience", () => {
-  it("honors the dev skip flag after bootstrap before the connection guard", async () => {
+  it("runs the assessment skill after bootstrap and marks the report ready", async () => {
     const host = createHost();
 
     await expect(startGeoExperience(host)).resolves.toBe(true);

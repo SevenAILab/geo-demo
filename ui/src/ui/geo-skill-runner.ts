@@ -33,8 +33,7 @@ export type GeoSkillHost = GeoSyncHost &
     geoSiteUrl: string;
     geoSkillBusy: boolean;
     controlUiBootstrapReady?: Promise<void> | null;
-    geoDevSkipSkillWait?: boolean;
-    // 联调开关：dev 模式下 assessment 走真实评分后端（默认开）；probe 需后端有 key（默认关）。
+    // 联调开关：assessment 是否走真实评分后端（默认走）；probe 需后端有 key（默认关）。
     geoLiveScore?: boolean;
     geoLiveProbe?: boolean;
     requestUpdate?: () => void;
@@ -109,27 +108,29 @@ export function buildGeoSkillPrompt(
   }
 }
 
-// 联调：assessment 阶段优先拉真实 scorecard；后端不可达/报错时回退 demo，保证流程不断。
-async function resolveDevGeoReport(host: GeoSkillHost) {
+// 联调：assessment 阶段拉真实 scorecard；后端不可达/报错时置 error 态（视图提示启动后端）。
+async function applyAssessmentResult(host: GeoSkillHost): Promise<void> {
   if (host.geoLiveScore === false) {
-    return createDemoGeoReport(host.geoSiteUrl);
+    host.geoReport = createDemoGeoReport(host.geoSiteUrl);
+    host.geoReportStatus = "ready";
+    return;
   }
   try {
-    return await fetchLiveGeoReport(host.geoSiteUrl, {
+    host.geoReport = await fetchLiveGeoReport(host.geoSiteUrl, {
       probe: host.geoLiveProbe === true,
       brand: host.geoBrandStory?.brandName,
     });
+    host.geoReportStatus = "ready";
   } catch (error) {
-    console.warn("[geo] live score unavailable, fallback to demo report:", error);
-    return createDemoGeoReport(host.geoSiteUrl);
+    console.warn("[geo] live score unavailable:", error);
+    host.geoReportStatus = "error";
   }
 }
 
 async function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): Promise<void> {
   switch (action) {
     case "assessment":
-      host.geoReport = await resolveDevGeoReport(host);
-      host.geoReportStatus = "ready";
+      await applyAssessmentResult(host);
       break;
     case "brandStory":
       host.geoBrandStory = createDemoGeoBrandStory(host.geoSiteUrl);
@@ -156,7 +157,8 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
     return false;
   }
   await host.controlUiBootstrapReady?.catch(() => undefined);
-  if (host.geoDevSkipSkillWait === true) {
+  // 未连网关：走本地结果（assessment → 实时评分后端，其余 → demo）。
+  if (!host.connected || !host.client) {
     host.geoSkillBusy = true;
     host.geoPendingSkill = action;
     host.requestUpdate?.();
@@ -168,10 +170,8 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
       host.requestUpdate?.();
     }
   }
-  if (!host.connected || !host.client) {
-    return false;
-  }
 
+  // 已连网关：走真实 chat 技能。
   host.geoSkillBusy = true;
   host.geoPendingSkill = action;
   host.requestUpdate?.();

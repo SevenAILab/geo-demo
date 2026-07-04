@@ -23,7 +23,6 @@ export type ControlUiBootstrapState = {
   embedSandboxMode: ControlUiEmbedSandboxMode;
   allowExternalEmbedUrls: boolean;
   chatMessageMaxWidth?: string | null;
-  geoDevSkipSkillWait?: boolean;
   geoPersistHistory?: boolean;
   sessionKey?: string | null;
   hello?: { auth?: { deviceToken?: string | null } | null } | null;
@@ -137,7 +136,6 @@ export async function loadControlUiBootstrapConfig(
       typeof parsed.chatMessageMaxWidth === "string" && parsed.chatMessageMaxWidth.trim()
         ? parsed.chatMessageMaxWidth
         : null;
-    state.geoDevSkipSkillWait = parsed.geoDevSkipSkillWait === true;
     state.geoPersistHistory = parsed.geoPersistHistory === true;
   } catch {
     // Ignore bootstrap failures; UI will update identity after connecting.

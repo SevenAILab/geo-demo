@@ -40,6 +40,7 @@ export type LiveScoreOptions = {
   runs?: number;
   endpoint?: string;
   signal?: AbortSignal;
+  timeoutMs?: number; // 超时保护，默认 20s；到点 abort，避免 UI 卡在 loading
 };
 
 function scoreEndpoint(override?: string): string {
@@ -88,17 +89,17 @@ export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport 
   const metrics: GeoReportMetric[] = [
     {
       id: "schema",
-      label: "Schema.org",
+      label: "结构化数据",
       value: Math.round(cat.structured_data),
       statusLabel: schemaStatus(cat.structured_data),
     },
     {
       id: "entity",
-      label: "Entity graph",
+      label: "实体权威",
       value: Math.round(cat.authority_freshness),
       statusLabel: entityStatus(cat.authority_freshness),
     },
-    { id: "aiResponse", label: "AI response", value: Math.round(aiValue), statusLabel: aiStatus },
+    { id: "aiResponse", label: "AI 可见性", value: Math.round(aiValue), statusLabel: aiStatus },
   ];
 
   const gaps: GeoReportGap[] = sc.strategic_gaps.map((text, i) => ({
@@ -137,13 +138,24 @@ export async function fetchLiveGeoReport(
     if (opts.models) params.set("models", opts.models);
     if (opts.runs) params.set("runs", String(opts.runs));
   }
-  const res = await fetch(`${base}/api/score?${params.toString()}`, {
-    method: "GET",
-    signal: opts.signal,
-  });
-  if (!res.ok) {
-    throw new Error(`score backend ${res.status}`);
+  // 超时保护：到点 abort，让上层 catch 走回退/错误态，而不是无限 loading。
+  const timeoutMs = opts.timeoutMs ?? 20_000;
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  if (opts.signal) {
+    opts.signal.addEventListener("abort", () => controller?.abort(), { once: true });
   }
-  const scorecard = (await res.json()) as Scorecard;
-  return scorecardToGeoReport(scorecard, siteUrl);
+  try {
+    const res = await fetch(`${base}/api/score?${params.toString()}`, {
+      method: "GET",
+      signal: controller?.signal ?? opts.signal,
+    });
+    if (!res.ok) {
+      throw new Error(`score backend ${res.status}`);
+    }
+    const scorecard = (await res.json()) as Scorecard;
+    return scorecardToGeoReport(scorecard, siteUrl);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }

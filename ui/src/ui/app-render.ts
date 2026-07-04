@@ -167,6 +167,7 @@ import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { formatTimeMs } from "./format.ts";
 import { formatRelativeTimestamp } from "./format.ts";
 import { dismissGeoResume, shouldShowGeoResumeBanner } from "./geo-history.ts";
+import { downloadGeoReport } from "./geo-report-export.ts";
 import { icons } from "./icons.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
 import {
@@ -181,8 +182,8 @@ import {
   type Tab,
 } from "./navigation.ts";
 import { isPluginEnabledInConfigSnapshot } from "./plugin-activation.ts";
-import { isCronSessionKey, resolveSessionDisplayName } from "./session-display.ts";
 import "./components/dashboard-header.ts";
+import { isCronSessionKey, resolveSessionDisplayName } from "./session-display.ts";
 import {
   buildAgentMainSessionKey,
   isSessionKeyTiedToAgent,
@@ -2663,7 +2664,7 @@ export function renderApp(state: AppViewState) {
                   backToGeoOutputCenter(state);
                   restoreGeoSessionForPhase(state);
                 },
-                onFixGaps: () => void openGeoBrandStory(state as never),
+                onFixGaps: () => void openGeoOutputCenter(state as never),
                 onConfirmGenerate: () => void openGeoOutputCenter(state as never),
                 onOpenRepairPack: () => void openGeoRepairPack(state as never),
                 onOpenMonitoringPanel: () => void openGeoMonitoringPanel(state as never),
@@ -2679,6 +2680,7 @@ export function renderApp(state: AppViewState) {
                 onExitToConsole: () => {
                   state.setTab("overview" as Tab);
                 },
+                onDownload: () => downloadGeoReport(state.geoReport, state.geoSiteUrl),
               }),
             )
           : nothing}

@@ -18,7 +18,6 @@ import type {
 import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
 import { icons } from "../icons.ts";
 import { renderGeoAssessment } from "./geo-assessment.ts";
-import { renderGeoBrandStory } from "./geo-brand-story.ts";
 import { renderGeoMonitoringPanel } from "./geo-monitoring-panel.ts";
 import { renderGeoOutputCenter } from "./geo-output-center.ts";
 import { renderGeoRepairPack } from "./geo-repair-pack.ts";
@@ -74,6 +73,7 @@ export type GeoProps = GeoLandingProps &
     onRetryRepairPack: () => void;
     onRetryMonitoring: () => void;
     onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
+    onDownload: () => void;
   };
 
 function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string) => void) {
@@ -216,7 +216,7 @@ const flowChatProps = (props: GeoProps) => ({
 });
 
 export function renderGeo(props: GeoProps) {
-  if (props.phase === "assessment") {
+  if (props.phase === "assessment" || props.phase === "brandStory") {
     return renderGeoAssessment({
       ...flowChatProps(props),
       starting: props.starting,
@@ -227,20 +227,7 @@ export function renderGeo(props: GeoProps) {
       onBack: props.onBack,
       onExitToConsole: props.onExitToConsole,
       onFixGaps: props.onFixGaps,
-    });
-  }
-  if (props.phase === "brandStory") {
-    return renderGeoBrandStory({
-      ...flowChatProps(props),
-      pendingSkill: props.pendingSkill,
-      brandStory: props.brandStory,
-      status: props.brandStoryStatus,
-      skillBusy: props.skillBusy,
-      onBack: props.onBackToAssessment,
-      onExitToConsole: props.onExitToConsole,
-      onConfirmGenerate: props.onConfirmGenerate,
-      onRetry: props.onRetryBrandStory,
-      onValuePropsChange: props.onValuePropsChange,
+      onDownload: props.onDownload,
     });
   }
   if (props.phase === "outputCenter") {

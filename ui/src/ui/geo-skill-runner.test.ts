@@ -61,9 +61,8 @@ describe("runGeoSkill", () => {
     window.history.replaceState(null, "", "/geo");
   });
 
-  it("uses dev demo data instead of waiting for chat when the config flag is enabled", async () => {
+  it("uses local demo data when not connected to a gateway", async () => {
     const host = createHost();
-    host.geoDevSkipSkillWait = true;
 
     await expect(runGeoSkill(host, "brandStory")).resolves.toBe(true);
 
@@ -74,23 +73,23 @@ describe("runGeoSkill", () => {
     expect(host.requestUpdate).toHaveBeenCalled();
   });
 
-  it("waits for bootstrap config before deciding whether to skip chat", async () => {
+  it("waits for bootstrap config before running", async () => {
     const host = createHost();
-    host.geoDevSkipSkillWait = false;
+    let resolved = false;
     host.controlUiBootstrapReady = Promise.resolve().then(() => {
-      host.geoDevSkipSkillWait = true;
+      resolved = true;
     });
 
     await expect(runGeoSkill(host, "brandStory")).resolves.toBe(true);
 
+    expect(resolved).toBe(true);
     expect(host.geoBrandStoryStatus).toBe("ready");
     expect(host.geoBrandStory?.brandName).toBe("Merlord");
-    expect(host.geoPendingSkill).toBeNull();
   });
 
-  it("keeps the normal disconnected guard when the config flag is disabled", async () => {
+  it("does not start a second run while one is in progress", async () => {
     const host = createHost();
-    host.geoDevSkipSkillWait = false;
+    host.geoSkillBusy = true;
 
     await expect(runGeoSkill(host, "brandStory")).resolves.toBe(false);
 

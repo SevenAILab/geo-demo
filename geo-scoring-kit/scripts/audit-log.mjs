@@ -9,6 +9,8 @@ const PRICING = {
   "claude-sonnet-4-5-20251022": { input: 3.0, output: 15.0 },
   "claude-opus-4-5-20250929": { input: 15.0, output: 75.0 },
   "gpt-4o-2024-11-20": { input: 2.5, output: 10.0 },
+  // DeepSeek V3 标准档价格（USD / 1M tokens，cache-miss）。以官方定价为准，可能变动。
+  "deepseek-chat": { input: 0.27, output: 1.1 },
 };
 
 const UNKNOWN_MODEL_FALLBACK = {

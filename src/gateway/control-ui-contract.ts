@@ -15,6 +15,5 @@ export type ControlUiBootstrapConfig = {
   embedSandbox?: ControlUiEmbedSandboxMode;
   allowExternalEmbedUrls?: boolean;
   chatMessageMaxWidth?: string;
-  geoDevSkipSkillWait?: boolean;
   geoPersistHistory?: boolean;
 };

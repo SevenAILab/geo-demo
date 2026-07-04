@@ -44,7 +44,6 @@ describe("handleControlUiHttpRequest", () => {
       assistantAgentId: string;
       localMediaPreviewRoots?: string[];
       chatMessageMaxWidth?: string;
-      geoDevSkipSkillWait?: boolean;
       geoPersistHistory?: boolean;
     };
   }
@@ -799,7 +798,6 @@ describe("handleControlUiHttpRequest", () => {
               gateway: {
                 controlUi: {
                   chatMessageMaxWidth: "min(1280px, 82%)",
-                  geoDevSkipSkillWait: true,
                   geoPersistHistory: true,
                 },
               },
@@ -814,7 +812,6 @@ describe("handleControlUiHttpRequest", () => {
         expect(parsed.assistantAvatar).toBe("/avatar/main");
         expect(parsed.assistantAgentId).toBe("main");
         expect(parsed.chatMessageMaxWidth).toBe("min(1280px, 82%)");
-        expect(parsed.geoDevSkipSkillWait).toBe(true);
         expect(parsed.geoPersistHistory).toBe(true);
         expect(Array.isArray(parsed.localMediaPreviewRoots)).toBe(true);
       },

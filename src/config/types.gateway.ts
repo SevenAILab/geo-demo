@@ -130,8 +130,6 @@ export type GatewayControlUiConfig = {
   allowExternalEmbedUrls?: boolean;
   /** Optional max-width for grouped Control UI chat messages (default: min(900px, 68%)). */
   chatMessageMaxWidth?: string;
-  /** Internal dev/test toggle: skip GEO skill chat waits and use built-in demo data. */
-  geoDevSkipSkillWait?: boolean;
   /** Persist GEO demo chat history client-side so a prior session can be resumed on re-entry. */
   geoPersistHistory?: boolean;
   /** Allowed browser origins for Control UI/WebChat websocket connections. */

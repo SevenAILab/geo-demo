@@ -1,20 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { callClaude } from "./llm-clients/claude-client.mjs";
 import { callDeepSeek, callOpenAI } from "./llm-clients/openai-client.mjs";
-import { callQwen } from "./llm-clients/qwen-client.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REPORT_PATH = path.join(REPO_ROOT, "docs/model-agnostic-validation.md");
 
 export const MODEL_REGISTRY = {
+  // 槽位名保留为 claude，但底层已重指向 DeepSeek（复用 DEEPSEEK_API_KEY）。
   claude: {
     key: "claude",
-    name: "claude-sonnet-4.5",
-    env: "ANTHROPIC_API_KEY",
-    fn: callClaude,
-    defaultModel: "claude-sonnet-4-5-20251022",
+    name: "deepseek-chat (was claude)",
+    env: "DEEPSEEK_API_KEY",
+    fn: callDeepSeek,
+    defaultModel: "deepseek-chat",
   },
   "gpt-4o": {
     key: "gpt-4o",
@@ -23,12 +22,13 @@ export const MODEL_REGISTRY = {
     fn: callOpenAI,
     defaultModel: "gpt-4o",
   },
+  // 槽位名保留为 qwen，但底层已重指向 DeepSeek（复用 DEEPSEEK_API_KEY）。
   qwen: {
     key: "qwen",
-    name: "qwen-max",
-    env: "DASHSCOPE_API_KEY",
-    fn: callQwen,
-    defaultModel: "qwen-max",
+    name: "deepseek-chat (was qwen)",
+    env: "DEEPSEEK_API_KEY",
+    fn: callDeepSeek,
+    defaultModel: "deepseek-chat",
   },
   deepseek: {
     key: "deepseek",
