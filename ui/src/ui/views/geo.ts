@@ -218,20 +218,7 @@ export function renderGeoLanding(props: GeoLandingProps) {
             `
           : nothing}
 
-        <section class="geo-landing__steps">
-          <h2 class="geo-landing__steps-title">${t("geo.landing.stepsTitle")}</h2>
-          <div class="geo-landing__steps-grid">
-            ${LANDING_STEPS.map(
-              (step) => html`
-                <article class="geo-step">
-                  <div class="geo-step__icon ${step.iconClass}">${step.icon}</div>
-                  <h3 class="geo-step__title">${t(step.titleKey)}</h3>
-                  <p class="geo-step__body">${t(step.bodyKey)}</p>
-                </article>
-              `,
-            )}
-          </div>
-        </section>
+
       </main>
 
       <footer class="geo-landing__footer">
