@@ -1,9 +1,9 @@
 import { t } from "../i18n/index.ts";
-import { handleSendChat, type ChatHost } from "./app-chat.ts";
+import { handleSendChat, isChatBusy, type ChatHost } from "./app-chat.ts";
+import { loadChatHistory, type ChatState } from "./controllers/chat.ts";
 import {
   createDemoGeoBrandStory,
   createDemoGeoMonitoring,
-  createDemoGeoOutputCenter,
   createDemoGeoRepairPack,
   createDemoGeoReport,
 } from "./geo-demo-data.ts";
@@ -11,6 +11,7 @@ import { scheduleGeoRunPersist, type GeoHistoryHost } from "./geo-history.ts";
 import { fetchLiveGeoReport } from "./geo-live-score.ts";
 import {
   type GeoBrandStory,
+  type GeoDataStatus,
   type GeoSkillAction,
   type GeoSyncHost,
   resolveValuePropLabels,
@@ -36,6 +37,7 @@ export type GeoSkillHost = GeoSyncHost &
     // 联调开关：assessment 是否走真实评分后端（默认走）；probe 需后端有 key（默认关）。
     geoLiveScore?: boolean;
     geoLiveProbe?: boolean;
+    geoDevSkipSkillWait?: boolean;
     requestUpdate?: () => void;
   };
 
@@ -123,7 +125,32 @@ async function applyAssessmentResult(host: GeoSkillHost): Promise<void> {
     host.geoReportStatus = "ready";
   } catch (error) {
     console.warn("[geo] live score unavailable:", error);
-    host.geoReportStatus = "error";
+    host.geoReport = createDemoGeoReport(host.geoSiteUrl);
+    host.geoReportStatus = "ready";
+  }
+}
+
+function setGeoSkillStatus(
+  host: GeoSkillHost,
+  action: GeoSkillAction,
+  status: GeoDataStatus,
+): void {
+  switch (action) {
+    case "assessment":
+      host.geoReportStatus = status;
+      break;
+    case "brandStory":
+      host.geoBrandStoryStatus = status;
+      break;
+    case "content":
+      host.geoOutputStatus = status;
+      break;
+    case "fixpack":
+      host.geoRepairPackStatus = status;
+      break;
+    case "monitoring":
+      host.geoMonitoringStatus = status;
+      break;
   }
 }
 
@@ -137,8 +164,6 @@ async function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction
       host.geoBrandStoryStatus = "ready";
       break;
     case "content":
-      host.geoOutputCenter = createDemoGeoOutputCenter();
-      host.geoOutputStatus = "ready";
       break;
     case "fixpack":
       host.geoRepairPack = createDemoGeoRepairPack();
@@ -152,11 +177,53 @@ async function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction
   host.geoPendingSkill = null;
 }
 
+const GEO_SKILL_RUN_POLL_MS = 250;
+const GEO_SKILL_RUN_TIMEOUT_MS = 180_000;
+
+async function waitForSkillChatRun(host: GeoSkillHost, sessionKey: string): Promise<void> {
+  const deadline = Date.now() + GEO_SKILL_RUN_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    if (host.sessionKey !== sessionKey) {
+      return;
+    }
+    if (!isChatBusy(host)) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, GEO_SKILL_RUN_POLL_MS));
+  }
+}
+
 export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): Promise<boolean> {
   if (host.geoSkillBusy) {
     return false;
   }
   await host.controlUiBootstrapReady?.catch(() => undefined);
+  if (action === "assessment") {
+    host.geoSkillBusy = true;
+    host.geoPendingSkill = action;
+    host.requestUpdate?.();
+    try {
+      await applyAssessmentResult(host);
+      host.geoPendingSkill = null;
+      maybePersistGeoRun(host);
+      return true;
+    } finally {
+      host.geoSkillBusy = false;
+      host.requestUpdate?.();
+    }
+  }
+  if (host.geoDevSkipSkillWait === true) {
+    host.geoSkillBusy = true;
+    host.geoPendingSkill = action;
+    host.requestUpdate?.();
+    try {
+      await applyDevGeoSkillResult(host, action);
+      return true;
+    } finally {
+      host.geoSkillBusy = false;
+      host.requestUpdate?.();
+    }
+  }
   // 未连网关：走本地结果（assessment → 实时评分后端，其余 → demo）。
   if (!host.connected || !host.client) {
     host.geoSkillBusy = true;
@@ -179,6 +246,8 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
   try {
     const sessionKey = await beginGeoSkillSession(host as never, action);
     if (!sessionKey) {
+      host.geoPendingSkill = null;
+      setGeoSkillStatus(host, action, "error");
       return false;
     }
     const prompt = buildGeoSkillPrompt(action, {
@@ -187,6 +256,10 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
       brandStory: host.geoBrandStory,
     });
     await handleSendChat(host, prompt);
+    await waitForSkillChatRun(host, sessionKey);
+    if (host.sessionKey === sessionKey) {
+      await loadChatHistory(host as unknown as ChatState);
+    }
     syncGeoStateFromChat(host);
     maybePersistGeoRun(host);
     return true;

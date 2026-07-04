@@ -17,12 +17,33 @@ export type GeoReportGap = {
   description: string;
 };
 
+export type GeoVisibilityTrendPoint = {
+  date: string;
+  value: number;
+};
+
+export type GeoIndustryRanking = {
+  id: string;
+  initial: string;
+  name: string;
+  score: number;
+  owned?: boolean;
+};
+
+export type GeoReportIndustryAnalysis = {
+  currentVisibility: number;
+  yourRanking: string;
+  trend: GeoVisibilityTrendPoint[];
+  rankings: GeoIndustryRanking[];
+};
+
 export type GeoReport = {
   totalScore: number;
   rating: GeoReportRating;
   summary: string;
   metrics: GeoReportMetric[];
   gaps: GeoReportGap[];
+  industryAnalysis: GeoReportIndustryAnalysis;
 };
 
 export {

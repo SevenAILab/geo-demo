@@ -29,7 +29,19 @@ description: 对独立站做 GEO（Generative Engine Optimization）体检，评
     { "id": "entity", "label": "实体连通性", "value": 0, "statusLabel": "状态描述" },
     { "id": "aiResponse", "label": "AI 响应", "value": 0, "statusLabel": "状态描述" }
   ],
-  "gaps": [{ "id": "gap-01", "title": "缺口标题", "impact": "high", "description": "缺口说明" }]
+  "gaps": [{ "id": "gap-01", "title": "缺口标题", "impact": "high", "description": "缺口说明" }],
+  "industryAnalysis": {
+    "currentVisibility": 53.7,
+    "yourRanking": "#暂无 - 您的排名",
+    "trend": [
+      { "date": "9/21", "value": 45.2 },
+      { "date": "9/26", "value": 53.7 }
+    ],
+    "rankings": [
+      { "id": "owned", "initial": "品", "name": "目标品牌", "score": 42, "owned": true },
+      { "id": "c1", "initial": "A", "name": "同行业竞品", "score": 32.4 }
+    ]
+  }
 }
 ```
 
@@ -38,14 +50,17 @@ description: 对独立站做 GEO（Generative Engine Optimization）体检，评
 - `totalScore` 0–100 整数；`rating` 仅 `weak|moderate|strong`
 - `metrics` 必须含 schema/entity/aiResponse 三项
 - `gaps` 至少 1 条，`impact` 仅 `high|medium|low`
+- `industryAnalysis.trend` 至少 3 点；`rankings` 至少 3 条且恰好 1 条 `owned: true`
+- `industryAnalysis.currentVisibility` 与 trend 末点一致或接近
 - 只描述可验证事实，不编造第三方引用数据
 
 ## 语言
 
-- JSON 中所有面向用户的字符串字段（`summary`、`statusLabel`、`gaps.title`、`gaps.description` 等）必须使用**简体中文**
+- JSON 中所有面向用户的字符串字段（`summary`、`statusLabel`、`gaps.title`、`gaps.description`、`industryAnalysis.yourRanking`、`rankings[].name` 等）必须使用**简体中文**
 - 枚举/id 等技术字段（`rating`、`impact`、`id`）保持英文
 
 ## references
 
 - `references/visibility-dimensions.md` — 三维度评分口径
 - `references/gap-identification.md` — 缺口识别方法
+- `references/industry-benchmark.md` — 行业可见度对标与 trend/rankings 生成方法

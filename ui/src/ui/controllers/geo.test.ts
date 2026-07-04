@@ -11,6 +11,12 @@ const runGeoSkillMock = vi.hoisted(() =>
       summary: "Merlord demo report",
       metrics: [],
       gaps: [],
+      industryAnalysis: {
+        currentVisibility: 42,
+        yourRanking: "#暂无 - 您的排名",
+        trend: [],
+        rankings: [],
+      },
     };
     host.geoReportStatus = "ready";
     host.geoPendingSkill = null;
@@ -117,18 +123,20 @@ beforeEach(() => {
 });
 
 describe("startGeoExperience", () => {
-  it("runs the assessment skill after bootstrap and marks the report ready", async () => {
+  it("enters assessment immediately and completes the report in the background", async () => {
     const host = createHost();
 
     await expect(startGeoExperience(host)).resolves.toBe(true);
 
     expect(host.geoSiteUrl).toBe("https://merlord.com");
     expect(host.geoPhase).toBe("assessment");
+    expect(host.geoStarting).toBe(false);
+
+    await vi.waitFor(() => expect(runGeoSkillMock).toHaveBeenCalledTimes(1));
+
     expect(host.geoReportStatus).toBe("ready");
     expect(host.geoReport?.summary).toContain("Merlord");
     expect(host.geoPendingSkill).toBeNull();
-    expect(host.geoStarting).toBe(false);
-    expect(runGeoSkillMock).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -346,6 +346,8 @@ export const FIELD_LABELS: Record<string, string> = {
   "gateway.controlUi.allowExternalEmbedUrls": "Allow External Control UI Embed URLs",
   "gateway.controlUi.chatMessageMaxWidth": "Control UI Chat Message Max Width",
   "gateway.controlUi.geoPersistHistory": "GEO Persist Chat History",
+  "gateway.controlUi.geoScoreService": "GEO Score Service Auto-Start",
+  "gateway.controlUi.geoScoreServicePort": "GEO Score Service Port",
   "gateway.controlUi.allowedOrigins": "Control UI Allowed Origins",
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback":
     "Dangerously Allow Host-Header Origin Fallback",

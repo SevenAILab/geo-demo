@@ -68,6 +68,17 @@ export function checkBrowserOrigin(params: {
   ) {
     return { ok: true, matchedBy: "private-same-origin" };
   }
+  // Vite dev UI (:5173) and gateway (:18789) share a hostname on LAN; allow cross-port
+  // private/tailnet origins without wildcard allowlists or host-header fallback.
+  const requestHostname = requestHost ? resolveHostName(requestHost) : "";
+  if (
+    requestHostname &&
+    parsedOrigin.hostname === requestHostname &&
+    isTrustedSameOriginHost(requestHost, params.isLocalClient) &&
+    isTrustedSameOriginHost(parsedOrigin.host, params.isLocalClient)
+  ) {
+    return { ok: true, matchedBy: "private-same-origin" };
+  }
 
   // Dev fallback only for genuinely local socket clients, not Host-header claims.
   if (params.isLocalClient && isLoopbackHost(parsedOrigin.hostname)) {

@@ -29,6 +29,14 @@ describe("checkBrowserOrigin", () => {
       expected: { ok: true as const, matchedBy: "private-same-origin" as const },
     },
     {
+      name: "accepts private LAN host across dev UI and gateway ports",
+      input: {
+        requestHost: "192.168.43.63:18789",
+        origin: "http://192.168.43.63:5173",
+      },
+      expected: { ok: true as const, matchedBy: "private-same-origin" as const },
+    },
+    {
       name: "accepts same-origin tailnet host without dangerous fallback",
       input: {
         requestHost: "peters-mac-studio-1.example.ts.net:18789",

@@ -47,6 +47,8 @@ const TAG_OVERRIDES: Record<string, ConfigTag[]> = {
   "gateway.controlUi.allowExternalEmbedUrls": ["security", "access", "network", "advanced"],
   "gateway.controlUi.chatMessageMaxWidth": ["advanced"],
   "gateway.controlUi.geoPersistHistory": ["advanced"],
+  "gateway.controlUi.geoScoreService": ["advanced"],
+  "gateway.controlUi.geoScoreServicePort": ["advanced"],
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback": [
     "security",
     "access",

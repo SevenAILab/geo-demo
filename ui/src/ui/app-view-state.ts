@@ -122,6 +122,7 @@ export type AppViewState = {
   geoSkillBusy: boolean;
   geoBrandStory: GeoBrandStory | null;
   geoBrandStoryStatus: GeoDataStatus;
+  geoBrandStoryDraftFlash: boolean;
   geoOutputCenter: GeoOutputCenter | null;
   geoOutputStatus: GeoDataStatus;
   geoRepairPack: GeoRepairPack | null;

@@ -10,6 +10,7 @@ dist-runtime/
 
 # Local artifacts and caches
 .artifacts/
+.claude/
 coverage/
 *.tsbuildinfo
 
@@ -24,3 +25,27 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+
+# Runtime caches (generated at run/test time)
+state/
+.cache/
+cache/
+tmp/
+temp/
+.tmp/
+.temp/
+.vite/
+ui/.vite/
+.eslintcache
+.parcel-cache/
+.rollup.cache/
+.turbo/
+playwright-report/
+test-results/
+
+# OS/editor clutter not needed in VCS
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.history

@@ -30,6 +30,19 @@ const report: GeoReport = {
       description: "重点页仍需更多深度",
     },
   ],
+  industryAnalysis: {
+    currentVisibility: 71,
+    yourRanking: "#3 - 您的排名",
+    trend: [
+      { date: "9/21", value: 63 },
+      { date: "9/22", value: 68 },
+      { date: "9/23", value: 71 },
+    ],
+    rankings: [
+      { id: "owned", initial: "A", name: "Acme", score: 71, owned: true },
+      { id: "competitor", initial: "B", name: "Beta", score: 82 },
+    ],
+  },
 };
 
 describe("buildGeoReportMarkdown", () => {

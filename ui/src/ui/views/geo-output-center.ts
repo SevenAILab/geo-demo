@@ -1,11 +1,11 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import { DEMO_OUTPUT_ASSETS } from "../geo-demo-data.ts";
 import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import type {
   GeoDataStatus,
-  GeoOutputAsset,
+  GeoOutputCategory,
   GeoOutputCenter,
+  GeoOutputRepairTag,
   GeoSkillAction,
 } from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
@@ -26,49 +26,56 @@ export type GeoOutputCenterProps = {
   onRetry: () => void;
 };
 
-function resolveAssets(output: GeoOutputCenter | null, status: GeoDataStatus): GeoOutputAsset[] {
-  if (output?.assets?.length) {
-    return output.assets;
-  }
-  if (status === "idle") {
-    return DEMO_OUTPUT_ASSETS;
-  }
-  return [];
+const IMPACT_ORDER: Record<GeoOutputCategory["impact"], number> = {
+  high: 0,
+  medium: 1,
+  low: 2,
+};
+
+const TAG_I18N: Record<GeoOutputRepairTag, string> = {
+  techInfra: "geo.outputCenter.tagTechInfra",
+  brandContent: "geo.outputCenter.tagBrandContent",
+  structure: "geo.outputCenter.tagStructure",
+  continuousArticle: "geo.outputCenter.tagContinuousArticle",
+};
+
+function sortByImpact(categories: GeoOutputCategory[]): GeoOutputCategory[] {
+  return [...categories].sort(
+    (left, right) => IMPACT_ORDER[left.impact] - IMPACT_ORDER[right.impact],
+  );
 }
 
-function renderAssetCard(asset: GeoOutputAsset, onOptimize: () => void, disabled: boolean) {
-  const typeLabel =
-    asset.type === "article"
-      ? t("geo.outputCenter.typeArticle")
-      : asset.type === "faq"
-        ? t("geo.outputCenter.typeFaq")
-        : t("geo.outputCenter.typeCase");
-  const scoreClass =
-    asset.scoreTone === "good" ? "geo-output-card__score--good" : "geo-output-card__score--warn";
-
+function renderCategoryCard(category: GeoOutputCategory, onOpen: () => void, disabled: boolean) {
   return html`
-    <article class="geo-output-card">
-      <div class="geo-output-card__head">
-        <span class="geo-output-card__type geo-output-card__type--${asset.type}">${typeLabel}</span>
-        <span class="geo-output-card__score ${scoreClass}"> GEO Score: ${asset.score}/100 </span>
+    <button
+      type="button"
+      class="geo-output-category-card geo-output-category-card--${category.impact}"
+      ?disabled=${disabled}
+      @click=${onOpen}
+    >
+      <div class="geo-output-category-card__head">
+        <h3 class="geo-output-category-card__title">${category.title}</h3>
+        <span class="geo-gap__impact geo-gap__impact--${category.impact}">
+          ${t(`geo.assessment.impact.${category.impact}`)}
+        </span>
       </div>
-      <h3 class="geo-output-card__title">${asset.title}</h3>
-      <button
-        type="button"
-        class="btn btn--sm geo-output-card__btn"
-        ?disabled=${disabled}
-        @click=${onOptimize}
-      >
-        ${t("geo.outputCenter.optimize")}
-      </button>
-    </article>
+      <p class="geo-output-category-card__description">${category.description}</p>
+      <div class="geo-output-category-card__tags">
+        ${category.tags.map(
+          (tag) => html` <span class="geo-output-category-card__tag">${t(TAG_I18N[tag])}</span> `,
+        )}
+      </div>
+    </button>
   `;
 }
 
-function renderOutputSkeletonCards() {
-  return [0, 1, 2].map(
+function renderCategorySkeletonCards() {
+  return [0, 1, 2, 3].map(
     () => html`
-      <article class="geo-output-card geo-skeleton" aria-hidden="true">
+      <article
+        class="geo-output-category-card geo-output-category-card--skeleton geo-skeleton"
+        aria-hidden="true"
+      >
         <div class="geo-skeleton__line geo-skeleton__line--title"></div>
         <div class="geo-skeleton__line"></div>
         <div class="geo-skeleton__line geo-skeleton__line--short"></div>
@@ -80,9 +87,8 @@ function renderOutputSkeletonCards() {
 export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
   const loading = props.status === "loading" || props.skillBusy;
   const showError = props.status === "error" && !props.output;
-  const assets = resolveAssets(props.output, props.status);
-  const brandVoice = props.output?.brandVoice ?? t("geo.outputCenter.brandVoice");
-  const constraints = props.output?.constraints ?? t("geo.outputCenter.constraints");
+  const categories = props.output?.categories ?? [];
+  const sortedCategories = sortByImpact(categories);
   const statusText = props.output
     ? t("geo.outputCenter.subtitle")
     : t("geo.outputCenter.generatingStatus");
@@ -106,9 +112,6 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
         <button type="button" class="btn btn--sm" @click=${props.onBack}>
           ${t("geo.outputCenter.backToBrandStory")}
         </button>
-        <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
-          ${t("geo.backToConsole")}
-        </button>
       </div>
     </header>
   `;
@@ -124,34 +127,30 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
       : nothing}
     <div class="geo-output-center__body ${loading ? "geo-brand-story__body--dimmed" : ""}">
       <main class="geo-output-center__main">
-        <h1 class="geo-output-center__title">${t("geo.outputCenter.title")}</h1>
-        <p class="geo-output-center__subtitle">${t("geo.outputCenter.subtitle")}</p>
+        <div class="geo-output-center__title-row">
+          <div>
+            <h1 class="geo-output-center__title">${t("geo.outputCenter.title")}</h1>
+            <p class="geo-output-center__subtitle">${t("geo.outputCenter.subtitle")}</p>
+          </div>
+          <button
+            type="button"
+            class="geo-page__cta"
+            ?disabled=${loading || sortedCategories.length === 0}
+            @click=${props.onOpenRepairPack}
+          >
+            ${t("geo.outputCenter.optimizeOneClick")}
+          </button>
+        </div>
         <div class="geo-output-center__grid">
-          ${loading && assets.length === 0
-            ? renderOutputSkeletonCards()
-            : assets.length > 0
-              ? assets.map((asset) => renderAssetCard(asset, props.onOpenRepairPack, loading))
+          ${loading && sortedCategories.length === 0
+            ? renderCategorySkeletonCards()
+            : sortedCategories.length > 0
+              ? sortedCategories.map((category) =>
+                  renderCategoryCard(category, props.onOpenRepairPack, loading),
+                )
               : nothing}
         </div>
       </main>
-      <aside class="geo-output-center__aside">
-        <section class="geo-side-card">
-          <h2 class="geo-side-card__title">${t("geo.outputCenter.contextRules")}</h2>
-          <p class="geo-side-card__hint">${brandVoice}</p>
-          <p class="geo-side-card__hint">${constraints}</p>
-          <button
-            type="button"
-            class="geo-page__cta geo-page__cta--block"
-            ?disabled=${loading}
-            @click=${props.onOpenRepairPack}
-          >
-            ${t("geo.outputCenter.optimizeAll")}
-          </button>
-          <button type="button" class="geo-page__cta geo-page__cta--block" disabled>
-            ${t("geo.outputCenter.deployLlms")}
-          </button>
-        </section>
-      </aside>
     </div>
   `;
 

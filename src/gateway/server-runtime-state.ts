@@ -14,6 +14,7 @@ import type { AuthRateLimiter } from "./auth-rate-limit.js";
 import type { ResolvedGatewayAuth } from "./auth.js";
 import type { ChatAbortControllerEntry } from "./chat-abort.js";
 import type { ControlUiRootState } from "./control-ui.js";
+import { maybeStartGeoScoreService } from "./geo-score-service.js";
 import type { HooksConfigResolved } from "./hooks.js";
 import type { AuthorizedGatewayHttpRequest } from "./http-auth-utils.js";
 import { isLoopbackHost, resolveGatewayListenHosts } from "./net.js";
@@ -122,6 +123,12 @@ export async function createGatewayRuntimeState(params: {
   toolEventRecipients: ReturnType<typeof createToolEventRecipientRegistry>;
 }> {
   pinActivePluginHttpRouteRegistry(params.pluginRegistry);
+  // Dev convenience: optionally auto-spawn the GEO scoring backend as a child
+  // process (opt-in via gateway.controlUi.geoScoreService). Never throws.
+  maybeStartGeoScoreService(params.cfg, {
+    info: (msg) => params.log.info(msg),
+    warn: (msg) => params.log.warn(msg),
+  });
   if (params.pinChannelRegistry !== false) {
     pinActivePluginChannelRegistry(params.pluginRegistry);
   } else {

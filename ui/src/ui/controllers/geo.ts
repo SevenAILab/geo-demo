@@ -51,6 +51,16 @@ export function normalizeGeoSiteUrl(raw: string): string | null {
   return `https://${trimmed}`;
 }
 
+async function runInitialGeoAssessment(host: GeoHost): Promise<void> {
+  try {
+    await host.controlUiBootstrapReady?.catch(() => undefined);
+    await runGeoSkill(host, "assessment");
+  } finally {
+    updateGeoRunFromHost(host);
+    host.requestUpdate?.();
+  }
+}
+
 export async function startGeoExperience(host: GeoHost): Promise<boolean> {
   const url = normalizeGeoSiteUrl(host.geoSiteUrl);
   if (!url) {
@@ -66,18 +76,10 @@ export async function startGeoExperience(host: GeoHost): Promise<boolean> {
   host.geoReportStatus = "loading";
   host.geoPendingSkill = "assessment";
   createGeoRun(host);
+  host.geoStarting = false;
+  void runInitialGeoAssessment(host);
   host.requestUpdate?.();
-  try {
-    await host.controlUiBootstrapReady?.catch(() => undefined);
-    const ok = await runGeoSkill(host, "assessment");
-    syncGeoReportFromChat(host);
-    return ok;
-  } finally {
-    host.geoStarting = false;
-    syncGeoReportFromChat(host);
-    updateGeoRunFromHost(host);
-    host.requestUpdate?.();
-  }
+  return true;
 }
 
 export function backToGeoLanding(host: GeoHost): void {
@@ -202,6 +204,13 @@ export function updateGeoBrandStoryValueProps(
     valuePropOther: valuePropOther.trim() || undefined,
   };
   host.requestUpdate?.();
+}
+
+export function saveGeoBrandStoryDraft(host: GeoHost): void {
+  if (!host.geoBrandStory) {
+    return;
+  }
+  updateGeoRunFromHost(host);
 }
 
 export function backToGeoOutputCenter(host: GeoHost): void {

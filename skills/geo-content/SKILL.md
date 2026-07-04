@@ -1,6 +1,6 @@
 ---
 name: geo-content
-description: 基于品牌事实生成 GEO-native 内容资产列表（文章、FAQ、案例），供产出中心展示。借鉴方案叙事 page-craft 与写作纪律。
+description: 基于品牌事实与体检缺口生成 GEO 产出中心四大修复大类卡片数据，供产出中心展示。借鉴方案叙事 page-craft 与写作纪律。
 ---
 
 # GEO 内容生成 (Content)
@@ -15,51 +15,56 @@ description: 基于品牌事实生成 GEO-native 内容资产列表（文章、F
 
 ```json
 {
-  "assets": [
+  "categories": [
     {
-      "id": "article-01",
-      "type": "article",
-      "title": "标题",
-      "score": 92,
-      "scoreTone": "good"
+      "id": "tech-infra",
+      "title": "技术基建修复",
+      "description": "基于体检缺口生成的修复说明…",
+      "impact": "high",
+      "tags": ["techInfra"]
     },
     {
-      "id": "faq-01",
-      "type": "faq",
-      "title": "标题",
-      "score": 78,
-      "scoreTone": "warn"
+      "id": "brand-content",
+      "title": "品牌内容修复",
+      "description": "…",
+      "impact": "medium",
+      "tags": ["brandContent", "structure"]
     },
     {
-      "id": "case-01",
-      "type": "case",
-      "title": "标题",
-      "score": 95,
-      "scoreTone": "good"
+      "id": "structure",
+      "title": "结构呈现修复",
+      "description": "…",
+      "impact": "low",
+      "tags": ["structure"]
+    },
+    {
+      "id": "continuous-article",
+      "title": "持续文章修复",
+      "description": "…",
+      "impact": "low",
+      "tags": ["continuousArticle", "brandContent"]
     }
-  ],
-  "brandVoice": "权威、透明、精准",
-  "constraints": "避免行话，每段不超过 3 句"
+  ]
 }
 ```
 
 ## 回复格式
 
 - 回复正文可为简短说明；**末尾必须且仅能有一个** ` ```json ` 代码块
-- JSON 根对象字段仅限 `assets`、`brandVoice`、`constraints`，禁止额外字段或嵌套说明
+- JSON 根对象字段仅限 `categories`，禁止额外字段或嵌套说明
 - 不要在 JSON 块外再输出第二个 JSON、Markdown 表格或 YAML
 
 ## 质量门
 
-- 至少 3 条 assets，type 仅 article|faq|case，且 article/faq/case 各至少 1 条
-- score 0–100；**scoreTone 仅 `good` 或 `warn`**（禁止 `warning`、`bad` 等变体）
-- 标题应覆盖 gaps 中的 high impact 主题
-- brandVoice、constraints 必须为非空字符串
+- 恰好 4 条 categories，分别对应：技术基建修复、品牌内容修复、结构呈现修复、持续文章修复
+- 每条 `tags` 长度 1–4，tag id 仅 `techInfra|brandContent|structure|continuousArticle`，去重
+- `impact` 仅 `high|medium|low`，需结合 assessment gaps 的 impact 合理分配
+- `title`、`description` 必须为非空字符串
 
 ## 语言
 
-- JSON 中所有面向用户的字符串字段（`assets.title`、`brandVoice`、`constraints`）必须使用**简体中文**
-- 枚举/id 等技术字段（`type`、`scoreTone`、`id`）保持英文
+- JSON 中所有面向用户的字符串字段（`title`、`description`）必须使用**简体中文**
+- 枚举/id 等技术字段（`impact`、`tags`、`id`）保持英文
 
 ## references
 

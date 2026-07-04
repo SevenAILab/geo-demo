@@ -132,6 +132,10 @@ export type GatewayControlUiConfig = {
   chatMessageMaxWidth?: string;
   /** Persist GEO demo chat history client-side so a prior session can be resumed on re-entry. */
   geoPersistHistory?: boolean;
+  /** Dev convenience: auto-spawn the GEO scoring backend (geo-scoring-kit) as a gateway child process. */
+  geoScoreService?: boolean;
+  /** Port for the auto-spawned GEO scoring backend (default 8799). */
+  geoScoreServicePort?: number;
   /** Allowed browser origins for Control UI/WebChat websocket connections. */
   allowedOrigins?: string[];
   /**

@@ -986,6 +986,8 @@ export const OpenClawSchema = z
               })
               .optional(),
             geoPersistHistory: z.boolean().optional(),
+            geoScoreService: z.boolean().optional(),
+            geoScoreServicePort: z.number().int().positive().optional(),
             allowedOrigins: z.array(z.string()).optional(),
             dangerouslyAllowHostHeaderOriginFallback: z.boolean().optional(),
             allowInsecureAuth: z.boolean().optional(),

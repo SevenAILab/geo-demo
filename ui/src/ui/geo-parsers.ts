@@ -1,5 +1,13 @@
 import { extractText } from "./chat/message-extract.ts";
-import type { GeoReport, GeoReportGap, GeoReportMetric, GeoReportRating } from "./geo-report.ts";
+import type {
+  GeoIndustryRanking,
+  GeoReport,
+  GeoReportGap,
+  GeoReportIndustryAnalysis,
+  GeoReportMetric,
+  GeoReportRating,
+  GeoVisibilityTrendPoint,
+} from "./geo-report.ts";
 
 export type GeoDataStatus = "idle" | "loading" | "ready" | "error";
 
@@ -25,18 +33,18 @@ export type GeoBrandStory = {
   aiPreview: { entity: string; type: string; audience: string };
 };
 
-export type GeoOutputAsset = {
+export type GeoOutputRepairTag = "techInfra" | "brandContent" | "structure" | "continuousArticle";
+
+export type GeoOutputCategory = {
   id: string;
-  type: "article" | "faq" | "case";
   title: string;
-  score: number;
-  scoreTone: "good" | "warn";
+  description: string;
+  impact: GeoReportGap["impact"];
+  tags: GeoOutputRepairTag[];
 };
 
 export type GeoOutputCenter = {
-  assets: GeoOutputAsset[];
-  brandVoice: string;
-  constraints: string;
+  categories: GeoOutputCategory[];
 };
 
 export type GeoRepairPack = {
@@ -78,8 +86,12 @@ const JSON_BLOCK_RE = /```(?:json)?\s*([\s\S]*?)```/gi;
 const METRIC_IDS = new Set(["schema", "entity", "aiResponse"]);
 const RATINGS = new Set<GeoReportRating>(["weak", "moderate", "strong"]);
 const IMPACTS = new Set(["high", "medium", "low"]);
-const ASSET_TYPES = new Set<GeoOutputAsset["type"]>(["article", "faq", "case"]);
-const SCORE_TONES = new Set<GeoOutputAsset["scoreTone"]>(["good", "warn"]);
+const REPAIR_TAGS = new Set<GeoOutputRepairTag>([
+  "techInfra",
+  "brandContent",
+  "structure",
+  "continuousArticle",
+]);
 const DIMENSION_TONES = new Set<GeoDimensionTone>(["good", "purple", "warn"]);
 const TOPIC_TAGS = new Set<GeoTopicCard["tag"]>(["missing", "insight"]);
 const TOPIC_ACTIONS = new Set<GeoTopicCard["action"]>(["comparison", "deep"]);
@@ -93,6 +105,52 @@ function clampScore(value: unknown): number | null {
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function extractBalancedJsonObject(textContent: string): unknown | null {
+  const start = textContent.indexOf("{");
+  if (start === -1) {
+    return null;
+  }
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < textContent.length; index += 1) {
+    const char = textContent[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (char === "\\") {
+        escaped = true;
+        continue;
+      }
+      if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === "{") {
+      depth += 1;
+      continue;
+    }
+    if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(textContent.slice(start, index + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 export function extractJsonFromText(textContent: string): unknown | null {
@@ -109,19 +167,25 @@ export function extractJsonFromText(textContent: string): unknown | null {
     try {
       return JSON.parse(block);
     } catch {
-      // try earlier blocks
+      const balanced = extractBalancedJsonObject(block);
+      if (balanced !== null) {
+        return balanced;
+      }
     }
   }
   const start = trimmed.indexOf("{");
   const end = trimmed.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) {
-    return null;
+  if (start !== -1 && end !== -1 && end > start) {
+    try {
+      return JSON.parse(trimmed.slice(start, end + 1));
+    } catch {
+      const balanced = extractBalancedJsonObject(trimmed);
+      if (balanced !== null) {
+        return balanced;
+      }
+    }
   }
-  try {
-    return JSON.parse(trimmed.slice(start, end + 1));
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 function parseMetric(raw: unknown): GeoReportMetric | null {
@@ -157,6 +221,69 @@ function parseGap(raw: unknown): GeoReportGap | null {
   return { id, title, description, impact: impact as GeoReportGap["impact"] };
 }
 
+function parseTrendPoint(raw: unknown): GeoVisibilityTrendPoint | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const date = text(item.date);
+  const value = clampScore(item.value);
+  if (!date || value === null) {
+    return null;
+  }
+  return { date, value };
+}
+
+function parseRanking(raw: unknown): GeoIndustryRanking | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const id = text(item.id);
+  const initial = text(item.initial);
+  const name = text(item.name);
+  const score = clampScore(item.score);
+  if (!id || !initial || !name || score === null) {
+    return null;
+  }
+  return {
+    id,
+    initial,
+    name,
+    score,
+    owned: item.owned === true ? true : undefined,
+  };
+}
+
+function parseIndustryAnalysis(raw: unknown): GeoReportIndustryAnalysis | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const currentVisibility = clampScore(item.currentVisibility);
+  const yourRanking = text(item.yourRanking);
+  if (currentVisibility === null || !yourRanking) {
+    return null;
+  }
+  if (!Array.isArray(item.trend) || !Array.isArray(item.rankings)) {
+    return null;
+  }
+  const trend = item.trend
+    .map(parseTrendPoint)
+    .filter((point): point is GeoVisibilityTrendPoint => point !== null);
+  const rankings = item.rankings
+    .map(parseRanking)
+    .filter((entry): entry is GeoIndustryRanking => entry !== null);
+  if (trend.length < 3 || rankings.length < 3) {
+    return null;
+  }
+  const ownedCount = rankings.filter((entry) => entry.owned).length;
+  if (ownedCount !== 1) {
+    return null;
+  }
+  return { currentVisibility, yourRanking, trend, rankings };
+}
+
 export function parseGeoReportJson(raw: unknown): GeoReport | null {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -183,12 +310,17 @@ export function parseGeoReportJson(raw: unknown): GeoReport | null {
   if (metrics.length === 0 || gaps.length === 0) {
     return null;
   }
+  const industryAnalysis = parseIndustryAnalysis(item.industryAnalysis);
+  if (!industryAnalysis) {
+    return null;
+  }
   return {
     totalScore,
     rating: rating as GeoReportRating,
     summary,
     metrics,
     gaps,
+    industryAnalysis,
   };
 }
 
@@ -243,15 +375,38 @@ export function resolveValuePropLabels(story: GeoBrandStory): string[] {
   return labels;
 }
 
+function deriveBrandNameFromSiteUrl(siteUrl: string): string {
+  try {
+    const hostname = new URL(siteUrl).hostname.replace(/^www\./, "");
+    const label = hostname.split(".")[0] ?? "OpenBrand";
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  } catch {
+    return "OpenBrand";
+  }
+}
+
+export function enrichGeoBrandStory(story: GeoBrandStory, siteUrl?: string): GeoBrandStory {
+  const trimmedUrl = siteUrl?.trim();
+  if (story.brandName.trim() || !trimmedUrl) {
+    return story;
+  }
+  const fallbackName = deriveBrandNameFromSiteUrl(trimmedUrl);
+  return {
+    ...story,
+    brandName: fallbackName,
+    aiPreview: {
+      ...story.aiPreview,
+      entity: story.aiPreview.entity.trim() || fallbackName,
+    },
+  };
+}
+
 export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
   const item = normalizeBrandStoryRaw(raw as Record<string, unknown>);
   const brandName = text(item.brandName);
-  if (!brandName) {
-    return null;
-  }
   const industry = text(item.industry);
   const valuePropOptions = parseValuePropOptions(item.valuePropOptions);
   const valueProps = parseValueProps(item.valueProps);
@@ -284,26 +439,51 @@ const BRAND_STORY_FIELD_ALIASES: Record<string, string> = {
   brand_name: "brandName",
   brand: "brandName",
   target_audience: "audience",
+  targetAudience: "audience",
   differentiators: "differentiator",
   ai_preview: "aiPreview",
+  value_propositions: "valuePropOptions",
+  valuePropositions: "valuePropOptions",
+  competitor_urls: "competitors",
+  competitorUrls: "competitors",
 };
+
+function normalizeValuePropOptionsRaw(raw: unknown): unknown {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return raw;
+  }
+  if (typeof raw[0] === "string") {
+    return raw.map((label, index) => ({
+      id: `vp-${index + 1}`,
+      label,
+      suggested: index === 0,
+    }));
+  }
+  return raw;
+}
 
 function normalizeBrandStoryRaw(raw: Record<string, unknown>): Record<string, unknown> {
   const normalized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(raw)) {
     const target = BRAND_STORY_FIELD_ALIASES[key] ?? key;
-    if (target === "aiPreview" && value && typeof value === "object" && !Array.isArray(value)) {
+    const nextValue = target === "valuePropOptions" ? normalizeValuePropOptionsRaw(value) : value;
+    if (
+      target === "aiPreview" &&
+      nextValue &&
+      typeof nextValue === "object" &&
+      !Array.isArray(nextValue)
+    ) {
       const existing =
         normalized.aiPreview &&
         typeof normalized.aiPreview === "object" &&
         !Array.isArray(normalized.aiPreview)
           ? (normalized.aiPreview as Record<string, unknown>)
           : {};
-      normalized.aiPreview = { ...existing, ...(value as Record<string, unknown>) };
+      normalized.aiPreview = { ...existing, ...(nextValue as Record<string, unknown>) };
       continue;
     }
     if (!(target in normalized)) {
-      normalized[target] = value;
+      normalized[target] = nextValue;
     }
   }
   return normalized;
@@ -322,47 +502,52 @@ export function isGeoBrandStoryComplete(story: GeoBrandStory | null): boolean {
   return true;
 }
 
-function resolveScoreTone(raw: unknown, score: number): GeoOutputAsset["scoreTone"] | null {
-  if (typeof raw === "string") {
-    const normalized = raw.trim().toLowerCase();
-    if (normalized === "warning" || normalized === "warn") {
-      return "warn";
+function parseRepairTags(raw: unknown): GeoOutputRepairTag[] | null {
+  if (!Array.isArray(raw)) {
+    return null;
+  }
+  const tags: GeoOutputRepairTag[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "string" || !REPAIR_TAGS.has(entry as GeoOutputRepairTag)) {
+      return null;
     }
-    if (normalized === "good") {
-      return "good";
+    const tag = entry as GeoOutputRepairTag;
+    if (!tags.includes(tag)) {
+      tags.push(tag);
     }
   }
-  return score >= 80 ? "good" : "warn";
+  if (tags.length < 1 || tags.length > 4) {
+    return null;
+  }
+  return tags;
 }
 
-function parseOutputAsset(raw: unknown): GeoOutputAsset | null {
+function parseOutputCategory(raw: unknown): GeoOutputCategory | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
   const item = raw as Record<string, unknown>;
   const id = text(item.id);
-  const type = item.type;
   const title = text(item.title);
-  const score = clampScore(item.score);
+  const description = text(item.description);
+  const impact = item.impact;
+  const tags = parseRepairTags(item.tags);
   if (
     !id ||
-    typeof type !== "string" ||
-    !ASSET_TYPES.has(type as GeoOutputAsset["type"]) ||
     !title ||
-    score === null
+    !description ||
+    typeof impact !== "string" ||
+    !IMPACTS.has(impact) ||
+    !tags
   ) {
-    return null;
-  }
-  const scoreTone = resolveScoreTone(item.scoreTone, score);
-  if (!scoreTone || !SCORE_TONES.has(scoreTone)) {
     return null;
   }
   return {
     id,
-    type: type as GeoOutputAsset["type"],
     title,
-    score,
-    scoreTone,
+    description,
+    impact: impact as GeoOutputCategory["impact"],
+    tags,
   };
 }
 
@@ -371,16 +556,16 @@ export function parseGeoOutputCenterJson(raw: unknown): GeoOutputCenter | null {
     return null;
   }
   const item = raw as Record<string, unknown>;
-  if (!Array.isArray(item.assets)) {
+  if (!Array.isArray(item.categories)) {
     return null;
   }
-  const assets = item.assets.map(parseOutputAsset).filter((a): a is GeoOutputAsset => a !== null);
-  const brandVoice = text(item.brandVoice);
-  const constraints = text(item.constraints);
-  if (assets.length === 0 || !brandVoice || !constraints) {
+  const categories = item.categories
+    .map(parseOutputCategory)
+    .filter((category): category is GeoOutputCategory => category !== null);
+  if (categories.length !== 4) {
     return null;
   }
-  return { assets, brandVoice, constraints };
+  return { categories };
 }
 
 export function parseGeoRepairPackJson(raw: unknown): GeoRepairPack | null {
@@ -551,6 +736,7 @@ export type GeoSyncHost = {
   geoPhase?: string;
   geoStarting: boolean;
   geoSkillBusy?: boolean;
+  geoSiteUrl?: string;
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
   sessionKey?: string;
   geoReport: GeoReport | null;
@@ -611,7 +797,7 @@ function shouldPreserveReadySnapshot<T>(
 function sessionMatchesSkill(host: GeoSyncHost, action: GeoSkillAction): boolean {
   const expected = host.geoSessionKeys[action];
   if (!expected || !host.sessionKey) {
-    return true;
+    return false;
   }
   return host.sessionKey === expected;
 }
@@ -663,7 +849,12 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
   const skillBusy = Boolean(host.geoSkillBusy);
 
   if (shouldSyncSkill(host, "brandStory", "brandStory")) {
-    const story = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoBrandStoryJson);
+    const parsedStory = resolveParsedFromChat(
+      host.chatMessages,
+      host.chatStream,
+      parseGeoBrandStoryJson,
+    );
+    const story = parsedStory ? enrichGeoBrandStory(parsedStory, host.geoSiteUrl) : null;
     const preserveStory = shouldPreserveReadySnapshot(
       story,
       host.geoBrandStory,

@@ -1,9 +1,4 @@
-import type {
-  GeoBrandStory,
-  GeoMonitoring,
-  GeoOutputCenter,
-  GeoRepairPack,
-} from "./geo-parsers.ts";
+import type { GeoBrandStory, GeoMonitoring, GeoRepairPack } from "./geo-parsers.ts";
 import type { GeoReport } from "./geo-report.ts";
 
 export function deriveBrandNameFromUrl(siteUrl: string): string {
@@ -18,53 +13,77 @@ export function deriveBrandNameFromUrl(siteUrl: string): string {
 
 export function createDemoGeoReport(siteUrl: string): GeoReport {
   const brandName = deriveBrandNameFromUrl(siteUrl);
+  const ownedInitial = brandName.charAt(0) || "品";
+  const currentVisibility = 42;
   return {
     totalScore: 42,
     rating: "weak",
-    summary: `${brandName} is findable, but AI answers still lack structured entity evidence.`,
+    summary: `${brandName} 可被检索到，但 AI 回答仍缺乏结构化实体证据，需补齐 Schema 与可引用内容。`,
     metrics: [
       {
         id: "schema",
         label: "Schema.org",
         value: 38,
-        statusLabel: "Missing organization and FAQ entity markup",
+        statusLabel: "缺少 Organization 与 FAQ 实体标记",
       },
       {
         id: "entity",
-        label: "Entity graph",
+        label: "实体连通性",
         value: 45,
-        statusLabel: "Brand facts are fragmented across pages",
+        statusLabel: "品牌事实分散在多个页面",
       },
       {
         id: "aiResponse",
-        label: "AI response",
+        label: "AI 响应",
         value: 41,
-        statusLabel: "Low citation confidence in answer engines",
+        statusLabel: "答案引擎引用置信度偏低",
       },
     ],
     gaps: [
       {
         id: "entity-home",
-        title: "No canonical brand fact source",
+        title: "缺少 canonical 品牌事实页",
         impact: "high",
-        description:
-          "Answer engines do not have one concise page that defines the brand, product, and audience.",
+        description: "答案引擎缺少一页集中定义品牌、产品与受众的可引用内容。",
       },
       {
         id: "schema-faq",
-        title: "Structured data is incomplete",
+        title: "结构化数据不完整",
         impact: "high",
-        description:
-          "Organization, Product, and FAQ schema should be added to reinforce machine-readable context.",
+        description: "应补充 Organization、Product 与 FAQ Schema 以强化机器可读上下文。",
       },
       {
         id: "comparison-content",
-        title: "Missing comparison content",
+        title: "缺少对比型内容",
         impact: "medium",
-        description:
-          "Buyers ask AI tools for alternatives, but the site does not provide comparison-ready evidence.",
+        description: "买家会向 AI 询问替代方案，但站点缺少可对比的公开证据。",
       },
     ],
+    industryAnalysis: {
+      currentVisibility,
+      yourRanking: "#暂无 - 您的排名",
+      trend: [
+        { date: "9/21", value: 35.2 },
+        { date: "9/22", value: 37.6 },
+        { date: "9/23", value: 39.1 },
+        { date: "9/24", value: 38.8 },
+        { date: "9/25", value: 40.3 },
+        { date: "9/26", value: currentVisibility },
+      ],
+      rankings: [
+        {
+          id: "owned",
+          initial: ownedInitial,
+          name: brandName,
+          score: currentVisibility,
+          owned: true,
+        },
+        { id: "c1", initial: "A", name: "行业标杆 A", score: 68.4 },
+        { id: "c2", initial: "B", name: "行业标杆 B", score: 54.2 },
+        { id: "c3", initial: "C", name: "行业标杆 C", score: 47.8 },
+        { id: "c4", initial: "D", name: "行业标杆 D", score: 39.5 },
+      ],
+    },
   };
 }
 
@@ -95,15 +114,6 @@ export function createDemoGeoBrandStory(siteUrl: string): GeoBrandStory {
       type: "Healthcare information brand",
       audience: "Consumers researching credible health guidance",
     },
-  };
-}
-
-export function createDemoGeoOutputCenter(): GeoOutputCenter {
-  return {
-    assets: DEMO_OUTPUT_ASSETS,
-    brandVoice: "Clear, expert-reviewed, practical, and citation-friendly.",
-    constraints:
-      "Use concise claims, cite primary facts, and keep medical advice framed as informational.",
   };
 }
 
@@ -145,30 +155,6 @@ Core Product: AI Brand Visibility Platform
 - Always refer to the company as "Acme Corp", never "Acme"
 - Primary audience: Pre-seed SaaS founders
 - Key differentiator: Entity-based GEO optimization`;
-
-export const DEMO_OUTPUT_ASSETS = [
-  {
-    id: "article",
-    type: "article" as const,
-    score: 92,
-    scoreTone: "good" as const,
-    title: "Why Entity-Based SEO is the Future",
-  },
-  {
-    id: "faq",
-    type: "faq" as const,
-    score: 78,
-    scoreTone: "warn" as const,
-    title: "How to optimize AI overviews?",
-  },
-  {
-    id: "case",
-    type: "case" as const,
-    score: 95,
-    scoreTone: "good" as const,
-    title: "Global Expansion via AI Visibility",
-  },
-];
 
 export const DEMO_DIMENSIONS = [
   { id: "schema", label: "Schema.org 标记", value: 95, tone: "good" as const },
