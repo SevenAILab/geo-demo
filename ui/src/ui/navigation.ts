@@ -174,7 +174,7 @@ export function tabFromPath(pathname: string, basePath = ""): Tab | null {
     return "geo";
   }
   if (normalized === "/") {
-    return "chat";
+    return "geo";
   }
   return PATH_TO_TAB.get(normalized) ?? null;
 }
@@ -196,7 +196,7 @@ export function resolveRouteFromPathname(pathname: string, basePath = ""): Resol
     }
   }
   const normalized = normalizeLowercaseStringOrEmpty(normalizePath(path));
-  if (normalized === "/geo/chat") {
+  if (normalized === "/geo/chat" || normalized === "/") {
     return { tab: "geo", canonicalPathname: pathForTab("geo", basePath) };
   }
   return { tab, canonicalPathname: null };

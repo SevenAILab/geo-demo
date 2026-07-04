@@ -185,8 +185,8 @@ describe("tabFromPath", () => {
     expect(tabFromPath("/dreams")).toBe("dreams");
   });
 
-  it("returns chat for root path", () => {
-    expect(tabFromPath("/")).toBe("chat");
+  it("returns geo for root path", () => {
+    expect(tabFromPath("/")).toBe("geo");
   });
 
   it("handles base paths", () => {
@@ -210,6 +210,13 @@ describe("tabFromPath", () => {
 describe("resolveRouteFromPathname", () => {
   it("canonicalizes /geo/chat to /geo", () => {
     expect(resolveRouteFromPathname("/geo/chat")).toEqual({
+      tab: "geo",
+      canonicalPathname: "/geo",
+    });
+  });
+
+  it("canonicalizes root path to /geo", () => {
+    expect(resolveRouteFromPathname("/")).toEqual({
       tab: "geo",
       canonicalPathname: "/geo",
     });

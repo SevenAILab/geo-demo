@@ -1,3 +1,11 @@
+import type {
+  GeoBrandStory,
+  GeoMonitoring,
+  GeoOutputCenter,
+  GeoRepairPack,
+} from "./geo-parsers.ts";
+import type { GeoReport } from "./geo-report.ts";
+
 export function deriveBrandNameFromUrl(siteUrl: string): string {
   try {
     const hostname = new URL(siteUrl).hostname.replace(/^www\./, "");
@@ -6,6 +14,101 @@ export function deriveBrandNameFromUrl(siteUrl: string): string {
   } catch {
     return "OpenBrand";
   }
+}
+
+export function createDemoGeoReport(siteUrl: string): GeoReport {
+  const brandName = deriveBrandNameFromUrl(siteUrl);
+  return {
+    totalScore: 42,
+    rating: "weak",
+    summary: `${brandName} is findable, but AI answers still lack structured entity evidence.`,
+    metrics: [
+      {
+        id: "schema",
+        label: "Schema.org",
+        value: 38,
+        statusLabel: "Missing organization and FAQ entity markup",
+      },
+      {
+        id: "entity",
+        label: "Entity graph",
+        value: 45,
+        statusLabel: "Brand facts are fragmented across pages",
+      },
+      {
+        id: "aiResponse",
+        label: "AI response",
+        value: 41,
+        statusLabel: "Low citation confidence in answer engines",
+      },
+    ],
+    gaps: [
+      {
+        id: "entity-home",
+        title: "No canonical brand fact source",
+        impact: "high",
+        description:
+          "Answer engines do not have one concise page that defines the brand, product, and audience.",
+      },
+      {
+        id: "schema-faq",
+        title: "Structured data is incomplete",
+        impact: "high",
+        description:
+          "Organization, Product, and FAQ schema should be added to reinforce machine-readable context.",
+      },
+      {
+        id: "comparison-content",
+        title: "Missing comparison content",
+        impact: "medium",
+        description:
+          "Buyers ask AI tools for alternatives, but the site does not provide comparison-ready evidence.",
+      },
+    ],
+  };
+}
+
+export function createDemoGeoBrandStory(siteUrl: string): GeoBrandStory {
+  const brandName = deriveBrandNameFromUrl(siteUrl);
+  return {
+    brandName,
+    industry: "Digital health content and services",
+    valueProp:
+      "A trusted health information brand that turns expert guidance into AI-citable answers.",
+    audience: "Health-conscious readers, patients, and care teams",
+    differentiator:
+      "Combines expert-reviewed content, practical care pathways, and structured knowledge assets.",
+    competitors: ["healthline.com", "webmd.com", "verywellhealth.com"],
+    aiPreview: {
+      entity: brandName,
+      type: "Healthcare information brand",
+      audience: "Consumers researching credible health guidance",
+    },
+  };
+}
+
+export function createDemoGeoOutputCenter(): GeoOutputCenter {
+  return {
+    assets: DEMO_OUTPUT_ASSETS,
+    brandVoice: "Clear, expert-reviewed, practical, and citation-friendly.",
+    constraints:
+      "Use concise claims, cite primary facts, and keep medical advice framed as informational.",
+  };
+}
+
+export function createDemoGeoRepairPack(): GeoRepairPack {
+  return { jsonLd: DEMO_JSON_LD, llmsTxt: DEMO_LLMS_TXT };
+}
+
+export function createDemoGeoMonitoring(): GeoMonitoring {
+  return {
+    readinessScore: 84,
+    readinessDelta: "+12 this week",
+    dimensions: DEMO_DIMENSIONS,
+    topics: DEMO_TOPIC_CARDS,
+    recentPublishes: DEMO_RECENT_PUBLISHES,
+    articlePreview: DEMO_ARTICLE_PREVIEW,
+  };
 }
 
 export const DEMO_JSON_LD = `{

@@ -218,6 +218,27 @@
   cursor: not-allowed;
 }
 
+.geo-landing__resume {
+  margin-top: 14px;
+  padding: 10px 20px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.geo-landing__resume:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.geo-landing__resume:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .geo-landing__examples {
   margin: 0;
   color: #94a3b8;

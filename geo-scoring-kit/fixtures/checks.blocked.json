@@ -1,0 +1,11 @@
+[
+  { "name": "robots.txt", "status": "pass", "detail": "存在", "evidence": "User-agent: PerplexityBot\nDisallow: /" },
+  { "name": "sitemap.xml", "status": "warn", "detail": "未找到", "evidence": "" },
+  { "name": "llms.txt", "status": "info", "detail": "缺失", "evidence": "" },
+  {
+    "name": "ai_crawler_access",
+    "status": "fail",
+    "detail": "引用型爬虫被挡: PerplexityBot, OAI-SearchBot",
+    "evidence": "{\"citation_blocked\":[\"PerplexityBot\",\"OAI-SearchBot\"],\"training_only_blocked\":[],\"all_blocked\":[]}"
+  }
+]

@@ -464,6 +464,9 @@ export const en: TranslationMap = {
     startExperience: "开始体检 →",
     starting: "正在进入…",
     back: "返回",
+    resume: {
+      button: "继续上次分析（{url}）→",
+    },
     backToConsole: "返回控制台",
     humanEye: "HUMAN EYE · 人眼所见",
     chatTitle: "GEO 分析对话",
@@ -512,7 +515,7 @@ export const en: TranslationMap = {
       previewTitle: "网站预览：{url}",
       previewFallback: "该站点不允许嵌入预览，已显示参考布局。",
       initialPrompt:
-        "请对 {url} 做 GEO 分析：AI 可见度、Schema/实体识别、内容可引用性，并给出可执行的优化建议。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  \"totalScore\": 0-100 整数,\n  \"rating\": \"weak\" | \"moderate\" | \"strong\",\n  \"summary\": \"一句话总结\",\n  \"metrics\": [\n    { \"id\": \"schema\", \"label\": \"Schema.org\", \"value\": 0-100, \"statusLabel\": \"状态描述\" },\n    { \"id\": \"entity\", \"label\": \"实体连通性\", \"value\": 0-100, \"statusLabel\": \"状态描述\" },\n    { \"id\": \"aiResponse\", \"label\": \"AI 响应\", \"value\": 0-100, \"statusLabel\": \"状态描述\" }\n  ],\n  \"gaps\": [\n    { \"id\": \"唯一 id\", \"title\": \"缺口标题\", \"impact\": \"high\" | \"medium\" | \"low\", \"description\": \"缺口说明\" }\n  ]\n}",
+        '请对 {url} 做 GEO 分析：AI 可见度、Schema/实体识别、内容可引用性，并给出可执行的优化建议。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  "totalScore": 0-100 整数,\n  "rating": "weak" | "moderate" | "strong",\n  "summary": "一句话总结",\n  "metrics": [\n    { "id": "schema", "label": "Schema.org", "value": 0-100, "statusLabel": "状态描述" },\n    { "id": "entity", "label": "实体连通性", "value": 0-100, "statusLabel": "状态描述" },\n    { "id": "aiResponse", "label": "AI 响应", "value": 0-100, "statusLabel": "状态描述" }\n  ],\n  "gaps": [\n    { "id": "唯一 id", "title": "缺口标题", "impact": "high" | "medium" | "low", "description": "缺口说明" }\n  ]\n}',
     },
     skills: {
       loading: "AI 正在分析…",
@@ -522,9 +525,9 @@ export const en: TranslationMap = {
       assessmentPrompt:
         "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n请对 {url} 做 GEO 体检：AI 可见度、Schema/实体识别、内容可引用性，识别关键结构缺口。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合 skills/geo-assessment 输出契约，不要输出其他 JSON。",
       brandStoryPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n上一轮体检报告：\n```json\n{reportJson}\n```\n\n从缺口与站点内容提炼品牌事实，补全 valueProp 与 differentiator。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  \"brandName\": \"品牌名\",\n  \"industry\": \"所属行业\",\n  \"valueProp\": \"价值主张（一句话，可执行）\",\n  \"audience\": \"目标受众\",\n  \"differentiator\": \"差异化优势（2-3 句）\",\n  \"competitors\": [\"https://竞品1.com\"],\n  \"aiPreview\": {\n    \"entity\": \"实体标签\",\n    \"type\": \"业务类型\",\n    \"audience\": \"AI 将识别的受众\"\n  }\n}\n\nvalueProp、differentiator、aiPreview 各字段均不可留空。",
+        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n上一轮体检报告：\n```json\n{reportJson}\n```\n\n从缺口与站点内容提炼品牌事实，补全 valueProp 与 differentiator。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  "brandName": "品牌名",\n  "industry": "所属行业",\n  "valueProp": "价值主张（一句话，可执行）",\n  "audience": "目标受众",\n  "differentiator": "差异化优势（2-3 句）",\n  "competitors": ["https://竞品1.com"],\n  "aiPreview": {\n    "entity": "实体标签",\n    "type": "业务类型",\n    "audience": "AI 将识别的受众"\n  }\n}\n\nvalueProp、differentiator、aiPreview 各字段均不可留空。',
       contentPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO-native 内容资产列表（article/faq/case 各至少一条）。资产标题应覆盖体检报告 gaps 中 high impact 主题。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON 或 Markdown 表格：\n{\n  \"assets\": [\n    { \"id\": \"article-01\", \"type\": \"article\", \"title\": \"标题\", \"score\": 0-100 整数, \"scoreTone\": \"good\" | \"warn\" },\n    { \"id\": \"faq-01\", \"type\": \"faq\", \"title\": \"标题\", \"score\": 0-100 整数, \"scoreTone\": \"good\" | \"warn\" },\n    { \"id\": \"case-01\", \"type\": \"case\", \"title\": \"标题\", \"score\": 0-100 整数, \"scoreTone\": \"good\" | \"warn\" }\n  ],\n  \"brandVoice\": \"authoritative, transparent, precise\",\n  \"constraints\": \"no jargon, max 3 sentences per paragraph\"\n}\n\n至少 3 条 assets，type 仅 article|faq|case 且三种各至少 1 条；scoreTone 仅 good|warn；brandVoice 与 constraints 不可留空。",
+        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO-native 内容资产列表（article/faq/case 各至少一条）。资产标题应覆盖体检报告 gaps 中 high impact 主题。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON 或 Markdown 表格：\n{\n  "assets": [\n    { "id": "article-01", "type": "article", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "faq-01", "type": "faq", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "case-01", "type": "case", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" }\n  ],\n  "brandVoice": "authoritative, transparent, precise",\n  "constraints": "no jargon, max 3 sentences per paragraph"\n}\n\n至少 3 条 assets，type 仅 article|faq|case 且三种各至少 1 条；scoreTone 仅 good|warn；brandVoice 与 constraints 不可留空。',
       fixpackPrompt:
         "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成可粘贴的 JSON-LD 与 llms.txt，只描述可见事实。\n\n在回复末尾输出唯一一个 JSON 代码块，含 jsonLd 与 llmsTxt 字符串字段，严格符合 skills/geo-fixpack 输出契约。",
       monitoringPrompt:

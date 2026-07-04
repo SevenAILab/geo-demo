@@ -103,6 +103,8 @@ import {
   type ExecApprovalRequest,
 } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
+import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
+import { detectGeoResume } from "./controllers/geo.ts";
 import type { SkillWorkshopState } from "./controllers/skill-workshop.ts";
 import type {
   ClawHubSearchResult,
@@ -110,7 +112,9 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
-import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
+import { importCustomThemeFromUrl } from "./custom-theme.ts";
+import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
+import type { GeoHistorySnapshot } from "./geo-history-storage.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -119,8 +123,6 @@ import type {
   GeoRepairPack,
   GeoSkillAction,
 } from "./geo-parsers.ts";
-import { importCustomThemeFromUrl } from "./custom-theme.ts";
-import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import { inferBasePathFromPathname, resolveRouteFromPathname, type Tab } from "./navigation.ts";
 import { resolveAgentIdFromSessionKey } from "./session-key.ts";
 import type { SidebarContent } from "./sidebar-content.ts";
@@ -163,7 +165,7 @@ declare global {
 
 function resolveInitialTab(): Tab {
   if (typeof window === "undefined") {
-    return "chat";
+    return "geo";
   }
   const basePath = inferBasePathFromPathname(window.location.pathname);
   return resolveRouteFromPathname(window.location.pathname, basePath).tab;
@@ -253,6 +255,8 @@ export class OpenClawApp extends LitElement {
   @state() embedSandboxMode: "strict" | "scripts" | "trusted" = "scripts";
   @state() allowExternalEmbedUrls = false;
   @state() chatMessageMaxWidth: string | null = null;
+  @state() geoDevSkipSkillWait = false;
+  @state() geoPersistHistory = false;
   @state() serverVersion: string | null = null;
 
   @state() sessionKey = this.settings.sessionKey;
@@ -282,6 +286,7 @@ export class OpenClawApp extends LitElement {
   @state() geoMonitoring: GeoMonitoring | null = null;
   @state() geoMonitoringStatus: GeoDataStatus = "idle";
   @state() geoSessionKeys: Partial<Record<GeoSkillAction, string>> = {};
+  @state() geoResumeSnapshot: GeoHistorySnapshot | null = null;
   @state() geoChatSidebarOpen = true;
   @state() activityFilterText = "";
   @state() activityStatusFilters: Record<ActivityStatus, boolean> = {
@@ -977,6 +982,9 @@ export class OpenClawApp extends LitElement {
     setTabInternal(this as unknown as Parameters<typeof setTabInternal>[0], next);
     if (next !== "chat") {
       this.setChatMobileControlsOpen(false);
+    }
+    if (next === "geo") {
+      detectGeoResume(this as unknown as Parameters<typeof detectGeoResume>[0]);
     }
     this.navDrawerOpen = false;
   }

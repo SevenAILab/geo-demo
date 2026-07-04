@@ -1,7 +1,6 @@
-import { html, type TemplateResult } from "lit";
+import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import { icons } from "../icons.ts";
-import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
+import type { GeoPhase } from "../controllers/geo.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -9,7 +8,8 @@ import type {
   GeoOutputCenter,
   GeoRepairPack,
 } from "../geo-parsers.ts";
-import type { GeoPhase } from "../controllers/geo.ts";
+import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
+import { icons } from "../icons.ts";
 import { renderGeoAssessment } from "./geo-assessment.ts";
 import { renderGeoBrandStory } from "./geo-brand-story.ts";
 import { renderGeoMonitoringPanel } from "./geo-monitoring-panel.ts";
@@ -29,8 +29,11 @@ export type GeoLandingProps = {
   siteUrl: string;
   starting: boolean;
   skillBusy: boolean;
+  resumeAvailable: boolean;
+  resumeSiteUrl: string | null;
   onSiteUrlChange: (next: string) => void;
   onStartExperience: () => void;
+  onResume: () => void;
   onExitToConsole: () => void;
 };
 
@@ -140,6 +143,18 @@ export function renderGeoLanding(props: GeoLandingProps) {
               ${busy ? t("geo.starting") : t("geo.startExperience")}
             </button>
           </div>
+          ${props.resumeAvailable
+            ? html`
+                <button
+                  type="button"
+                  class="geo-landing__resume"
+                  ?disabled=${busy}
+                  @click=${props.onResume}
+                >
+                  ${t("geo.resume.button", { url: props.resumeSiteUrl ?? "" })}
+                </button>
+              `
+            : nothing}
           <p class="geo-landing__examples">${t("geo.landing.examples")}</p>
         </section>
 

@@ -1,6 +1,5 @@
-import { resetGeoPhaseData, type GeoDataStatus } from "../geo-parsers.ts";
-import { runGeoSkill, type GeoSkillHost } from "../geo-skill-runner.ts";
-import { phaseToSkillAction, restoreGeoSession, type GeoSessionHost } from "../geo-session.ts";
+import { clearGeoHistory, loadGeoHistory } from "../geo-history-storage.ts";
+import { resetGeoPhaseData, syncGeoStateFromChat, type GeoDataStatus } from "../geo-parsers.ts";
 import {
   resetGeoReport,
   syncGeoReportFromChat,
@@ -8,6 +7,9 @@ import {
   type GeoReportStatus,
   type GeoReportSyncHost,
 } from "../geo-report.ts";
+import { phaseToSkillAction, restoreGeoSession, type GeoSessionHost } from "../geo-session.ts";
+import { runGeoSkill, type GeoSkillHost } from "../geo-skill-runner.ts";
+import { loadChatHistory, type ChatState } from "./chat.ts";
 
 export type GeoPhase =
   | "landing"
@@ -55,7 +57,8 @@ export async function startGeoExperience(host: GeoHost): Promise<boolean> {
   host.geoPendingSkill = "assessment";
   host.requestUpdate?.();
   try {
-    if (!host.connected || !host.client) {
+    await host.controlUiBootstrapReady?.catch(() => undefined);
+    if (host.geoDevSkipSkillWait !== true && (!host.connected || !host.client)) {
       return true;
     }
     const ok = await runGeoSkill(host, "assessment");
@@ -72,7 +75,54 @@ export function backToGeoLanding(host: GeoHost): void {
   host.geoPhase = "landing";
   host.geoStarting = false;
   resetGeoPhaseData(host);
+  // Returning to the landing page is an explicit "start over" — drop any
+  // persisted history and the resume offer.
+  clearGeoHistory(host.settings.gatewayUrl);
+  host.geoResumeSnapshot = null;
   host.requestUpdate?.();
+}
+
+/**
+ * On entering the GEO demo, surface a resume offer if a prior session was
+ * persisted. No-op unless the `geoPersistHistory` config flag is enabled.
+ * Does not navigate — the landing page decides how to present the offer.
+ */
+export function detectGeoResume(host: GeoHost): void {
+  if (!host.geoPersistHistory || host.geoPhase !== "landing") {
+    host.geoResumeSnapshot = null;
+    return;
+  }
+  const snapshot = loadGeoHistory(host.settings.gatewayUrl);
+  if (host.geoResumeSnapshot !== snapshot) {
+    host.geoResumeSnapshot = snapshot;
+    host.requestUpdate?.();
+  }
+}
+
+/**
+ * Resume the previously persisted GEO session: restore the site URL, session
+ * keys, and phase, then load that phase's chat history from the server so its
+ * panel data re-syncs (loadChatHistory triggers syncGeoStateFromChat).
+ */
+export async function resumeGeoExperience(host: GeoHost): Promise<boolean> {
+  const snapshot = host.geoResumeSnapshot;
+  if (!snapshot) {
+    return false;
+  }
+  host.geoSiteUrl = snapshot.siteUrl;
+  host.geoSessionKeys = { ...snapshot.sessionKeys };
+  host.geoPhase = snapshot.phase;
+  host.geoResumeSnapshot = null;
+  host.requestUpdate?.();
+
+  const action = phaseToSkillAction(snapshot.phase);
+  if (action) {
+    restoreGeoSession(host, action);
+    await loadChatHistory(host as unknown as ChatState);
+  }
+  syncGeoStateFromChat(host);
+  host.requestUpdate?.();
+  return true;
 }
 
 export async function openGeoBrandStory(host: GeoHost): Promise<void> {

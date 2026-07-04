@@ -1,0 +1,11 @@
+[
+  { "name": "robots.txt", "status": "pass", "detail": "存在", "evidence": "User-agent: *\nAllow: /" },
+  { "name": "sitemap.xml", "status": "pass", "detail": "默认路径存在", "evidence": "https://example.com/sitemap.xml" },
+  { "name": "llms.txt", "status": "info", "detail": "缺失（非强制）", "evidence": "" },
+  {
+    "name": "ai_crawler_access",
+    "status": "pass",
+    "detail": "主流 AI 爬虫可访问",
+    "evidence": "{\"citation_blocked\":[],\"training_only_blocked\":[\"GPTBot\"],\"all_blocked\":[]}"
+  }
+]

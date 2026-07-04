@@ -1,12 +1,19 @@
 import { t } from "../i18n/index.ts";
 import { handleSendChat, type ChatHost } from "./app-chat.ts";
-import type { GeoReport } from "./geo-report.ts";
+import {
+  createDemoGeoBrandStory,
+  createDemoGeoMonitoring,
+  createDemoGeoOutputCenter,
+  createDemoGeoRepairPack,
+  createDemoGeoReport,
+} from "./geo-demo-data.ts";
 import {
   type GeoBrandStory,
   type GeoSkillAction,
   type GeoSyncHost,
   syncGeoStateFromChat,
 } from "./geo-parsers.ts";
+import type { GeoReport } from "./geo-report.ts";
 import { beginGeoSkillSession } from "./geo-session.ts";
 
 export const GEO_SKILL_PATHS: Record<GeoSkillAction, string> = {
@@ -21,6 +28,8 @@ export type GeoSkillHost = GeoSyncHost &
   ChatHost & {
     geoSiteUrl: string;
     geoSkillBusy: boolean;
+    controlUiBootstrapReady?: Promise<void> | null;
+    geoDevSkipSkillWait?: boolean;
     requestUpdate?: () => void;
   };
 
@@ -73,9 +82,48 @@ export function buildGeoSkillPrompt(
   }
 }
 
+function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): void {
+  switch (action) {
+    case "assessment":
+      host.geoReport = createDemoGeoReport(host.geoSiteUrl);
+      host.geoReportStatus = "ready";
+      break;
+    case "brandStory":
+      host.geoBrandStory = createDemoGeoBrandStory(host.geoSiteUrl);
+      host.geoBrandStoryStatus = "ready";
+      break;
+    case "content":
+      host.geoOutputCenter = createDemoGeoOutputCenter();
+      host.geoOutputStatus = "ready";
+      break;
+    case "fixpack":
+      host.geoRepairPack = createDemoGeoRepairPack();
+      host.geoRepairPackStatus = "ready";
+      break;
+    case "monitoring":
+      host.geoMonitoring = createDemoGeoMonitoring();
+      host.geoMonitoringStatus = "ready";
+      break;
+  }
+  host.geoPendingSkill = null;
+}
+
 export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): Promise<boolean> {
   if (host.geoSkillBusy) {
     return false;
+  }
+  await host.controlUiBootstrapReady?.catch(() => undefined);
+  if (host.geoDevSkipSkillWait === true) {
+    host.geoSkillBusy = true;
+    host.geoPendingSkill = action;
+    host.requestUpdate?.();
+    try {
+      applyDevGeoSkillResult(host, action);
+      return true;
+    } finally {
+      host.geoSkillBusy = false;
+      host.requestUpdate?.();
+    }
   }
   if (!host.connected || !host.client) {
     return false;
@@ -86,7 +134,7 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
   host.requestUpdate?.();
 
   try {
-    const sessionKey = await beginGeoSkillSession(host, action);
+    const sessionKey = await beginGeoSkillSession(host as never, action);
     if (!sessionKey) {
       return false;
     }

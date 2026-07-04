@@ -1,0 +1,26 @@
+[
+  {
+    "name": "robots.txt",
+    "status": "pass",
+    "detail": "存在",
+    "evidence": "# Robots.txt for www.cloudflare.com\n\nUser-agent: *\nAllow: /\n\n# Sitemap\nSitemap: https://www.cloudflare.com/sitemap.xml\n\n# AI/LLM friendly content\n# See https://llmstxt.org for the llms.txt specification\n# llms.txt provides curated content for AI assistants and LLMs\n\n# Allow AI crawlers to access markdown versions of pages\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: ChatGPT-User\nAllow: /\n\nUser-agent: Google-Extended\nAllow: /\n\nUser-agent: Anthropic-AI\nAllow: /\n\nUser-agent: Claude-Web\nAllow: /\n\nUser-agent: CCBot\nAllow: /\n\nUser-agent: PerplexityBot\nAllow: /\n\nUser-agent: Cohere-ai\nAllow: /\n\n# Content Signals — declare AI content usage preferences\n# See https://contentsignals.org/ and https://datatracker.ietf.org/doc/draft-romm-aipref-contentsignals/\nContent-Signal: ai-train=yes, search=yes, ai-input=yes\n\n# AI-friendly content locations\n# - /llms.txt - Curated overview for AI/LLMs (markdown)\n# - /llms-full.txt - Full expanded content for larger context windows\n# - /*.md - Markdown versions of all pages (append .md to any URL)\n# - /.well-known/agents.json - Agent discovery and capabilities\n"
+  },
+  {
+    "name": "sitemap.xml",
+    "status": "pass",
+    "detail": "robots 已声明",
+    "evidence": "https://www.cloudflare.com/sitemap.xml"
+  },
+  {
+    "name": "llms.txt",
+    "status": "pass",
+    "detail": "存在",
+    "evidence": "# Cloudflare\n\n> Cloudflare is a global cloud connectivity company operating in 335+ cities worldwide. It provides a unified platform spanning developer infrastructure (serverless compute, databases, AI inference, and storage), application security (WAF, DDoS mitigation, bot management, and API Shield), Zero Trust / SASE (Access, Gateway, Browser Isolation, DLP, and Email Security), and network services (CDN, DNS, load balancing, and Magic Transit). Cloudflare powers approximately 20% of Internet traffic and protects millions of websites, applications, APIs, and enterprise networks.\n\nThis is the main Cloudflare website at cloudflare.com. For technical documentation, see developers.cloudflare.com.\n\n## About Cloudflare\n\nCloudflare launched in 2010 and went public in 2019 (NYSE: NET). It operates one of the world's largest and most interconnected networks, spanning 335+ cities and 125+ countries, with interconnections to 13,000+ networks. The network operates within 50 ms of 95% of the Int"
+  },
+  {
+    "name": "ai_crawler_access",
+    "status": "pass",
+    "detail": "主流 AI 爬虫可访问",
+    "evidence": "{\"citation_blocked\":[],\"training_only_blocked\":[],\"all_blocked\":[]}"
+  }
+]

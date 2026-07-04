@@ -1,0 +1,14 @@
+{
+  "name": "geo-scoring-kit",
+  "version": "0.1.0",
+  "description": "品牌 GEO 评分迁移包：技术层(代码)35% + 内容层(品牌内容)65%。含复用脚本、分析 skills、评分规范。",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.99.0",
+    "dotenv": "^16.4.0",
+    "openai": "^6.39.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.61.1"
+  }
+}

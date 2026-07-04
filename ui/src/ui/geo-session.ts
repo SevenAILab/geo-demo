@@ -8,6 +8,7 @@ import type { AppViewState } from "./app-view-state.ts";
 import { loadChatHistory, type ChatState } from "./controllers/chat.ts";
 import type { GeoPhase } from "./controllers/geo.ts";
 import { createSessionAndRefresh } from "./controllers/sessions.ts";
+import { saveGeoHistory } from "./geo-history-storage.ts";
 import type { GeoSkillAction } from "./geo-parsers.ts";
 import { resolveAgentIdFromSessionKey } from "./session-key.ts";
 
@@ -15,6 +16,22 @@ export type GeoSessionHost = AppViewState & {
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
   requestUpdate?: () => void;
 };
+
+/**
+ * Persist the current GEO session keys / site / phase to localStorage so the
+ * demo can be resumed on re-entry. No-op unless the `geoPersistHistory` config
+ * flag is enabled. Snapshots without any session key are dropped by the store.
+ */
+export function persistGeoHistory(host: GeoSessionHost): void {
+  if (!host.geoPersistHistory) {
+    return;
+  }
+  saveGeoHistory(host.settings.gatewayUrl, {
+    siteUrl: host.geoSiteUrl,
+    phase: host.geoPhase,
+    sessionKeys: host.geoSessionKeys,
+  });
+}
 
 function canBeginGeoSkillSession(host: GeoSessionHost): boolean {
   return (
@@ -54,7 +71,9 @@ export async function beginGeoSkillSession(
   }
 
   const previousSessionKey = host.sessionKey;
-  const parentSessionKey = host.sessionsResult?.sessions.some((row) => row.key === previousSessionKey)
+  const parentSessionKey = host.sessionsResult?.sessions.some(
+    (row) => row.key === previousSessionKey,
+  )
     ? previousSessionKey
     : undefined;
 
@@ -78,6 +97,7 @@ export async function beginGeoSkillSession(
   }
 
   host.geoSessionKeys = { ...host.geoSessionKeys, [action]: nextSessionKey };
+  persistGeoHistory(host);
   switchChatSession(host, nextSessionKey);
   await loadChatHistory(host as unknown as ChatState);
   host.requestUpdate?.();
