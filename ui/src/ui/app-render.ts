@@ -2607,6 +2607,7 @@ export function renderApp(state: AppViewState) {
           ? renderLazyView(lazyGeo, (m) =>
               m.renderGeo({
                 phase: state.geoPhase,
+                pendingSkill: state.geoPendingSkill,
                 siteUrl: state.geoSiteUrl,
                 starting: state.geoStarting,
                 skillBusy: state.geoSkillBusy,

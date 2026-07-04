@@ -2,11 +2,14 @@ import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
 import { icons } from "../icons.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
+import type { GeoSkillAction } from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoAssessmentProps = {
   siteUrl: string;
   starting: boolean;
+  pendingSkill: GeoSkillAction | null;
   report: GeoReport | null;
   reportStatus: GeoReportStatus;
   skillBusy: boolean;
@@ -193,5 +196,12 @@ export function renderGeoAssessment(props: GeoAssessmentProps) {
     onToggleChat: props.onToggleChat,
     header,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      starting: props.starting,
+      reportStatus: props.reportStatus,
+      phase: "assessment",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }

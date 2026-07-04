@@ -1,0 +1,26 @@
+{
+  "schema": {
+    "baseline": 5,
+    "rationale": "完全缺失 Schema.org JSON-LD (Gap-01)。首页及所有页面无任何结构化标记。这是最关键的技术缺口，但修复路径清晰——基于 /api/products 端点数据生成 Organization、Product、FAQPage 等 Schema。修复后可达 80+。"
+  },
+  "llms": {
+    "baseline": 65,
+    "rationale": "已有 4229 字节完整 llms.txt，含品牌摘要、所有关键页面、8 篇购买指南和完整产品列表 (Gap-07)。但缺失 llms-full.txt，无法提供完整产品规格和 FAQ Q&A 供 AI 一次性引用。现有的 llms.txt 是当前品牌内容可被 AI 引用的主要通道。"
+  },
+  "entity": {
+    "baseline": 25,
+    "rationale": "品牌名 'Merlord' 在 llms.txt 和各页面 <title> 一致出现，产品 SKU 体系清晰（如 MD-DS13）(Gap-04)。但无 sameAs 社交链接、无创始人/公司实体、社交账号 HTML 不可见。AI 无法构建跨平台品牌实体关联。"
+  },
+  "answer": {
+    "baseline": 20,
+    "rationale": "FAQ 页面存在但需 JS 渲染 (Gap-05)。8 篇高质量购买指南在 llms.txt 已列名但正文不可直接抓取 (Gap-06)。llms.txt 提供了文章标题和简要描述，AI 可有限引用元信息。"
+  },
+  "search": {
+    "baseline": 10,
+    "rationale": "/robots.txt 和 /sitemap.xml 返回空壳而非标准文件 (Gap-03)。全站 SPA 客户端渲染，爬虫只能看到约 40 字节 HTML 骨架。/api/products 等 JSON 端点未被收录。这是搜索可见度的致命断层。"
+  },
+  "trust": {
+    "baseline": 30,
+    "rationale": "llms.txt 包含品牌摘要和 10 年质保等可信承诺 (Gap-08)。但无竞品对比数据、无可验证 price/availability 信息（价格仅存在于 JS 渲染端）。AI 无法验证品牌声明的合规性和市场定位。"
+  }
+}

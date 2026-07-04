@@ -8,6 +8,7 @@ import type {
   GeoMonitoring,
   GeoOutputCenter,
   GeoRepairPack,
+  GeoSkillAction,
 } from "../geo-parsers.ts";
 import type { GeoPhase } from "../controllers/geo.ts";
 import {
@@ -48,6 +49,7 @@ export type GeoLandingProps = {
 export type GeoProps = GeoLandingProps &
   GeoFlowChatProps & {
     phase: GeoPhase;
+    pendingSkill: GeoSkillAction | null;
     report: GeoReport | null;
     reportStatus: GeoReportStatus;
     brandStory: GeoBrandStory | null;
@@ -254,6 +256,7 @@ export function renderGeo(props: GeoProps) {
     return renderGeoAssessment({
       ...flowChatProps(props),
       starting: props.starting,
+      pendingSkill: props.pendingSkill,
       report: props.report,
       reportStatus: props.reportStatus,
       skillBusy: props.skillBusy,
@@ -265,6 +268,7 @@ export function renderGeo(props: GeoProps) {
   if (props.phase === "brandStory") {
     return renderGeoBrandStory({
       ...flowChatProps(props),
+      pendingSkill: props.pendingSkill,
       brandStory: props.brandStory,
       status: props.brandStoryStatus,
       skillBusy: props.skillBusy,
@@ -278,6 +282,7 @@ export function renderGeo(props: GeoProps) {
   if (props.phase === "outputCenter") {
     return renderGeoOutputCenter({
       ...flowChatProps(props),
+      pendingSkill: props.pendingSkill,
       output: props.outputCenter,
       status: props.outputStatus,
       skillBusy: props.skillBusy,
@@ -291,6 +296,7 @@ export function renderGeo(props: GeoProps) {
   if (props.phase === "repairPack") {
     return renderGeoRepairPack({
       ...flowChatProps(props),
+      pendingSkill: props.pendingSkill,
       repairPack: props.repairPack,
       status: props.repairPackStatus,
       skillBusy: props.skillBusy,
@@ -303,6 +309,7 @@ export function renderGeo(props: GeoProps) {
   if (props.phase === "monitoringPanel") {
     return renderGeoMonitoringPanel({
       ...flowChatProps(props),
+      pendingSkill: props.pendingSkill,
       monitoring: props.monitoring,
       status: props.monitoringStatus,
       skillBusy: props.skillBusy,

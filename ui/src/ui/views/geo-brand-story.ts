@@ -5,12 +5,15 @@ import {
   isGeoBrandStoryComplete,
   type GeoBrandStory,
   type GeoDataStatus,
+  type GeoSkillAction,
 } from "../geo-parsers.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import { deriveBrandNameFromUrl } from "../geo-demo-data.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoBrandStoryProps = {
   siteUrl: string;
+  pendingSkill: GeoSkillAction | null;
   brandStory: GeoBrandStory | null;
   status: GeoDataStatus;
   skillBusy: boolean;
@@ -23,15 +26,6 @@ export type GeoBrandStoryProps = {
   onRetry: () => void;
   onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
 };
-
-function renderInlineLoading() {
-  return html`
-    <div class="geo-phase-loading geo-phase-loading--inline">
-      <div class="geo-phase-loading__spinner" aria-hidden="true"></div>
-      <p>${t("geo.skills.loading")}</p>
-    </div>
-  `;
-}
 
 function renderInlineError(onRetry: () => void) {
   return html`
@@ -96,7 +90,6 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
   `;
 
   const content = html`
-    ${loading ? renderInlineLoading() : nothing}
     ${showError ? renderInlineError(props.onRetry) : nothing}
     <div class="geo-brand-story__body ${loading ? "geo-brand-story__body--dimmed" : ""}">
       <section class="geo-brand-story__form">
@@ -212,9 +205,6 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
             <p><strong>Entity:</strong> ${preview?.entity ?? data?.brandName ?? ""}</p>
             <p><strong>Type:</strong> ${preview?.type ?? ""}</p>
             <p><strong>Audience:</strong> ${preview?.audience ?? data?.audience ?? ""}</p>
-            ${loading
-              ? html`<p class="geo-ai-preview__status">${t("geo.brandStory.aiPreviewStatus")}</p>`
-              : nothing}
           </div>
         </section>
       </aside>
@@ -242,5 +232,11 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
     header,
     footer,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      status: props.status,
+      phase: "brandStory",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }

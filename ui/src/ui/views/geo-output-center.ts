@@ -1,11 +1,13 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { GeoDataStatus, GeoOutputAsset, GeoOutputCenter } from "../geo-parsers.ts";
+import type { GeoDataStatus, GeoOutputAsset, GeoOutputCenter, GeoSkillAction } from "../geo-parsers.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import { DEMO_OUTPUT_ASSETS } from "../geo-demo-data.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoOutputCenterProps = {
   siteUrl: string;
+  pendingSkill: GeoSkillAction | null;
   output: GeoOutputCenter | null;
   status: GeoDataStatus;
   skillBusy: boolean;
@@ -64,17 +66,27 @@ function renderAssetCard(
   `;
 }
 
+function renderOutputSkeletonCards() {
+  return [0, 1, 2].map(
+    () => html`
+      <article class="geo-output-card geo-skeleton" aria-hidden="true">
+        <div class="geo-skeleton__line geo-skeleton__line--title"></div>
+        <div class="geo-skeleton__line"></div>
+        <div class="geo-skeleton__line geo-skeleton__line--short"></div>
+      </article>
+    `,
+  );
+}
+
 export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
   const loading = props.status === "loading" || props.skillBusy;
   const showError = props.status === "error" && !props.output;
   const assets = resolveAssets(props.output, props.status);
   const brandVoice = props.output?.brandVoice ?? t("geo.outputCenter.brandVoice");
   const constraints = props.output?.constraints ?? t("geo.outputCenter.constraints");
-  const statusText = loading
-    ? t("geo.skills.loading")
-    : props.output
-      ? t("geo.outputCenter.subtitle")
-      : t("geo.outputCenter.generatingStatus");
+  const statusText = props.output
+    ? t("geo.outputCenter.subtitle")
+    : t("geo.outputCenter.generatingStatus");
 
   const header = html`
     <header class="geo-page__header geo-output-center__header">
@@ -103,12 +115,6 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
   `;
 
   const content = html`
-    ${loading
-      ? html`<div class="geo-phase-loading geo-phase-loading--inline">
-          <div class="geo-phase-loading__spinner" aria-hidden="true"></div>
-          <p>${t("geo.skills.loading")}</p>
-        </div>`
-      : nothing}
     ${showError
       ? html`<div class="geo-phase-error geo-phase-error--inline">
           <p>${t("geo.skills.errorBody")}</p>
@@ -117,16 +123,18 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
           </button>
         </div>`
       : nothing}
-    <div class="geo-output-center__body">
+    <div class="geo-output-center__body ${loading ? "geo-brand-story__body--dimmed" : ""}">
       <main class="geo-output-center__main">
         <h1 class="geo-output-center__title">${t("geo.outputCenter.title")}</h1>
         <p class="geo-output-center__subtitle">${t("geo.outputCenter.subtitle")}</p>
         <div class="geo-output-center__grid">
-          ${assets.length > 0
-            ? assets.map((asset) =>
-                renderAssetCard(asset, props.onOpenRepairPack, loading),
-              )
-            : html`<p class="geo-phase-empty">${t("geo.skills.loading")}</p>`}
+          ${loading && assets.length === 0
+            ? renderOutputSkeletonCards()
+            : assets.length > 0
+              ? assets.map((asset) =>
+                  renderAssetCard(asset, props.onOpenRepairPack, loading),
+                )
+              : nothing}
         </div>
       </main>
       <aside class="geo-output-center__aside">
@@ -157,5 +165,11 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
     onToggleChat: props.onToggleChat,
     header,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      status: props.status,
+      phase: "outputCenter",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }

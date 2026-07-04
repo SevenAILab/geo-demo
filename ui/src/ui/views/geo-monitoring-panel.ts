@@ -1,6 +1,7 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { GeoDataStatus, GeoDimension, GeoMonitoring, GeoTopicCard } from "../geo-parsers.ts";
+import type { GeoDataStatus, GeoDimension, GeoMonitoring, GeoSkillAction, GeoTopicCard } from "../geo-parsers.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import {
   DEMO_ARTICLE_PREVIEW,
   DEMO_DIMENSIONS,
@@ -11,6 +12,7 @@ import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoMonitoringPanelProps = {
   siteUrl: string;
+  pendingSkill: GeoSkillAction | null;
   monitoring: GeoMonitoring | null;
   status: GeoDataStatus;
   skillBusy: boolean;
@@ -89,12 +91,6 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
   `;
 
   const content = html`
-    ${loading
-      ? html`<div class="geo-phase-loading geo-phase-loading--inline">
-          <div class="geo-phase-loading__spinner" aria-hidden="true"></div>
-          <p>${t("geo.skills.loading")}</p>
-        </div>`
-      : nothing}
     ${showError
       ? html`<div class="geo-phase-error geo-phase-error--inline">
           <p>${t("geo.skills.errorBody")}</p>
@@ -103,7 +99,7 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
           </button>
         </div>`
       : nothing}
-    <div class="geo-monitoring__body">
+    <div class="geo-monitoring__body ${loading ? "geo-brand-story__body--dimmed" : ""}">
       <main class="geo-monitoring__main">
         <section class="geo-monitoring__readiness">
           <h2>${t("geo.monitoringPanel.readinessTitle")}</h2>
@@ -179,5 +175,11 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
     onToggleChat: props.onToggleChat,
     header,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      status: props.status,
+      phase: "monitoringPanel",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }
