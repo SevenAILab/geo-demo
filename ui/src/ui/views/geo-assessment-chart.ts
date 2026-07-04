@@ -1,9 +1,46 @@
-import { html, nothing } from "lit";
+import { html, nothing, svg } from "lit";
 import type { GeoVisibilityTrendPoint } from "../geo-report.ts";
 
-const CHART_WIDTH = 320;
-const CHART_HEIGHT = 160;
-const PADDING = { top: 12, right: 12, bottom: 28, left: 36 };
+const CHART_WIDTH = 360;
+const CHART_HEIGHT = 180;
+const PADDING = { top: 16, right: 16, bottom: 36, left: 48 };
+const AXIS_FILL = "#94a3b8";
+const GRID_STROKE = "#e2e8f0";
+
+function computeYDomain(values: number[]): { min: number; max: number } {
+  const dataMin = Math.min(...values);
+  const dataMax = Math.max(...values);
+  const span = dataMax - dataMin || 4;
+  const pad = span * 0.14;
+  return { min: dataMin - pad, max: dataMax + pad };
+}
+
+function buildNiceYTicks(min: number, max: number, count = 4): number[] {
+  const range = max - min || 1;
+  const step = range / (count - 1);
+  return Array.from({ length: count }, (_, index) => min + step * index);
+}
+
+function formatTickLabel(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? `${rounded}%` : `${rounded.toFixed(1)}%`;
+}
+
+function formatTrendDate(date: string): string {
+  const slashMatch = date.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (slashMatch) {
+    return `${slashMatch[1]}月${slashMatch[2]}日`;
+  }
+  return date;
+}
+
+function formatXLabel(point: GeoVisibilityTrendPoint, index: number): string {
+  const dateLabel = formatTrendDate(point.date);
+  if (index === 0) {
+    return `${point.value.toFixed(1)}% ${dateLabel}`;
+  }
+  return dateLabel;
+}
 
 function buildLinePath(
   points: GeoVisibilityTrendPoint[],
@@ -33,11 +70,11 @@ export function renderVisibilityTrendChart(
   const plotW = CHART_WIDTH - PADDING.left - PADDING.right;
   const plotH = CHART_HEIGHT - PADDING.top - PADDING.bottom;
   const values = points.map((p) => p.value);
-  const minY = Math.floor(Math.min(...values) - 2);
-  const maxY = Math.ceil(Math.max(...values) + 2);
+  const { min: minY, max: maxY } = computeYDomain(values);
+  const yRange = maxY - minY || 1;
+  const yTicks = buildNiceYTicks(minY, maxY);
   const linePath = buildLinePath(points, minY, maxY, plotW, plotH);
   const headline = currentVisibility ?? points[points.length - 1]?.value ?? 0;
-  const yTicks = [minY, (minY + maxY) / 2, maxY];
 
   return html`
     <div class="geo-assessment-v2__chart-wrap">
@@ -48,45 +85,51 @@ export function renderVisibilityTrendChart(
       <svg
         class="geo-assessment-v2__chart-svg"
         viewBox="0 0 ${CHART_WIDTH} ${CHART_HEIGHT}"
+        overflow="visible"
         aria-hidden="true"
       >
-        ${yTicks.map((tick) => {
-          const y = PADDING.top + plotH - ((tick - minY) / (maxY - minY || 1)) * plotH;
-          return html`
-            <line
-              class="geo-assessment-v2__chart-grid"
-              x1=${PADDING.left}
-              y1=${y}
-              x2=${CHART_WIDTH - PADDING.right}
-              y2=${y}
-            />
-            <text
-              class="geo-assessment-v2__chart-axis"
-              x=${PADDING.left - 6}
-              y=${y + 4}
-              text-anchor="end"
-            >
-              ${tick.toFixed(1)}%
-            </text>
-          `;
-        })}
-        <path class="geo-assessment-v2__chart-line" d=${linePath} />
-        ${points.map((point, index) => {
-          const x = PADDING.left + (index / Math.max(points.length - 1, 1)) * plotW;
-          const y =
-            PADDING.top + plotH - ((point.value - minY) / (maxY - minY || 1)) * plotH;
-          return html`
-            <circle class="geo-assessment-v2__chart-dot" cx=${x} cy=${y} r="3.5" />
-            <text
-              class="geo-assessment-v2__chart-date"
-              x=${x}
-              y=${CHART_HEIGHT - 6}
-              text-anchor="middle"
-            >
-              ${point.date}
-            </text>
-          `;
-        })}
+        ${svg`
+          ${yTicks.map((tick) => {
+            const y = PADDING.top + plotH - ((tick - minY) / yRange) * plotH;
+            return svg`
+              <line
+                class="geo-assessment-v2__chart-grid"
+                x1="${PADDING.left}"
+                y1="${y}"
+                x2="${CHART_WIDTH - PADDING.right}"
+                y2="${y}"
+                stroke="${GRID_STROKE}"
+                stroke-width="1"
+              />
+              <text
+                class="geo-assessment-v2__chart-axis"
+                x="${PADDING.left - 8}"
+                y="${y + 4}"
+                text-anchor="end"
+                fill="${AXIS_FILL}"
+                font-size="11"
+              >
+                ${formatTickLabel(tick)}
+              </text>
+            `;
+          })}
+          <path class="geo-assessment-v2__chart-line" d="${linePath}" />
+          ${points.map((point, index) => {
+            const x = PADDING.left + (index / Math.max(points.length - 1, 1)) * plotW;
+            return svg`
+              <text
+                class="geo-assessment-v2__chart-date"
+                x="${x}"
+                y="${CHART_HEIGHT - 8}"
+                text-anchor="middle"
+                fill="${AXIS_FILL}"
+                font-size="11"
+              >
+                ${formatXLabel(point, index)}
+              </text>
+            `;
+          })}
+        `}
       </svg>
     </div>
   `;
