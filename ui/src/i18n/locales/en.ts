@@ -541,7 +541,7 @@ export const en: TranslationMap = {
       brandStoryPrompt:
         '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n上一轮体检报告：\n```json\n{reportJson}\n```\n\n从缺口与站点内容提炼品牌事实，生成 2–6 条可执行价值主张候选，并补全 differentiator。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  "brandName": "品牌名",\n  "industry": "所属行业",\n  "valuePropOptions": [\n    { "id": "vp-1", "label": "价值主张描述（可执行）", "suggested": true }\n  ],\n  "valueProps": ["vp-1"],\n  "valuePropOther": "",\n  "audience": "目标受众",\n  "differentiator": "差异化优势（2-3 句）",\n  "competitors": ["https://竞品1.com"],\n  "aiPreview": {\n    "entity": "实体标签",\n    "type": "业务类型",\n    "audience": "AI 将识别的受众"\n  }\n}\n\nvaluePropOptions 至少 2 条；valueProps 为 suggested=true 的 id 列表；differentiator、aiPreview 各字段均不可留空。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。',
       contentPrompt:
-        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO-native 内容资产列表（article/faq/case 各至少一条）。资产标题应覆盖体检报告 gaps 中 high impact 主题。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON 或 Markdown 表格：\n{\n  "assets": [\n    { "id": "article-01", "type": "article", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "faq-01", "type": "faq", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "case-01", "type": "case", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" }\n  ],\n  "brandVoice": "权威、透明、精准",\n  "constraints": "避免行话，每段不超过 3 句"\n}\n\n至少 3 条 assets，type 仅 article|faq|case 且三种各至少 1 条；scoreTone 仅 good|warn；brandVoice 与 constraints 不可留空。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。',
+        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO 产出中心四大修复大类卡片。每条 description 应结合体检 gaps 与品牌事实，tags 反映该大类关联的修复类型。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON 或 Markdown 表格：\n{\n  "categories": [\n    {\n      "id": "tech-infra",\n      "title": "技术基建修复",\n      "description": "修复说明",\n      "impact": "high",\n      "tags": ["techInfra"]\n    },\n    {\n      "id": "brand-content",\n      "title": "品牌内容修复",\n      "description": "修复说明",\n      "impact": "medium",\n      "tags": ["brandContent", "structure"]\n    },\n    {\n      "id": "structure",\n      "title": "结构呈现修复",\n      "description": "修复说明",\n      "impact": "low",\n      "tags": ["structure"]\n    },\n    {\n      "id": "continuous-article",\n      "title": "持续文章修复",\n      "description": "修复说明",\n      "impact": "low",\n      "tags": ["continuousArticle", "brandContent"]\n    }\n  ]\n}\n\n恰好 4 条 categories，分别对应四个修复大类；每条 tags 长度 1–4，tag 仅 techInfra|brandContent|structure|continuousArticle；impact 仅 high|medium|low。\n\nJSON 中所有面向用户的字符串字段（title、description）必须使用简体中文；枚举/id 等技术字段保持英文。',
       fixpackPrompt:
         "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成可粘贴的 JSON-LD 与 llms.txt，只描述可见事实。\n\n在回复末尾输出唯一一个 JSON 代码块，含 jsonLd 与 llmsTxt 字符串字段，严格符合 skills/geo-fixpack 输出契约。\n\nllmsTxt 中的品牌事实段落使用简体中文；# Instructions for LLMs 等规范标题可保留英文。JSON 中其他面向用户的字符串字段必须使用简体中文。",
       monitoringPrompt:
@@ -618,21 +618,16 @@ export const en: TranslationMap = {
       subtitle: "审查并优化 AI 生成的资产。",
       generatingStatus: "AI 正在根据您的品牌实体起草内容...",
       activityBadge: "S4 生成活动中",
-      technicalFix: "技术修复",
       monitoringPanel: "检测面板",
       backToBrandStory: "返回品牌故事",
-      typeArticle: "文章",
-      typeFaq: "常见问题",
-      typeCase: "案例研究",
-      optimize: "优化",
-      optimizeAll: "全部优化",
-      contextRules: "上下文规则",
-      brandVoice: "品牌声音：authoritative, transparent, precise",
-      constraints: "限制条件：no jargon, max 3 sentences per paragraph",
-      deployLlms: "批准并部署到 llms.txt",
+      optimizeOneClick: "一键优化",
+      tagTechInfra: "技术基建修复",
+      tagBrandContent: "品牌内容修复",
+      tagStructure: "结构呈现修复",
+      tagContinuousArticle: "持续文章修复",
     },
     repairPack: {
-      title: "修复包",
+      title: "优化结果",
       badge: "即插即用的 AI 优化资产",
       intro: "复制并粘贴以下内容到你的网站代码中，以提升 AI 可见性。",
       systemReady: "系统就绪",

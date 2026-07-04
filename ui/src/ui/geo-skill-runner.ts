@@ -3,7 +3,6 @@ import { handleSendChat, type ChatHost } from "./app-chat.ts";
 import {
   createDemoGeoBrandStory,
   createDemoGeoMonitoring,
-  createDemoGeoOutputCenter,
   createDemoGeoRepairPack,
   createDemoGeoReport,
 } from "./geo-demo-data.ts";
@@ -116,8 +115,6 @@ function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction): voi
       host.geoBrandStoryStatus = "ready";
       break;
     case "content":
-      host.geoOutputCenter = createDemoGeoOutputCenter();
-      host.geoOutputStatus = "ready";
       break;
     case "fixpack":
       host.geoRepairPack = createDemoGeoRepairPack();

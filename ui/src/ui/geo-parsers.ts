@@ -33,18 +33,22 @@ export type GeoBrandStory = {
   aiPreview: { entity: string; type: string; audience: string };
 };
 
-export type GeoOutputAsset = {
+export type GeoOutputRepairTag =
+  | "techInfra"
+  | "brandContent"
+  | "structure"
+  | "continuousArticle";
+
+export type GeoOutputCategory = {
   id: string;
-  type: "article" | "faq" | "case";
   title: string;
-  score: number;
-  scoreTone: "good" | "warn";
+  description: string;
+  impact: GeoReportGap["impact"];
+  tags: GeoOutputRepairTag[];
 };
 
 export type GeoOutputCenter = {
-  assets: GeoOutputAsset[];
-  brandVoice: string;
-  constraints: string;
+  categories: GeoOutputCategory[];
 };
 
 export type GeoRepairPack = {
@@ -86,8 +90,12 @@ const JSON_BLOCK_RE = /```(?:json)?\s*([\s\S]*?)```/gi;
 const METRIC_IDS = new Set(["schema", "entity", "aiResponse"]);
 const RATINGS = new Set<GeoReportRating>(["weak", "moderate", "strong"]);
 const IMPACTS = new Set(["high", "medium", "low"]);
-const ASSET_TYPES = new Set<GeoOutputAsset["type"]>(["article", "faq", "case"]);
-const SCORE_TONES = new Set<GeoOutputAsset["scoreTone"]>(["good", "warn"]);
+const REPAIR_TAGS = new Set<GeoOutputRepairTag>([
+  "techInfra",
+  "brandContent",
+  "structure",
+  "continuousArticle",
+]);
 const DIMENSION_TONES = new Set<GeoDimensionTone>(["good", "purple", "warn"]);
 const TOPIC_TAGS = new Set<GeoTopicCard["tag"]>(["missing", "insight"]);
 const TOPIC_ACTIONS = new Set<GeoTopicCard["action"]>(["comparison", "deep"]);
@@ -398,47 +406,52 @@ export function isGeoBrandStoryComplete(story: GeoBrandStory | null): boolean {
   return true;
 }
 
-function resolveScoreTone(raw: unknown, score: number): GeoOutputAsset["scoreTone"] | null {
-  if (typeof raw === "string") {
-    const normalized = raw.trim().toLowerCase();
-    if (normalized === "warning" || normalized === "warn") {
-      return "warn";
+function parseRepairTags(raw: unknown): GeoOutputRepairTag[] | null {
+  if (!Array.isArray(raw)) {
+    return null;
+  }
+  const tags: GeoOutputRepairTag[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "string" || !REPAIR_TAGS.has(entry as GeoOutputRepairTag)) {
+      return null;
     }
-    if (normalized === "good") {
-      return "good";
+    const tag = entry as GeoOutputRepairTag;
+    if (!tags.includes(tag)) {
+      tags.push(tag);
     }
   }
-  return score >= 80 ? "good" : "warn";
+  if (tags.length < 1 || tags.length > 4) {
+    return null;
+  }
+  return tags;
 }
 
-function parseOutputAsset(raw: unknown): GeoOutputAsset | null {
+function parseOutputCategory(raw: unknown): GeoOutputCategory | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
   const item = raw as Record<string, unknown>;
   const id = text(item.id);
-  const type = item.type;
   const title = text(item.title);
-  const score = clampScore(item.score);
+  const description = text(item.description);
+  const impact = item.impact;
+  const tags = parseRepairTags(item.tags);
   if (
     !id ||
-    typeof type !== "string" ||
-    !ASSET_TYPES.has(type as GeoOutputAsset["type"]) ||
     !title ||
-    score === null
+    !description ||
+    typeof impact !== "string" ||
+    !IMPACTS.has(impact) ||
+    !tags
   ) {
-    return null;
-  }
-  const scoreTone = resolveScoreTone(item.scoreTone, score);
-  if (!scoreTone || !SCORE_TONES.has(scoreTone)) {
     return null;
   }
   return {
     id,
-    type: type as GeoOutputAsset["type"],
     title,
-    score,
-    scoreTone,
+    description,
+    impact: impact as GeoOutputCategory["impact"],
+    tags,
   };
 }
 
@@ -447,16 +460,16 @@ export function parseGeoOutputCenterJson(raw: unknown): GeoOutputCenter | null {
     return null;
   }
   const item = raw as Record<string, unknown>;
-  if (!Array.isArray(item.assets)) {
+  if (!Array.isArray(item.categories)) {
     return null;
   }
-  const assets = item.assets.map(parseOutputAsset).filter((a): a is GeoOutputAsset => a !== null);
-  const brandVoice = text(item.brandVoice);
-  const constraints = text(item.constraints);
-  if (assets.length === 0 || !brandVoice || !constraints) {
+  const categories = item.categories
+    .map(parseOutputCategory)
+    .filter((category): category is GeoOutputCategory => category !== null);
+  if (categories.length !== 4) {
     return null;
   }
-  return { assets, brandVoice, constraints };
+  return { categories };
 }
 
 export function parseGeoRepairPackJson(raw: unknown): GeoRepairPack | null {

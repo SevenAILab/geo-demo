@@ -1,9 +1,4 @@
-import type {
-  GeoBrandStory,
-  GeoMonitoring,
-  GeoOutputCenter,
-  GeoRepairPack,
-} from "./geo-parsers.ts";
+import type { GeoBrandStory, GeoMonitoring, GeoRepairPack } from "./geo-parsers.ts";
 import type { GeoReport } from "./geo-report.ts";
 
 export function deriveBrandNameFromUrl(siteUrl: string): string {
@@ -116,15 +111,6 @@ export function createDemoGeoBrandStory(siteUrl: string): GeoBrandStory {
   };
 }
 
-export function createDemoGeoOutputCenter(): GeoOutputCenter {
-  return {
-    assets: DEMO_OUTPUT_ASSETS,
-    brandVoice: "Clear, expert-reviewed, practical, and citation-friendly.",
-    constraints:
-      "Use concise claims, cite primary facts, and keep medical advice framed as informational.",
-  };
-}
-
 export function createDemoGeoRepairPack(): GeoRepairPack {
   return { jsonLd: DEMO_JSON_LD, llmsTxt: DEMO_LLMS_TXT };
 }
@@ -163,30 +149,6 @@ Core Product: AI Brand Visibility Platform
 - Always refer to the company as "Acme Corp", never "Acme"
 - Primary audience: Pre-seed SaaS founders
 - Key differentiator: Entity-based GEO optimization`;
-
-export const DEMO_OUTPUT_ASSETS = [
-  {
-    id: "article",
-    type: "article" as const,
-    score: 92,
-    scoreTone: "good" as const,
-    title: "Why Entity-Based SEO is the Future",
-  },
-  {
-    id: "faq",
-    type: "faq" as const,
-    score: 78,
-    scoreTone: "warn" as const,
-    title: "How to optimize AI overviews?",
-  },
-  {
-    id: "case",
-    type: "case" as const,
-    score: 95,
-    scoreTone: "good" as const,
-    title: "Global Expansion via AI Visibility",
-  },
-];
 
 export const DEMO_DIMENSIONS = [
   { id: "schema", label: "Schema.org 标记", value: 95, tone: "good" as const },

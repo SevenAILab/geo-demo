@@ -447,21 +447,21 @@
       "kind": "object-property",
       "name": "description",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Answer engines do not have one concise page that defines the brand, product, and audience."
+      "text": "答案引擎缺少一页集中定义品牌、产品与受众的可引用内容。"
     },
     {
       "count": 1,
       "kind": "object-property",
       "name": "description",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Buyers ask AI tools for alternatives, but the site does not provide comparison-ready evidence."
+      "text": "买家会向 AI 询问替代方案，但站点缺少可对比的公开证据。"
     },
     {
       "count": 1,
       "kind": "object-property",
       "name": "description",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Organization, Product, and FAQ schema should be added to reinforce machine-readable context."
+      "text": "应补充 Organization、Product 与 FAQ Schema 以强化机器可读上下文。"
     },
     {
       "count": 1,
@@ -476,6 +476,13 @@
       "name": "label",
       "path": "ui/src/ui/geo-demo-data.ts",
       "text": "实体关联"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "实体连通性"
     },
     {
       "count": 1,
@@ -503,14 +510,7 @@
       "kind": "object-property",
       "name": "label",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "AI response"
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "label",
-      "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Entity graph"
+      "text": "AI 响应"
     },
     {
       "count": 1,
@@ -545,7 +545,28 @@
       "kind": "object-property",
       "name": "title",
       "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "结构化数据不完整"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
       "text": "买家在问 'OpenBrand vs 其他方案'"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "缺少 canonical 品牌事实页"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "缺少对比型内容"
     },
     {
       "count": 1,
@@ -566,34 +587,6 @@
       "kind": "object-property",
       "name": "title",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Global Expansion via AI Visibility"
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "title",
-      "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "How to optimize AI overviews?"
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "title",
-      "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Missing comparison content"
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "title",
-      "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "No canonical brand fact source"
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "title",
-      "path": "ui/src/ui/geo-demo-data.ts",
       "text": "Optimizing Semantic SEO for SaaS..."
     },
     {
@@ -601,21 +594,7 @@
       "kind": "object-property",
       "name": "title",
       "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Structured data is incomplete"
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "title",
-      "path": "ui/src/ui/geo-demo-data.ts",
       "text": "The Future of AI-Driven Brand Gov..."
-    },
-    {
-      "count": 1,
-      "kind": "object-property",
-      "name": "title",
-      "path": "ui/src/ui/geo-demo-data.ts",
-      "text": "Why Entity-Based SEO is the Future"
     },
     {
       "count": 1,
@@ -4151,6 +4130,13 @@
       "name": "text",
       "path": "ui/src/ui/views/dreaming.ts",
       "text": "Z"
+    },
+    {
+      "count": 1,
+      "kind": "html-text",
+      "name": "text",
+      "path": "ui/src/ui/views/geo-assessment.ts",
+      "text": "OpenBrand"
     },
     {
       "count": 1,
