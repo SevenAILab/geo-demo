@@ -61,7 +61,7 @@ export function createDemoGeoReport(siteUrl: string): GeoReport {
     ],
     industryAnalysis: {
       currentVisibility,
-      yourRanking: "暂无 - 您的排名",
+      yourRanking: "#5 - 您的排名",
       trend: [
         { date: "9/21", value: 35.2 },
         { date: "9/22", value: 37.6 },
@@ -71,11 +71,11 @@ export function createDemoGeoReport(siteUrl: string): GeoReport {
         { date: "9/26", value: currentVisibility },
       ],
       rankings: [
-        { id: "owned", initial: ownedInitial, name: brandName, score: currentVisibility, owned: true },
         { id: "c1", initial: "A", name: "行业标杆 A", score: 68.4 },
         { id: "c2", initial: "B", name: "行业标杆 B", score: 54.2 },
         { id: "c3", initial: "C", name: "行业标杆 C", score: 47.8 },
         { id: "c4", initial: "D", name: "行业标杆 D", score: 39.5 },
+        { id: "owned", initial: ownedInitial, name: brandName, score: currentVisibility, owned: true },
       ],
     },
   };

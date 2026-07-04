@@ -27,8 +27,9 @@
 
 ## yourRanking
 
-- 若 owned 条目不在 TOP 内或分数偏低：`暂无 - 您的排名`
-- 若可估算排名：`#N - 您的排名`（N 为正整数）
+- `owned` 在 `rankings` 内时，必须为 `#N - 您的排名`（N = 按 `score` 降序后的 1-based 位次）
+- 仅当 owned 无法纳入 `rankings` 时使用：`暂无 - 您的排名`
+- Control UI 也会从 `rankings` 推导并覆盖该字段，但输出仍应写正确位次
 
 ## currentVisibility
 

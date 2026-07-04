@@ -20,12 +20,15 @@ openclaw onboard
 pnpm openclaw dashboard --no-open
 
 
-局域网（需先停止已有 Gateway：`openclaw gateway stop`）
+局域网（需先停止已有 Gateway：`pnpm openclaw gateway stop`）
 pnpm openclaw config set gateway.bind lan
 pnpm openclaw config set gateway.controlUi.allowInsecureAuth true
 pnpm openclaw config set gateway.controlUi.dangerouslyDisableDeviceAuth true
+pnpm openclaw config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
 pnpm openclaw gateway run
 # 另一终端启动 UI 热重载（默认 http://<本机IP>:5173，例如 http://192.168.43.63:5173）
 pnpm ui:dev
+# 获取带 Token 的连接地址
+pnpm openclaw dashboard --no-open
 
 ```

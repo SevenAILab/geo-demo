@@ -28,9 +28,10 @@ export function resolveControlUiAuthPolicy(params: {
     isControlUi: params.isControlUi,
     allowInsecureAuthConfigured,
     dangerouslyDisableDeviceAuth,
-    // `allowInsecureAuth` must not bypass secure-context/device-auth requirements.
-    allowBypass: dangerouslyDisableDeviceAuth,
-    device: dangerouslyDisableDeviceAuth ? null : params.deviceRaw,
+    // geo-demo: 局域网开发默认允许 Control UI 跳过设备认证（原仅 dangerouslyDisableDeviceAuth）
+    // allowBypass: dangerouslyDisableDeviceAuth,
+    allowBypass: params.isControlUi || dangerouslyDisableDeviceAuth,
+    device: (dangerouslyDisableDeviceAuth || params.isControlUi) ? null : params.deviceRaw,
   };
 }
 
@@ -128,15 +129,24 @@ export function evaluateMissingDeviceIdentity(params: {
   if (params.localBackendSelfPairingOk && params.role === "operator") {
     return { kind: "allow" };
   }
-  if (params.isControlUi && !params.controlUiAuthPolicy.allowBypass) {
-    // Allow localhost Control UI connections when allowInsecureAuth is configured.
-    // Localhost has no network interception risk, and browser SubtleCrypto
-    // (needed for device identity) is unavailable in insecure HTTP contexts.
-    // Remote connections are still rejected to preserve the MitM protection
-    // that the security fix (#20684) intended.
-    if (!params.controlUiAuthPolicy.allowInsecureAuthConfigured || !params.isLocalClient) {
-      return { kind: "reject-control-ui-insecure-auth" };
-    }
+  // geo-demo: 注释局域网 HTTP 设备身份限制，HTTP 局域网 UI 仅凭 token/password 即可连接
+  // if (params.isControlUi && !params.controlUiAuthPolicy.allowBypass) {
+  //   // Allow localhost Control UI connections when allowInsecureAuth is configured.
+  //   // Localhost has no network interception risk, and browser SubtleCrypto
+  //   // (needed for device identity) is unavailable in insecure HTTP contexts.
+  //   // Remote connections are still rejected to preserve the MitM protection
+  //   // that the security fix (#20684) intended.
+  //   if (!params.controlUiAuthPolicy.allowInsecureAuthConfigured || !params.isLocalClient) {
+  //     return { kind: "reject-control-ui-insecure-auth" };
+  //   }
+  // }
+  if (
+    params.isControlUi &&
+    params.role === "operator" &&
+    params.sharedAuthOk &&
+    params.authOk
+  ) {
+    return { kind: "allow" };
   }
   if (roleCanSkipDeviceIdentity(params.role, params.sharedAuthOk)) {
     return { kind: "allow" };
