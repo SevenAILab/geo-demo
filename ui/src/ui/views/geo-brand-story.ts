@@ -72,8 +72,7 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
   const data = props.brandStory;
   const loading = props.status === "loading" || props.skillBusy;
   const showError = props.status === "error" && !data;
-  const skeletonName = loading && !data ? deriveBrandNameFromUrl(props.siteUrl) : "";
-  const brandName = data?.brandName ?? skeletonName;
+  const brandName = data?.brandName?.trim() || deriveBrandNameFromUrl(props.siteUrl);
   const industry = data?.industry ?? "";
   const valuePropOptions = data?.valuePropOptions ?? [];
   const valueProps = data?.valueProps ?? [];
