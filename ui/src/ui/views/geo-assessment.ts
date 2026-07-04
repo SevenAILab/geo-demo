@@ -37,8 +37,6 @@ const METRIC_ICONS: Record<GeoReportMetricId, TemplateResult> = {
   aiResponse: icons.activity,
 };
 
-<<<<<<< HEAD
-=======
 const METRIC_DISPLAY_LABELS: Record<GeoReportMetricId, string> = {
   schema: "技术架构",
   entity: "声音份额",
@@ -47,17 +45,6 @@ const METRIC_DISPLAY_LABELS: Record<GeoReportMetricId, string> = {
 
 const METRIC_DISPLAY_ORDER: readonly GeoReportMetricId[] = ["entity", "schema", "aiResponse"];
 
-function scoreToneClass(score: number): string {
-  if (score <= 50) {
-    return "geo-assessment-v2__score--low";
-  }
-  if (score <= 70) {
-    return "geo-assessment-v2__score--mid";
-  }
-  return "geo-assessment-v2__score--high";
-}
-
->>>>>>> 2987015ce617b9308628fdf8d4b815ecfd1c4be8
 function metricBarToneClass(value: number): string {
   if (value <= 40) {
     return "geo-assessment-v2__metric-fill--low";
@@ -124,24 +111,11 @@ function renderScoreCard(report: GeoReport) {
 function renderAdvantagesCard(report: GeoReport, canFix: boolean, onFixGaps: () => void) {
   return html`
     <section class="geo-assessment-v2__card geo-assessment-v2__advantages">
-<<<<<<< HEAD
       <div class="geo-assessment-v2__advantages-body">
         <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
         <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
       </div>
       <div class="geo-assessment-v2__advantages-footer">
-=======
-      <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
-      <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
-      <div class="geo-assessment-v2__advantages-actions">
-        <button
-          type="button"
-          class="geo-assessment-v2__btn geo-assessment-v2__btn--secondary"
-          disabled
-        >
-          ${icons.download} ${t("geo.analysis.exportReport")}
-        </button>
->>>>>>> 2987015ce617b9308628fdf8d4b815ecfd1c4be8
         <button
           type="button"
           class="geo-assessment-v2__btn geo-assessment-v2__btn--cta"
@@ -218,48 +192,7 @@ function renderIndustrySection(report: GeoReport) {
           </div>
         </div>
         <div class="geo-assessment-v2__industry-ranking">
-<<<<<<< HEAD
           <geo-assessment-ranking .industryAnalysis=${industryAnalysis}></geo-assessment-ranking>
-=======
-          <h3 class="geo-assessment-v2__section-title">${t("geo.assessment.visibilityRanking")}</h3>
-          <p class="geo-assessment-v2__your-ranking">${industryAnalysis.yourRanking}</p>
-          <div class="geo-assessment-v2__ranking-table">
-            <div class="geo-assessment-v2__ranking-head">
-              <span>${t("geo.assessment.assetColumn")}</span>
-              <span>${t("geo.assessment.scoreColumn")}</span>
-            </div>
-            ${industryAnalysis.rankings.map(
-              (item, index) => html`
-                <div class="geo-assessment-v2__ranking-row">
-                  <span class="geo-assessment-v2__ranking-asset">
-                    <span class="geo-assessment-v2__ranking-index">${index + 1}</span>
-                    <span class="geo-assessment-v2__ranking-badge">${item.initial}</span>
-                    <span>${item.name}</span>
-                    ${item.owned
-                      ? html`<span class="geo-assessment-v2__owned-tag"
-                          >${t("geo.assessment.ownedTag")}</span
-                        >`
-                      : nothing}
-                  </span>
-                  <span class="geo-assessment-v2__ranking-score">${item.score}%</span>
-                </div>
-              `,
-            )}
-            <div class="geo-assessment-v2__ranking-row geo-assessment-v2__ranking-row--custom">
-              <span class="geo-assessment-v2__ranking-asset">
-                <span class="geo-assessment-v2__ranking-index"
-                  >${industryAnalysis.rankings.length + 1}</span
-                >
-                <span class="geo-assessment-v2__ranking-custom"
-                  >${t("geo.assessment.customCompetitor")}</span
-                >
-              </span>
-              <span class="geo-assessment-v2__ranking-score">
-                <span class="geo-assessment-v2__ranking-empty"></span>
-              </span>
-            </div>
-          </div>
->>>>>>> 2987015ce617b9308628fdf8d4b815ecfd1c4be8
         </div>
       </div>
     </section>
