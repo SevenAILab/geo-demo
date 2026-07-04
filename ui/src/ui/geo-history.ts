@@ -200,7 +200,10 @@ export function refreshGeoHistory(host: GeoHistoryHost): void {
 export function createGeoRun(host: GeoHistoryHost): string {
   const store = loadGeoHistoryStore(host.settings.gatewayUrl);
   const snapshot = snapshotFromHost(host);
-  store.runs = [snapshot, ...store.runs.filter((run) => run.id !== snapshot.id)].slice(0, MAX_RUNS);
+  // Always mint a fresh run id so a new analysis appends instead of overwriting
+  // an active/resumed run that still has geoActiveRunId set in memory.
+  snapshot.id = generateUUID();
+  store.runs = [snapshot, ...store.runs].slice(0, MAX_RUNS);
   store.activeRunId = snapshot.id;
   host.geoActiveRunId = snapshot.id;
   persistStore(host, store);

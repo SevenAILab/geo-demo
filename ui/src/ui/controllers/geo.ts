@@ -90,6 +90,7 @@ export function backToGeoLanding(host: GeoHost): void {
   host.geoStarting = false;
   resetGeoPhaseData(host);
   clearGeoActiveRun(host);
+  refreshGeoHistory(host);
   markGeoFlowActive("landing");
   host.requestUpdate?.();
 }
