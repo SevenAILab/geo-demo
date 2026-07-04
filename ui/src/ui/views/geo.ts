@@ -105,12 +105,6 @@ export function renderGeoLanding(props: GeoLandingProps) {
       <header class="geo-landing__nav">
         <div class="geo-landing__nav-inner">
           <span class="geo-landing__logo">OpenBrand</span>
-          <nav class="geo-landing__nav-links" aria-label=${t("geo.landing.navLabel")}>
-            <span>${t("geo.landing.navProduct")}</span>
-            <span>${t("geo.landing.navSolutions")}</span>
-            <span>${t("geo.landing.navResources")}</span>
-            <span>${t("geo.landing.navCompany")}</span>
-          </nav>
           <div class="geo-landing__nav-actions">
             <button type="button" class="geo-landing__login">${t("geo.landing.login")}</button>
             <button type="button" class="geo-landing__cta" disabled>

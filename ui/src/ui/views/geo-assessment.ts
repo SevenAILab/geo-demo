@@ -37,16 +37,6 @@ const METRIC_ICONS: Record<GeoReportMetricId, TemplateResult> = {
   aiResponse: icons.activity,
 };
 
-function scoreToneClass(score: number): string {
-  if (score <= 50) {
-    return "geo-assessment-v2__score--low";
-  }
-  if (score <= 70) {
-    return "geo-assessment-v2__score--mid";
-  }
-  return "geo-assessment-v2__score--high";
-}
-
 function metricBarToneClass(value: number): string {
   if (value <= 40) {
     return "geo-assessment-v2__metric-fill--low";
@@ -63,12 +53,22 @@ function metricDisplayLabel(id: GeoReportMetricId, fallback: string): string {
   return label === key ? fallback : label;
 }
 
-function renderScoreRing(score: number, toneClass: string) {
+function renderScoreDecorRings() {
+  return html`
+    <div class="geo-assessment-v2__score-decor" aria-hidden="true">
+      <span class="geo-assessment-v2__score-decor-ring"></span>
+      <span class="geo-assessment-v2__score-decor-ring geo-assessment-v2__score-decor-ring--mid"></span>
+      <span class="geo-assessment-v2__score-decor-ring geo-assessment-v2__score-decor-ring--inner"></span>
+    </div>
+  `;
+}
+
+function renderScoreRing(score: number) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
   return html`
-    <svg class="geo-score-ring ${toneClass}" viewBox="0 0 140 140" aria-hidden="true">
+    <svg class="geo-score-ring geo-assessment-v2__score-ring" viewBox="0 0 140 140" aria-hidden="true">
       <circle class="geo-score-ring__track" cx="70" cy="70" r=${radius} />
       <circle
         class="geo-score-ring__value"
@@ -82,12 +82,12 @@ function renderScoreRing(score: number, toneClass: string) {
 }
 
 function renderScoreCard(report: GeoReport) {
-  const toneClass = scoreToneClass(report.totalScore);
   return html`
     <section class="geo-assessment-v2__card geo-assessment-v2__score-card">
       <div class="geo-assessment-v2__score-ring-wrap">
-        ${renderScoreRing(report.totalScore, toneClass)}
-        <div class="geo-assessment-v2__score-value ${toneClass}">
+        ${renderScoreDecorRings()}
+        ${renderScoreRing(report.totalScore)}
+        <div class="geo-assessment-v2__score-value">
           <strong>${report.totalScore}</strong>
           <span>/100</span>
         </div>
@@ -103,19 +103,18 @@ function renderScoreCard(report: GeoReport) {
 function renderAdvantagesCard(report: GeoReport, canFix: boolean, onFixGaps: () => void) {
   return html`
     <section class="geo-assessment-v2__card geo-assessment-v2__advantages">
-      <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
-      <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
-      <div class="geo-assessment-v2__advantages-actions">
-        <button type="button" class="geo-assessment-v2__btn geo-assessment-v2__btn--secondary" disabled>
-          ${icons.download} ${t("geo.analysis.exportReport")}
-        </button>
+      <div class="geo-assessment-v2__advantages-body">
+        <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
+        <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
+      </div>
+      <div class="geo-assessment-v2__advantages-footer">
         <button
           type="button"
-          class="geo-assessment-v2__btn geo-assessment-v2__btn--primary"
+          class="geo-assessment-v2__btn geo-assessment-v2__btn--cta"
           ?disabled=${!canFix}
           @click=${onFixGaps}
         >
-          ${icons.spark} ${t("geo.assessment.startOptimization")}
+          ${icons.rocket} ${t("geo.assessment.startOptimization")}
         </button>
       </div>
     </section>
@@ -227,10 +226,15 @@ function renderReportSkeleton() {
           <div class="geo-skeleton__ring"></div>
           <div class="geo-skeleton__line geo-skeleton__line--short"></div>
         </div>
-        <div class="geo-assessment-v2__card geo-skeleton">
-          <div class="geo-skeleton__line geo-skeleton__line--title"></div>
-          <div class="geo-skeleton__line"></div>
-          <div class="geo-skeleton__line"></div>
+        <div class="geo-assessment-v2__card geo-assessment-v2__advantages geo-skeleton">
+          <div class="geo-assessment-v2__advantages-body">
+            <div class="geo-skeleton__line geo-skeleton__line--title"></div>
+            <div class="geo-skeleton__line"></div>
+            <div class="geo-skeleton__line"></div>
+          </div>
+          <div class="geo-assessment-v2__advantages-footer">
+            <div class="geo-skeleton__line geo-skeleton__line--cta"></div>
+          </div>
         </div>
       </div>
       <div class="geo-assessment-v2__metrics-row">

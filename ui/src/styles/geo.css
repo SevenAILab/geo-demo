@@ -49,9 +49,9 @@
 }
 
 .geo-landing__nav-inner {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 24px;
   max-width: 1180px;
   margin: 0 auto;
@@ -64,14 +64,6 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #1d4ed8;
-}
-
-.geo-landing__nav-links {
-  display: flex;
-  justify-content: center;
-  gap: 28px;
-  color: #64748b;
-  font-size: 14px;
 }
 
 .geo-landing__nav-actions,
@@ -1899,6 +1891,12 @@
   height: 18px;
 }
 
+.geo-skeleton__line--cta {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+}
+
 .geo-skeleton__gap {
   height: 88px;
   border-radius: 14px;
@@ -1956,14 +1954,6 @@
 }
 
 @media (max-width: 960px) {
-  .geo-landing__nav-inner {
-    grid-template-columns: 1fr auto;
-  }
-
-  .geo-landing__nav-links {
-    display: none;
-  }
-
   .geo-assessment__report-grid {
     grid-template-columns: 1fr;
   }
@@ -2157,7 +2147,7 @@
   }
 }
 
-/* GEO Assessment v2 (图2 layout) */
+/* GEO Assessment v2 (图1 hero layout) */
 .geo-assessment-v2 {
   display: grid;
   gap: 18px;
@@ -2174,7 +2164,7 @@
 
 .geo-assessment-v2__top-row {
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
   gap: 18px;
   align-items: stretch;
 }
@@ -2188,21 +2178,54 @@
 
 .geo-assessment-v2__score-card {
   display: grid;
-  gap: 16px;
+  gap: 20px;
   place-content: center;
-  padding: 28px 24px;
+  padding: 32px 24px 28px;
 }
 
 .geo-assessment-v2__score-ring-wrap {
   position: relative;
   display: grid;
   place-items: center;
-  width: 140px;
+  width: 172px;
+  height: 172px;
   margin: 0 auto;
+}
+
+.geo-assessment-v2__score-decor {
+  position: absolute;
+  inset: 0;
+}
+
+.geo-assessment-v2__score-decor-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgba(124, 58, 237, 0.28);
+  border-radius: 999px;
+}
+
+.geo-assessment-v2__score-decor-ring--mid {
+  inset: 16px;
+}
+
+.geo-assessment-v2__score-decor-ring--inner {
+  inset: 32px;
+}
+
+.geo-assessment-v2__score-ring {
+  position: relative;
+  z-index: 1;
+  width: 140px;
+  height: 140px;
+}
+
+.geo-assessment-v2__score-ring .geo-score-ring__value {
+  stroke: #e14d2a;
 }
 
 .geo-assessment-v2__score-value {
   position: absolute;
+  z-index: 2;
   display: grid;
   place-items: center;
   text-align: center;
@@ -2211,6 +2234,7 @@
 .geo-assessment-v2__score-value strong {
   font-size: 34px;
   line-height: 1;
+  color: #064e3b;
 }
 
 .geo-assessment-v2__score-value span {
@@ -2218,36 +2242,14 @@
   font-size: 14px;
 }
 
-.geo-assessment-v2__score--low .geo-score-ring__value {
-  stroke: #dc2626;
-}
-
-.geo-assessment-v2__score--low strong {
-  color: #dc2626;
-}
-
-.geo-assessment-v2__score--mid .geo-score-ring__value {
-  stroke: #ea580c;
-}
-
-.geo-assessment-v2__score--mid strong {
-  color: #ea580c;
-}
-
-.geo-assessment-v2__score--high .geo-score-ring__value {
-  stroke: #16a34a;
-}
-
-.geo-assessment-v2__score--high strong {
-  color: #16a34a;
-}
-
 .geo-assessment-v2__warning {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
   background: #fef2f2;
   color: #dc2626;
   font-size: 13px;
@@ -2262,7 +2264,13 @@
 
 .geo-assessment-v2__advantages {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+.geo-assessment-v2__advantages-body {
+  display: grid;
   gap: 14px;
   padding: 24px;
 }
@@ -2280,15 +2288,15 @@
   line-height: 1.7;
 }
 
-.geo-assessment-v2__advantages-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.geo-assessment-v2__advantages-footer {
+  padding: 20px 24px;
+  background: #eef4ff;
 }
 
 .geo-assessment-v2__btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   min-height: 40px;
   padding: 0 18px;
@@ -2303,19 +2311,16 @@
   height: 16px;
 }
 
-.geo-assessment-v2__btn--secondary {
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #f8fafc;
-  color: #475569;
-}
-
-.geo-assessment-v2__btn--primary {
+.geo-assessment-v2__btn--cta {
+  width: 100%;
+  min-height: 48px;
   border: none;
-  background: #7c3aed;
+  border-radius: 12px;
+  background: #6226ba;
   color: #fff;
 }
 
-.geo-assessment-v2__btn--primary:disabled {
+.geo-assessment-v2__btn--cta:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
