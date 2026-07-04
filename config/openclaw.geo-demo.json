@@ -1,0 +1,9 @@
+{
+  "gateway": {
+    "mode": "local",
+    "controlUi": {
+      "geoDevSkipSkillWait": true,
+      "geoPersistHistory": true
+    }
+  }
+}

@@ -922,6 +922,8 @@ export async function handleControlUiHttpRequest(
             : "scripts",
       allowExternalEmbedUrls: config?.gateway?.controlUi?.allowExternalEmbedUrls === true,
       chatMessageMaxWidth: config?.gateway?.controlUi?.chatMessageMaxWidth,
+      geoDevSkipSkillWait: config?.gateway?.controlUi?.geoDevSkipSkillWait === true,
+      geoPersistHistory: config?.gateway?.controlUi?.geoPersistHistory === true,
     } satisfies ControlUiBootstrapConfig);
     return true;
   }

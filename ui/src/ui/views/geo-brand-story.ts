@@ -1,5 +1,7 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
+import { deriveBrandNameFromUrl } from "../geo-demo-data.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import {
   GEO_VALUE_PROP_OTHER_ID,
   isGeoBrandStoryComplete,
@@ -7,8 +9,6 @@ import {
   type GeoDataStatus,
   type GeoSkillAction,
 } from "../geo-parsers.ts";
-import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
-import { deriveBrandNameFromUrl } from "../geo-demo-data.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoBrandStoryProps = {
@@ -107,7 +107,11 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
           <p class="geo-field__hint">${t("geo.brandStory.valuePropHint")}</p>
           ${valuePropOptions.length > 0
             ? html`
-                <div class="geo-value-prop-options" role="group" aria-label=${t("geo.brandStory.valueProp")}>
+                <div
+                  class="geo-value-prop-options"
+                  role="group"
+                  aria-label=${t("geo.brandStory.valueProp")}
+                >
                   ${valuePropOptions.map(
                     (option) => html`
                       <label class="geo-value-prop-option">
@@ -131,9 +135,7 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
                   )}
                 </div>
               `
-            : html`
-                <p class="geo-field__placeholder">${t("geo.brandStory.gapPlaceholder")}</p>
-              `}
+            : html` <p class="geo-field__placeholder">${t("geo.brandStory.gapPlaceholder")}</p> `}
           <label class="geo-value-prop-option geo-value-prop-option--other">
             <input
               type="checkbox"

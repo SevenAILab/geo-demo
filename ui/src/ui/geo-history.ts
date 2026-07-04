@@ -1,5 +1,5 @@
+import { getSafeLocalStorage, getSafeSessionStorage } from "../local-storage.ts";
 import type { GeoPhase } from "./controllers/geo.ts";
-import type { GeoReport, GeoReportStatus } from "./geo-report.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -8,7 +8,7 @@ import type {
   GeoRepairPack,
   GeoSkillAction,
 } from "./geo-parsers.ts";
-import { getSafeLocalStorage, getSafeSessionStorage } from "../local-storage.ts";
+import type { GeoReport, GeoReportStatus } from "./geo-report.ts";
 import { normalizeOptionalString } from "./string-coerce.ts";
 import { generateUUID } from "./uuid.ts";
 

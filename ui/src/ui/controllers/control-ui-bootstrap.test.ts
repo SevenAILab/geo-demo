@@ -29,6 +29,8 @@ describe("loadControlUiBootstrapConfig", () => {
         embedSandbox: "scripts",
         allowExternalEmbedUrls: true,
         chatMessageMaxWidth: "min(1280px, 82%)",
+        geoDevSkipSkillWait: true,
+        geoPersistHistory: true,
       }),
     });
     vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
@@ -45,6 +47,8 @@ describe("loadControlUiBootstrapConfig", () => {
       embedSandboxMode: "scripts" as const,
       allowExternalEmbedUrls: false,
       chatMessageMaxWidth: null,
+      geoDevSkipSkillWait: false,
+      geoPersistHistory: false,
       serverVersion: null,
     };
 
@@ -64,6 +68,8 @@ describe("loadControlUiBootstrapConfig", () => {
     expect(state.embedSandboxMode).toBe("scripts");
     expect(state.allowExternalEmbedUrls).toBe(true);
     expect(state.chatMessageMaxWidth).toBe("min(1280px, 82%)");
+    expect(state.geoDevSkipSkillWait).toBe(true);
+    expect(state.geoPersistHistory).toBe(true);
 
     vi.unstubAllGlobals();
   });

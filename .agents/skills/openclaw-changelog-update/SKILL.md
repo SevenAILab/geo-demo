@@ -91,10 +91,11 @@ attribution.
    - if any compatibility `removeAfter` is on/before release date, resolve it
      or explicitly record the blocker before shipping
 10. Validate and ship:
-   - `git diff --check`
-   - for docs/changelog-only changes, no broad tests are required
-   - commit with `scripts/committer "docs(changelog): refresh YYYY.M.D notes" CHANGELOG.md`
-   - push, pull/rebase if needed, then branch/rebase release from latest `main`
+
+- `git diff --check`
+- for docs/changelog-only changes, no broad tests are required
+- commit with `scripts/committer "docs(changelog): refresh YYYY.M.D notes" CHANGELOG.md`
+- push, pull/rebase if needed, then branch/rebase release from latest `main`
 
 ## Quota / API Outage Rule
 

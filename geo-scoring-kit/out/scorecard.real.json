@@ -1,0 +1,77 @@
+{
+  "site_score": 46.7,
+  "site_grade": "F",
+  "technical_layer": {
+    "score": 82.29,
+    "foundation_score": 100,
+    "foundation_notes": [],
+    "page_technical_average": 70.48,
+    "ai_crawler_posture": {
+      "status": "pass",
+      "citation_blocked": [],
+      "training_only_blocked": [],
+      "all_blocked": []
+    }
+  },
+  "content_layer": {
+    "score": 27.53,
+    "page_content_average": 27.53,
+    "measured": {
+      "available": false,
+      "mention_rate": 0,
+      "share_of_voice": 0,
+      "measured_score": 0
+    }
+  },
+  "category_averages": {
+    "technical_foundation": 70,
+    "metadata_social": 75,
+    "structured_data": 66.67,
+    "content_depth": 46.58,
+    "ai_citability": 9.1,
+    "authority_freshness": 31.5
+  },
+  "strategic_gaps": [
+    "公开页 FAQ / 直答 / 可引用结构偏弱",
+    "权威与新鲜度信号弱（作者 / 更新 / 来源）",
+    "重点页仍需更多深度、标题、表格或列表"
+  ],
+  "pages": [
+    {
+      "path": "/",
+      "page_type": "homepage",
+      "technical_foundation": 100,
+      "metadata_social": 100,
+      "structured_data": 100,
+      "content_depth": 63.75,
+      "ai_citability": 8.4,
+      "authority_freshness": 49.5,
+      "page_technical_score": 100,
+      "page_content_score": 38.08
+    },
+    {
+      "path": "/learning/ai/what-is-generative-ai",
+      "page_type": "generic",
+      "technical_foundation": 10,
+      "metadata_social": 25,
+      "structured_data": 0,
+      "content_depth": 0,
+      "ai_citability": 0,
+      "authority_freshness": 0,
+      "page_technical_score": 11.43,
+      "page_content_score": 0
+    },
+    {
+      "path": "/plans",
+      "page_type": "landing",
+      "technical_foundation": 100,
+      "metadata_social": 100,
+      "structured_data": 100,
+      "content_depth": 76,
+      "ai_citability": 18.9,
+      "authority_freshness": 45,
+      "page_technical_score": 100,
+      "page_content_score": 44.5
+    }
+  ]
+}

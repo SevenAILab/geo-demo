@@ -103,6 +103,8 @@ import {
   type ExecApprovalRequest,
 } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
+import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
+import { refreshGeoHistory } from "./controllers/geo.ts";
 import type { SkillWorkshopState } from "./controllers/skill-workshop.ts";
 import type {
   ClawHubSearchResult,
@@ -110,7 +112,9 @@ import type {
   ClawHubSkillDetail,
   SkillMessage,
 } from "./controllers/skills.ts";
-import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
+import { importCustomThemeFromUrl } from "./custom-theme.ts";
+import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
+import type { GeoRunSnapshot } from "./geo-history.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -119,10 +123,6 @@ import type {
   GeoRepairPack,
   GeoSkillAction,
 } from "./geo-parsers.ts";
-import { refreshGeoHistory } from "./controllers/geo.ts";
-import type { GeoRunSnapshot } from "./geo-history.ts";
-import { importCustomThemeFromUrl } from "./custom-theme.ts";
-import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import { inferBasePathFromPathname, resolveRouteFromPathname, type Tab } from "./navigation.ts";
 import { resolveAgentIdFromSessionKey } from "./session-key.ts";
 import type { SidebarContent } from "./sidebar-content.ts";
@@ -255,6 +255,8 @@ export class OpenClawApp extends LitElement {
   @state() embedSandboxMode: "strict" | "scripts" | "trusted" = "scripts";
   @state() allowExternalEmbedUrls = false;
   @state() chatMessageMaxWidth: string | null = null;
+  @state() geoDevSkipSkillWait = false;
+  @state() geoPersistHistory = false;
   @state() serverVersion: string | null = null;
 
   @state() sessionKey = this.settings.sessionKey;

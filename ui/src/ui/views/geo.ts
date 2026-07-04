@@ -1,7 +1,12 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import { icons } from "../icons.ts";
-import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
+import type { GeoPhase } from "../controllers/geo.ts";
+import { formatRelativeTimestamp } from "../format.ts";
+import {
+  formatGeoRunSiteLabel,
+  geoPhaseProgressLabel,
+  type GeoRunSnapshot,
+} from "../geo-history.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -10,13 +15,8 @@ import type {
   GeoRepairPack,
   GeoSkillAction,
 } from "../geo-parsers.ts";
-import type { GeoPhase } from "../controllers/geo.ts";
-import {
-  formatGeoRunSiteLabel,
-  geoPhaseProgressLabel,
-  type GeoRunSnapshot,
-} from "../geo-history.ts";
-import { formatRelativeTimestamp } from "../format.ts";
+import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
+import { icons } from "../icons.ts";
 import { renderGeoAssessment } from "./geo-assessment.ts";
 import { renderGeoBrandStory } from "./geo-brand-story.ts";
 import { renderGeoMonitoringPanel } from "./geo-monitoring-panel.ts";
@@ -76,41 +76,20 @@ export type GeoProps = GeoLandingProps &
     onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
   };
 
-const LANDING_STEPS = [
-  {
-    iconClass: "geo-step__icon--scan",
-    icon: icons.search,
-    titleKey: "geo.landing.steps.scan.title",
-    bodyKey: "geo.landing.steps.scan.body",
-  },
-  {
-    iconClass: "geo-step__icon--fix",
-    icon: icons.wrench,
-    titleKey: "geo.landing.steps.fix.title",
-    bodyKey: "geo.landing.steps.fix.body",
-  },
-  {
-    iconClass: "geo-step__icon--track",
-    icon: icons.barChart,
-    titleKey: "geo.landing.steps.track.title",
-    bodyKey: "geo.landing.steps.track.body",
-  },
-] as const;
-
 function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string) => void) {
   const score = run.report?.totalScore;
   return html`
-    <button
-      type="button"
-      class="geo-history__item"
-      @click=${() => onRestoreRun(run.id)}
-    >
+    <button type="button" class="geo-history__item" @click=${() => onRestoreRun(run.id)}>
       <span class="geo-history__site">${formatGeoRunSiteLabel(run.siteUrl)}</span>
       <span class="geo-history__meta">
         <span class="geo-history__phase">${t(geoPhaseProgressLabel(run.phase))}</span>
         <span class="geo-history__time">${formatRelativeTimestamp(run.updatedAt)}</span>
         ${score != null
-          ? html`<span class="geo-history__score">${t("geo.history.score", { score })}</span>`
+          ? html`<span class="geo-history__score"
+              >${t("geo.history.score", {
+                score: String(score),
+              })}</span
+            >`
           : nothing}
       </span>
     </button>
@@ -217,8 +196,11 @@ export function renderGeoLanding(props: GeoLandingProps) {
               </section>
             `
           : nothing}
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 9fc13f82b316477ef7efec7f0947ed0f0645fe16
       </main>
 
       <footer class="geo-landing__footer">

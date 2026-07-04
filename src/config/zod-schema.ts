@@ -985,6 +985,8 @@ export const OpenClawSchema = z
                   "Expected a CSS width value such as 960px, 82%, min(1280px, 82%), or calc(100% - 2rem)",
               })
               .optional(),
+            geoDevSkipSkillWait: z.boolean().optional(),
+            geoPersistHistory: z.boolean().optional(),
             allowedOrigins: z.array(z.string()).optional(),
             dangerouslyAllowHostHeaderOriginFallback: z.boolean().optional(),
             allowInsecureAuth: z.boolean().optional(),

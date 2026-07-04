@@ -1,4 +1,3 @@
-import { isGeoStepReady, resetGeoPhaseData, type GeoDataStatus } from "../geo-parsers.ts";
 import {
   applyGeoRunSnapshot,
   clearGeoActiveRun,
@@ -11,9 +10,7 @@ import {
   type GeoRunSnapshot,
   updateGeoRunFromHost,
 } from "../geo-history.ts";
-import { runGeoSkill, type GeoSkillHost } from "../geo-skill-runner.ts";
-import { phaseToSkillAction, restoreGeoSession, type GeoSessionHost } from "../geo-session.ts";
-import { loadChatHistory, type ChatState } from "./chat.ts";
+import { isGeoStepReady, resetGeoPhaseData, type GeoDataStatus } from "../geo-parsers.ts";
 import {
   resetGeoReport,
   syncGeoReportFromChat,
@@ -21,6 +18,9 @@ import {
   type GeoReportStatus,
   type GeoReportSyncHost,
 } from "../geo-report.ts";
+import { phaseToSkillAction, restoreGeoSession, type GeoSessionHost } from "../geo-session.ts";
+import { runGeoSkill, type GeoSkillHost } from "../geo-skill-runner.ts";
+import { loadChatHistory, type ChatState } from "./chat.ts";
 
 export type GeoPhase =
   | "landing"
@@ -68,7 +68,8 @@ export async function startGeoExperience(host: GeoHost): Promise<boolean> {
   createGeoRun(host);
   host.requestUpdate?.();
   try {
-    if (!host.connected || !host.client) {
+    await host.controlUiBootstrapReady?.catch(() => undefined);
+    if (host.geoDevSkipSkillWait !== true && (!host.connected || !host.client)) {
       return true;
     }
     const ok = await runGeoSkill(host, "assessment");
@@ -147,7 +148,10 @@ export async function openGeoRepairPack(host: GeoHost, options?: GeoOpenOptions)
   updateGeoRunFromHost(host);
 }
 
-export async function openGeoMonitoringPanel(host: GeoHost, options?: GeoOpenOptions): Promise<void> {
+export async function openGeoMonitoringPanel(
+  host: GeoHost,
+  options?: GeoOpenOptions,
+): Promise<void> {
   host.geoPhase = "monitoringPanel";
   if (!options?.force && isGeoStepReady(host, "monitoring")) {
     restoreGeoSession(host, "monitoring");
@@ -240,7 +244,10 @@ export async function restoreGeoRun(host: GeoHost & ChatState): Promise<boolean>
   return true;
 }
 
-export async function restoreGeoRunById(host: GeoHost & ChatState, runId: string): Promise<boolean> {
+export async function restoreGeoRunById(
+  host: GeoHost & ChatState,
+  runId: string,
+): Promise<boolean> {
   host.geoActiveRunId = runId;
   return restoreGeoRun(host);
 }

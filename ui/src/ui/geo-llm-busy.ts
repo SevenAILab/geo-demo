@@ -47,10 +47,12 @@ export function resolveGeoLlmProgressTitle(
   return phaseKey ? t(phaseKey) : t("geo.history.progress.started");
 }
 
-export function buildGeoLlmProgress(input: GeoLlmBusyInput & {
-  phase: GeoPhase;
-  pendingSkill: GeoSkillAction | null;
-}): { active: boolean; title: string } {
+export function buildGeoLlmProgress(
+  input: GeoLlmBusyInput & {
+    phase: GeoPhase;
+    pendingSkill: GeoSkillAction | null;
+  },
+): { active: boolean; title: string } {
   const active = isGeoLlmBusy(input);
   return {
     active,

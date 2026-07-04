@@ -29,9 +29,7 @@ description: 对独立站做 GEO（Generative Engine Optimization）体检，评
     { "id": "entity", "label": "实体连通性", "value": 0, "statusLabel": "状态描述" },
     { "id": "aiResponse", "label": "AI 响应", "value": 0, "statusLabel": "状态描述" }
   ],
-  "gaps": [
-    { "id": "gap-01", "title": "缺口标题", "impact": "high", "description": "缺口说明" }
-  ]
+  "gaps": [{ "id": "gap-01", "title": "缺口标题", "impact": "high", "description": "缺口说明" }]
 }
 ```
 

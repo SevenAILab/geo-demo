@@ -311,8 +311,8 @@ function resolveConfiguredModel(): string {
 function hasTranslationProvider(): boolean {
   return Boolean(
     process.env.DEEPSEEK_API_KEY?.trim() ||
-      process.env.OPENAI_API_KEY?.trim() ||
-      process.env.ANTHROPIC_API_KEY?.trim(),
+    process.env.OPENAI_API_KEY?.trim() ||
+    process.env.ANTHROPIC_API_KEY?.trim(),
   );
 }
 

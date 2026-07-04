@@ -165,13 +165,20 @@ export function parseGeoReportJson(raw: unknown): GeoReport | null {
   const totalScore = clampScore(item.totalScore);
   const rating = item.rating;
   const summary = text(item.summary);
-  if (totalScore === null || typeof rating !== "string" || !RATINGS.has(rating as GeoReportRating) || !summary) {
+  if (
+    totalScore === null ||
+    typeof rating !== "string" ||
+    !RATINGS.has(rating as GeoReportRating) ||
+    !summary
+  ) {
     return null;
   }
   if (!Array.isArray(item.metrics) || !Array.isArray(item.gaps)) {
     return null;
   }
-  const metrics = item.metrics.map(parseMetric).filter((value): value is GeoReportMetric => value !== null);
+  const metrics = item.metrics
+    .map(parseMetric)
+    .filter((value): value is GeoReportMetric => value !== null);
   const gaps = item.gaps.map(parseGap).filter((value): value is GeoReportGap => value !== null);
   if (metrics.length === 0 || gaps.length === 0) {
     return null;
@@ -206,14 +213,18 @@ function parseValuePropOptions(raw: unknown): GeoValuePropOption[] {
   if (!Array.isArray(raw)) {
     return [];
   }
-  return raw.map(parseValuePropOption).filter((option): option is GeoValuePropOption => option !== null);
+  return raw
+    .map(parseValuePropOption)
+    .filter((option): option is GeoValuePropOption => option !== null);
 }
 
 function parseValueProps(raw: unknown): string[] {
   if (!Array.isArray(raw)) {
     return [];
   }
-  return raw.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0);
+  return raw.filter(
+    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0,
+  );
 }
 
 export function resolveValuePropLabels(story: GeoBrandStory): string[] {
@@ -251,7 +262,8 @@ export function parseGeoBrandStoryJson(raw: unknown): GeoBrandStory | null {
     ? item.competitors.filter((c): c is string => typeof c === "string" && c.trim().length > 0)
     : [];
   const previewRaw = item.aiPreview;
-  const p = previewRaw && typeof previewRaw === "object" ? (previewRaw as Record<string, unknown>) : {};
+  const p =
+    previewRaw && typeof previewRaw === "object" ? (previewRaw as Record<string, unknown>) : {};
   const entity = text(p.entity) || brandName;
   const type = text(p.type) || industry;
   const previewAudience = text(p.audience) || audience;
@@ -282,7 +294,9 @@ function normalizeBrandStoryRaw(raw: Record<string, unknown>): Record<string, un
     const target = BRAND_STORY_FIELD_ALIASES[key] ?? key;
     if (target === "aiPreview" && value && typeof value === "object" && !Array.isArray(value)) {
       const existing =
-        normalized.aiPreview && typeof normalized.aiPreview === "object" && !Array.isArray(normalized.aiPreview)
+        normalized.aiPreview &&
+        typeof normalized.aiPreview === "object" &&
+        !Array.isArray(normalized.aiPreview)
           ? (normalized.aiPreview as Record<string, unknown>)
           : {};
       normalized.aiPreview = { ...existing, ...(value as Record<string, unknown>) };
@@ -330,7 +344,13 @@ function parseOutputAsset(raw: unknown): GeoOutputAsset | null {
   const type = item.type;
   const title = text(item.title);
   const score = clampScore(item.score);
-  if (!id || typeof type !== "string" || !ASSET_TYPES.has(type as GeoOutputAsset["type"]) || !title || score === null) {
+  if (
+    !id ||
+    typeof type !== "string" ||
+    !ASSET_TYPES.has(type as GeoOutputAsset["type"]) ||
+    !title ||
+    score === null
+  ) {
     return null;
   }
   const scoreTone = resolveScoreTone(item.scoreTone, score);
@@ -390,7 +410,13 @@ function parseDimension(raw: unknown): GeoDimension | null {
   const label = text(item.label);
   const value = clampScore(item.value);
   const tone = item.tone;
-  if (!id || !label || value === null || typeof tone !== "string" || !DIMENSION_TONES.has(tone as GeoDimensionTone)) {
+  if (
+    !id ||
+    !label ||
+    value === null ||
+    typeof tone !== "string" ||
+    !DIMENSION_TONES.has(tone as GeoDimensionTone)
+  ) {
     return null;
   }
   return { id, label, value, tone: tone as GeoDimensionTone };
@@ -438,10 +464,16 @@ export function parseGeoMonitoringJson(raw: unknown): GeoMonitoring | null {
   if (readinessScore === null || !readinessDelta || !articlePreview) {
     return null;
   }
-  if (!Array.isArray(item.dimensions) || !Array.isArray(item.topics) || !Array.isArray(item.recentPublishes)) {
+  if (
+    !Array.isArray(item.dimensions) ||
+    !Array.isArray(item.topics) ||
+    !Array.isArray(item.recentPublishes)
+  ) {
     return null;
   }
-  const dimensions = item.dimensions.map(parseDimension).filter((d): d is GeoDimension => d !== null);
+  const dimensions = item.dimensions
+    .map(parseDimension)
+    .filter((d): d is GeoDimension => d !== null);
   const topics = item.topics.map(parseTopic).filter((t): t is GeoTopicCard => t !== null);
   const recentPublishes = item.recentPublishes
     .map(parseRecentPublish)
@@ -507,7 +539,10 @@ export function extractGeoReportFromText(textContent: string): GeoReport | null 
   return raw === null ? null : parseGeoReportJson(raw);
 }
 
-export function resolveGeoReportFromChat(messages: unknown[], stream: string | null): GeoReport | null {
+export function resolveGeoReportFromChat(
+  messages: unknown[],
+  stream: string | null,
+): GeoReport | null {
   return resolveParsedFromChat(messages, stream, parseGeoReportJson);
 }
 
@@ -535,7 +570,12 @@ export type GeoSyncHost = {
   requestUpdate?: () => void;
 };
 
-function resolveStatus(hasData: boolean, runActive: boolean, starting: boolean, prev: GeoDataStatus): GeoDataStatus {
+function resolveStatus(
+  hasData: boolean,
+  runActive: boolean,
+  starting: boolean,
+  prev: GeoDataStatus,
+): GeoDataStatus {
   if (hasData) {
     return "ready";
   }
@@ -576,7 +616,11 @@ function sessionMatchesSkill(host: GeoSyncHost, action: GeoSkillAction): boolean
   return host.sessionKey === expected;
 }
 
-function shouldSyncSkill(host: GeoSyncHost, action: GeoSkillAction, phase: string | undefined): boolean {
+function shouldSyncSkill(
+  host: GeoSyncHost,
+  action: GeoSkillAction,
+  phase: string | undefined,
+): boolean {
   if (host.geoPendingSkill === action) {
     return sessionMatchesSkill(host, action);
   }
@@ -593,17 +637,18 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "assessment", "assessment")) {
     const report = resolveGeoReportFromChat(host.chatMessages, host.chatStream);
-    const preserveReport = shouldPreserveReadySnapshot(report, host.geoReport, host.geoReportStatus);
+    const preserveReport = shouldPreserveReadySnapshot(
+      report,
+      host.geoReport,
+      host.geoReportStatus,
+    );
     const nextStatus = resolveStatus(
       Boolean(preserveReport ? host.geoReport : report),
       runActive,
       host.geoStarting,
       host.geoReportStatus,
     );
-    if (
-      (!preserveReport && host.geoReport !== report) ||
-      host.geoReportStatus !== nextStatus
-    ) {
+    if ((!preserveReport && host.geoReport !== report) || host.geoReportStatus !== nextStatus) {
       if (!preserveReport) {
         host.geoReport = report;
       }
@@ -619,7 +664,11 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "brandStory", "brandStory")) {
     const story = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoBrandStoryJson);
-    const preserveStory = shouldPreserveReadySnapshot(story, host.geoBrandStory, host.geoBrandStoryStatus);
+    const preserveStory = shouldPreserveReadySnapshot(
+      story,
+      host.geoBrandStory,
+      host.geoBrandStoryStatus,
+    );
     const nextStatus = resolveStatus(
       Boolean(preserveStory ? host.geoBrandStory : story),
       runActive,
@@ -642,7 +691,11 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
   }
 
   if (shouldSyncSkill(host, "content", "outputCenter")) {
-    const output = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoOutputCenterJson);
+    const output = resolveParsedFromChat(
+      host.chatMessages,
+      host.chatStream,
+      parseGeoOutputCenterJson,
+    );
     const preserveOutput = shouldPreserveReadySnapshot(
       output,
       host.geoOutputCenter,
@@ -671,17 +724,18 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
 
   if (shouldSyncSkill(host, "fixpack", "repairPack")) {
     const pack = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoRepairPackJson);
-    const preservePack = shouldPreserveReadySnapshot(pack, host.geoRepairPack, host.geoRepairPackStatus);
+    const preservePack = shouldPreserveReadySnapshot(
+      pack,
+      host.geoRepairPack,
+      host.geoRepairPackStatus,
+    );
     const nextStatus = resolveStatus(
       Boolean(preservePack ? host.geoRepairPack : pack),
       runActive,
       skillBusy,
       host.geoRepairPackStatus,
     );
-    if (
-      (!preservePack && host.geoRepairPack !== pack) ||
-      host.geoRepairPackStatus !== nextStatus
-    ) {
+    if ((!preservePack && host.geoRepairPack !== pack) || host.geoRepairPackStatus !== nextStatus) {
       if (!preservePack) {
         host.geoRepairPack = pack;
       }
@@ -694,7 +748,11 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
   }
 
   if (shouldSyncSkill(host, "monitoring", "monitoringPanel")) {
-    const monitoring = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoMonitoringJson);
+    const monitoring = resolveParsedFromChat(
+      host.chatMessages,
+      host.chatStream,
+      parseGeoMonitoringJson,
+    );
     const preserveMonitoring = shouldPreserveReadySnapshot(
       monitoring,
       host.geoMonitoring,

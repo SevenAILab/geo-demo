@@ -1,8 +1,13 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { GeoDataStatus, GeoOutputAsset, GeoOutputCenter, GeoSkillAction } from "../geo-parsers.ts";
-import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import { DEMO_OUTPUT_ASSETS } from "../geo-demo-data.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
+import type {
+  GeoDataStatus,
+  GeoOutputAsset,
+  GeoOutputCenter,
+  GeoSkillAction,
+} from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoOutputCenterProps = {
@@ -31,11 +36,7 @@ function resolveAssets(output: GeoOutputCenter | null, status: GeoDataStatus): G
   return [];
 }
 
-function renderAssetCard(
-  asset: GeoOutputAsset,
-  onOptimize: () => void,
-  disabled: boolean,
-) {
+function renderAssetCard(asset: GeoOutputAsset, onOptimize: () => void, disabled: boolean) {
   const typeLabel =
     asset.type === "article"
       ? t("geo.outputCenter.typeArticle")
@@ -49,9 +50,7 @@ function renderAssetCard(
     <article class="geo-output-card">
       <div class="geo-output-card__head">
         <span class="geo-output-card__type geo-output-card__type--${asset.type}">${typeLabel}</span>
-        <span class="geo-output-card__score ${scoreClass}">
-          GEO Score: ${asset.score}/100
-        </span>
+        <span class="geo-output-card__score ${scoreClass}"> GEO Score: ${asset.score}/100 </span>
       </div>
       <h3 class="geo-output-card__title">${asset.title}</h3>
       <button
@@ -131,9 +130,7 @@ export function renderGeoOutputCenter(props: GeoOutputCenterProps) {
           ${loading && assets.length === 0
             ? renderOutputSkeletonCards()
             : assets.length > 0
-              ? assets.map((asset) =>
-                  renderAssetCard(asset, props.onOpenRepairPack, loading),
-                )
+              ? assets.map((asset) => renderAssetCard(asset, props.onOpenRepairPack, loading))
               : nothing}
         </div>
       </main>

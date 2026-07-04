@@ -1,14 +1,4 @@
 import type { ActivityEntry, ActivityStatus } from "./activity-model.ts";
-import type { GeoRunSnapshot } from "./geo-history.ts";
-import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
-import type {
-  GeoBrandStory,
-  GeoDataStatus,
-  GeoMonitoring,
-  GeoOutputCenter,
-  GeoRepairPack,
-  GeoSkillAction,
-} from "./geo-parsers.ts";
 import type { ChatAbortOptions, ChatSendOptions } from "./app-chat.ts";
 import type { EventLogEntry } from "./app-events.ts";
 import type { CompactionStatus, FallbackStatus } from "./app-tool-stream.ts";
@@ -21,6 +11,7 @@ import type { CronModelSuggestionsState, CronState } from "./controllers/cron.ts
 import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
+import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
 import type { SkillWorkshopState } from "./controllers/skill-workshop.ts";
 import type {
   ClawHubSearchResult,
@@ -30,6 +21,15 @@ import type {
 } from "./controllers/skills.ts";
 import type { EmbedSandboxMode } from "./embed-sandbox.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
+import type { GeoRunSnapshot } from "./geo-history.ts";
+import type {
+  GeoBrandStory,
+  GeoDataStatus,
+  GeoMonitoring,
+  GeoOutputCenter,
+  GeoRepairPack,
+  GeoSkillAction,
+} from "./geo-parsers.ts";
 import type { Tab } from "./navigation.ts";
 import type { SidebarContent } from "./sidebar-content.ts";
 import type { UiSettings } from "./storage.ts";
@@ -101,6 +101,8 @@ export type AppViewState = {
   embedSandboxMode: EmbedSandboxMode;
   allowExternalEmbedUrls: boolean;
   chatMessageMaxWidth?: string | null;
+  geoDevSkipSkillWait: boolean;
+  geoPersistHistory: boolean;
   sessionKey: string;
   chatSessionMessageSubscriptionKey?: string | null;
   chatSessionMessageSubscriptionRequestedKey?: string | null;

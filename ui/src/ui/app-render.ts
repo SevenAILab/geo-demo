@@ -114,6 +114,22 @@ import {
   saveExecApprovals,
   updateExecApprovalsFormValue,
 } from "./controllers/exec-approvals.ts";
+import {
+  backToGeoAssessment,
+  backToGeoBrandStory,
+  backToGeoLanding,
+  backToGeoOutputCenter,
+  openGeoBrandStory,
+  openGeoMonitoringPanel,
+  openGeoOutputCenter,
+  openGeoRepairPack,
+  reassessGeo,
+  restoreGeoRun,
+  restoreGeoRunById,
+  restoreGeoSessionForPhase,
+  startGeoExperience,
+  updateGeoBrandStoryValueProps,
+} from "./controllers/geo.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
@@ -146,27 +162,11 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { captureSessionToWorkboard, getWorkboardState } from "./controllers/workboard.ts";
-import {
-  backToGeoAssessment,
-  backToGeoBrandStory,
-  backToGeoLanding,
-  backToGeoOutputCenter,
-  openGeoBrandStory,
-  openGeoMonitoringPanel,
-  openGeoOutputCenter,
-  openGeoRepairPack,
-  reassessGeo,
-  restoreGeoRun,
-  restoreGeoRunById,
-  restoreGeoSessionForPhase,
-  startGeoExperience,
-  updateGeoBrandStoryValueProps,
-} from "./controllers/geo.ts";
-import { dismissGeoResume, shouldShowGeoResumeBanner } from "./geo-history.ts";
 import { getCronJobPayload } from "./cron-payload.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { formatTimeMs } from "./format.ts";
 import { formatRelativeTimestamp } from "./format.ts";
+import { dismissGeoResume, shouldShowGeoResumeBanner } from "./geo-history.ts";
 import { icons } from "./icons.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
 import {
@@ -218,10 +218,10 @@ import { renderDreamingRestartConfirmation } from "./views/dreaming-restart-conf
 import { renderDreaming } from "./views/dreaming.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
+import { renderGeo } from "./views/geo.ts";
 import { renderLoginGate } from "./views/login-gate.ts";
 import { renderMcp } from "./views/mcp.ts";
 import { renderOverview } from "./views/overview.ts";
-import { renderGeo } from "./views/geo.ts";
 
 let pendingUpdate: (() => void) | undefined;
 
@@ -2473,10 +2473,9 @@ export function renderApp(state: AppViewState) {
       <main
         class="content ${isChat ? "content--chat" : ""} ${isGeo ? "content--geo" : ""} ${isGeoFlow
           ? "content--geo-analysis"
-          : ""} ${state.tab === "logs"
-          ? "content--logs"
-          : ""} ${state.tab === "workboard" ? "content--workboard" : ""} ${state.tab ===
-        "skillWorkshop"
+          : ""} ${state.tab === "logs" ? "content--logs" : ""} ${state.tab === "workboard"
+          ? "content--workboard"
+          : ""} ${state.tab === "skillWorkshop"
           ? `content--skill-workshop ${
               state.skillWorkshopMode === "today" ? "content--skill-workshop-today" : ""
             }`
@@ -2672,7 +2671,8 @@ export function renderApp(state: AppViewState) {
                 onRetryBrandStory: () => void openGeoBrandStory(state as never, { force: true }),
                 onRetryOutput: () => void openGeoOutputCenter(state as never, { force: true }),
                 onRetryRepairPack: () => void openGeoRepairPack(state as never, { force: true }),
-                onRetryMonitoring: () => void openGeoMonitoringPanel(state as never, { force: true }),
+                onRetryMonitoring: () =>
+                  void openGeoMonitoringPanel(state as never, { force: true }),
                 onValuePropsChange: (valueProps, valuePropOther) => {
                   updateGeoBrandStoryValueProps(state as never, valueProps, valuePropOther);
                 },

@@ -1,8 +1,8 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { GeoDataStatus, GeoRepairPack, GeoSkillAction } from "../geo-parsers.ts";
-import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
 import { DEMO_JSON_LD, DEMO_LLMS_TXT } from "../geo-demo-data.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
+import type { GeoDataStatus, GeoRepairPack, GeoSkillAction } from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoRepairPackProps = {
@@ -101,7 +101,9 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
               ${t("geo.repairPack.copyContent")}
             </button>
           </div>
-          <pre class="geo-code-block__content geo-code-block__content--lines"><code>${packContent.llmsTxt}</code></pre>
+          <pre
+            class="geo-code-block__content geo-code-block__content--lines"
+          ><code>${packContent.llmsTxt}</code></pre>
         </section>
       </main>
       <aside class="geo-repair-pack__aside">

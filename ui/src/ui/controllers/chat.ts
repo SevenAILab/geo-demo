@@ -14,6 +14,8 @@ import {
   roundedControlUiDurationMs,
 } from "../control-ui-performance.ts";
 import { GatewayRequestError, type GatewayBrowserClient, type GatewayHelloOk } from "../gateway.ts";
+import { scheduleGeoRunPersist, type GeoHistoryHost } from "../geo-history.ts";
+import { syncGeoStateFromChat, type GeoSyncHost } from "../geo-parsers.ts";
 import {
   areUiSessionKeysEquivalent,
   normalizeAgentId,
@@ -27,8 +29,6 @@ import {
   formatMissingOperatorReadScopeMessage,
   isMissingOperatorReadScopeError,
 } from "./scope-errors.ts";
-import { syncGeoStateFromChat, type GeoSyncHost } from "../geo-parsers.ts";
-import { scheduleGeoRunPersist, type GeoHistoryHost } from "../geo-history.ts";
 
 function maybeSyncGeoState(state: ChatState): void {
   const host = state as ChatState & Partial<GeoSyncHost> & Partial<GeoHistoryHost>;

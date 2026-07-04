@@ -48,8 +48,7 @@ export function renderGeoFlowLayout(props: GeoFlowLayoutProps) {
             : nothing}
         </aside>
         <main class="geo-flow__content">
-          ${props.children}
-          ${props.llmProgress ? renderGeoLlmProgress(props.llmProgress) : nothing}
+          ${props.children} ${props.llmProgress ? renderGeoLlmProgress(props.llmProgress) : nothing}
         </main>
       </div>
       ${props.footer ?? nothing}
