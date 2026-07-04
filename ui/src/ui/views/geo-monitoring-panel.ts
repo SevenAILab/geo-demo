@@ -1,16 +1,24 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { GeoDataStatus, GeoDimension, GeoMonitoring, GeoTopicCard } from "../geo-parsers.ts";
 import {
   DEMO_ARTICLE_PREVIEW,
   DEMO_DIMENSIONS,
   DEMO_RECENT_PUBLISHES,
   DEMO_TOPIC_CARDS,
 } from "../geo-demo-data.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
+import type {
+  GeoDataStatus,
+  GeoDimension,
+  GeoMonitoring,
+  GeoSkillAction,
+  GeoTopicCard,
+} from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoMonitoringPanelProps = {
   siteUrl: string;
+  pendingSkill: GeoSkillAction | null;
   monitoring: GeoMonitoring | null;
   status: GeoDataStatus;
   skillBusy: boolean;
@@ -65,7 +73,9 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
   const data = props.monitoring;
   const dimensions = resolveDimensions(data, props.status);
   const topics = resolveTopics(data, props.status);
-  const recentPublishes = data?.recentPublishes?.length ? data.recentPublishes : DEMO_RECENT_PUBLISHES;
+  const recentPublishes = data?.recentPublishes?.length
+    ? data.recentPublishes
+    : DEMO_RECENT_PUBLISHES;
   const articlePreview = data?.articlePreview ?? DEMO_ARTICLE_PREVIEW;
   const readinessScore = data?.readinessScore ?? 0;
   const readinessDelta = data?.readinessDelta ?? t("geo.monitoringPanel.readinessDelta");
@@ -74,8 +84,15 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
     <header class="geo-page__header">
       <h1 class="geo-monitoring__title">${t("geo.monitoringPanel.title")}</h1>
       <div class="geo-page__header-actions">
-        <span class="geo-page__lang" aria-disabled="true">${t("geo.monitoringPanel.langToggle")}</span>
-        <button type="button" class="btn btn--sm" disabled aria-label=${t("geo.monitoringPanel.notifications")}>
+        <span class="geo-page__lang" aria-disabled="true"
+          >${t("geo.monitoringPanel.langToggle")}</span
+        >
+        <button
+          type="button"
+          class="btn btn--sm"
+          disabled
+          aria-label=${t("geo.monitoringPanel.notifications")}
+        >
           🔔
         </button>
         <button type="button" class="btn btn--sm" @click=${props.onBack}>
@@ -89,12 +106,6 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
   `;
 
   const content = html`
-    ${loading
-      ? html`<div class="geo-phase-loading geo-phase-loading--inline">
-          <div class="geo-phase-loading__spinner" aria-hidden="true"></div>
-          <p>${t("geo.skills.loading")}</p>
-        </div>`
-      : nothing}
     ${showError
       ? html`<div class="geo-phase-error geo-phase-error--inline">
           <p>${t("geo.skills.errorBody")}</p>
@@ -103,13 +114,15 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
           </button>
         </div>`
       : nothing}
-    <div class="geo-monitoring__body">
+    <div class="geo-monitoring__body ${loading ? "geo-brand-story__body--dimmed" : ""}">
       <main class="geo-monitoring__main">
         <section class="geo-monitoring__readiness">
           <h2>${t("geo.monitoringPanel.readinessTitle")}</h2>
           <div class="geo-monitoring__ring-wrap">
             <div class="geo-monitoring__ring">
-              ${data ? html`<span class="geo-monitoring__ring-score">${readinessScore}</span>` : nothing}
+              ${data
+                ? html`<span class="geo-monitoring__ring-score">${readinessScore}</span>`
+                : nothing}
             </div>
             <span class="geo-monitoring__delta">${readinessDelta}</span>
           </div>
@@ -159,7 +172,12 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
       <aside class="geo-monitoring__preview">
         <div class="geo-monitoring__preview-head">
           <h2>${t("geo.monitoringPanel.previewTitle")}</h2>
-          <button type="button" class="btn btn--sm" disabled aria-label=${t("geo.monitoringPanel.closePreview")}>
+          <button
+            type="button"
+            class="btn btn--sm"
+            disabled
+            aria-label=${t("geo.monitoringPanel.closePreview")}
+          >
             ×
           </button>
         </div>
@@ -179,5 +197,11 @@ export function renderGeoMonitoringPanel(props: GeoMonitoringPanelProps) {
     onToggleChat: props.onToggleChat,
     header,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      status: props.status,
+      phase: "monitoringPanel",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }

@@ -1,11 +1,13 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import type { GeoDataStatus, GeoRepairPack } from "../geo-parsers.ts";
 import { DEMO_JSON_LD, DEMO_LLMS_TXT } from "../geo-demo-data.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
+import type { GeoDataStatus, GeoRepairPack, GeoSkillAction } from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoRepairPackProps = {
   siteUrl: string;
+  pendingSkill: GeoSkillAction | null;
   repairPack: GeoRepairPack | null;
   status: GeoDataStatus;
   skillBusy: boolean;
@@ -51,7 +53,7 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
         <p class="geo-repair-pack__intro">${t("geo.repairPack.intro")}</p>
       </div>
       <div class="geo-page__header-actions">
-        <span class="geo-page__ready">${loading ? t("geo.skills.loading") : t("geo.repairPack.systemReady")}</span>
+        <span class="geo-page__ready">${t("geo.repairPack.systemReady")}</span>
         <button type="button" class="btn btn--sm" @click=${props.onBack}>
           ${t("geo.repairPack.backToOutputCenter")}
         </button>
@@ -63,12 +65,6 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
   `;
 
   const content = html`
-    ${loading
-      ? html`<div class="geo-phase-loading geo-phase-loading--inline">
-          <div class="geo-phase-loading__spinner" aria-hidden="true"></div>
-          <p>${t("geo.skills.loading")}</p>
-        </div>`
-      : nothing}
     ${showError
       ? html`<div class="geo-phase-error geo-phase-error--inline">
           <p>${t("geo.skills.errorBody")}</p>
@@ -77,7 +73,7 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
           </button>
         </div>`
       : nothing}
-    <div class="geo-repair-pack__body">
+    <div class="geo-repair-pack__body ${loading ? "geo-brand-story__body--dimmed" : ""}">
       <main class="geo-repair-pack__main">
         <section class="geo-code-block">
           <div class="geo-code-block__head">
@@ -91,7 +87,7 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
               ${t("geo.repairPack.copyJsonLd")}
             </button>
           </div>
-          <pre class="geo-code-block__content"><code>${packContent.jsonLd || t("geo.skills.loading")}</code></pre>
+          <pre class="geo-code-block__content"><code>${packContent.jsonLd}</code></pre>
         </section>
         <section class="geo-code-block">
           <div class="geo-code-block__head">
@@ -105,7 +101,9 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
               ${t("geo.repairPack.copyContent")}
             </button>
           </div>
-          <pre class="geo-code-block__content geo-code-block__content--lines"><code>${packContent.llmsTxt || t("geo.skills.loading")}</code></pre>
+          <pre
+            class="geo-code-block__content geo-code-block__content--lines"
+          ><code>${packContent.llmsTxt}</code></pre>
         </section>
       </main>
       <aside class="geo-repair-pack__aside">
@@ -139,5 +137,11 @@ export function renderGeoRepairPack(props: GeoRepairPackProps) {
     header,
     footer,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      status: props.status,
+      phase: "repairPack",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }

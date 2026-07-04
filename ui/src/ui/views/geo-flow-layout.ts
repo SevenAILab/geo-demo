@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
+import { renderGeoLlmProgress, type GeoLlmProgressProps } from "./geo-llm-progress.ts";
 
 export type GeoFlowLayoutProps = {
   siteUrl: string;
@@ -9,6 +10,7 @@ export type GeoFlowLayoutProps = {
   header: TemplateResult;
   footer?: TemplateResult;
   children: TemplateResult;
+  llmProgress?: GeoLlmProgressProps;
 };
 
 export function renderGeoFlowLayout(props: GeoFlowLayoutProps) {
@@ -45,7 +47,9 @@ export function renderGeoFlowLayout(props: GeoFlowLayoutProps) {
             ? html`<div class="geo-chat-pane__body geo-flow__chat-body">${props.chatSlot}</div>`
             : nothing}
         </aside>
-        <main class="geo-flow__content">${props.children}</main>
+        <main class="geo-flow__content">
+          ${props.children} ${props.llmProgress ? renderGeoLlmProgress(props.llmProgress) : nothing}
+        </main>
       </div>
       ${props.footer ?? nothing}
     </div>

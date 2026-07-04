@@ -1,5 +1,7 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
+import { buildGeoLlmProgress } from "../geo-llm-busy.ts";
+import type { GeoSkillAction } from "../geo-parsers.ts";
 import type { GeoReport, GeoReportStatus } from "../geo-report.ts";
 import { icons } from "../icons.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
@@ -7,6 +9,7 @@ import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 export type GeoAssessmentProps = {
   siteUrl: string;
   starting: boolean;
+  pendingSkill: GeoSkillAction | null;
   report: GeoReport | null;
   reportStatus: GeoReportStatus;
   skillBusy: boolean;
@@ -144,15 +147,12 @@ export function renderGeoAssessment(props: GeoAssessmentProps) {
         <span class="geo-assessment__badge">${t("geo.assessment.reportVersion")}</span>
       </div>
       <div class="geo-assessment__header-actions geo-page__header-actions">
-        <button type="button" class="btn btn--sm" @click=${props.onBack}>
-          ${t("geo.back")}
-        </button>
+        <button type="button" class="btn btn--sm" @click=${props.onBack}>${t("geo.back")}</button>
         <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
           ${t("geo.backToConsole")}
         </button>
         <button type="button" class="btn btn--sm" disabled>
-          ${icons.download}
-          ${t("geo.analysis.exportReport")}
+          ${icons.download} ${t("geo.analysis.exportReport")}
         </button>
       </div>
     </header>
@@ -193,5 +193,12 @@ export function renderGeoAssessment(props: GeoAssessmentProps) {
     onToggleChat: props.onToggleChat,
     header,
     children: content,
+    llmProgress: buildGeoLlmProgress({
+      skillBusy: props.skillBusy,
+      starting: props.starting,
+      reportStatus: props.reportStatus,
+      phase: "assessment",
+      pendingSkill: props.pendingSkill,
+    }),
   });
 }
