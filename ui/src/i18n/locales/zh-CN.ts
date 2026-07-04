@@ -658,7 +658,7 @@ export const zh_CN: TranslationMap = {
       intro: "复制并粘贴以下内容到你的网站代码中，以提升 AI 可见性。",
       systemReady: "系统就绪",
       backToOutputCenter: "返回产出中心",
-      schemaTag: "“技术修复'",
+      schemaTag: "技术修复",
       llmsTag: "技术修复",
       schemaTitle: "Schema.org (JSON-LD) 结构化数据",
       copyJsonLd: "复制 JSON-LD",
