@@ -89,7 +89,7 @@ export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport 
   const m = sc.content_layer.measured;
 
   // 中部三指标直接对应评分模型的两层 + 实测：
-  //   技术架构 = 技术层分；声音贡献 = 内容层(品牌)分；AI 可见性 = 实测分(有 probe)/on-page 可引用性
+  //   技术架构 = 技术层分；声音份额 = 内容层(品牌)分；情绪指数 = 实测分(有 probe)/on-page 可引用性
   const technicalValue = Math.round(sc.technical_layer.score);
   const brandValue = Math.round(sc.content_layer.score);
   const aiValue = Math.round(m.available ? m.measured_score : cat.ai_citability);
@@ -102,14 +102,14 @@ export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport 
       statusLabel: technicalStatus(technicalValue),
     },
     {
-      id: "entity", // 展示为「声音贡献」
-      label: "声音贡献",
+      id: "entity", // 展示为「声音份额」
+      label: "声音份额",
       value: brandValue,
       statusLabel: brandStatus(brandValue, m.available),
     },
     {
-      id: "aiResponse", // 展示为「AI 可见性」
-      label: "AI 可见性",
+      id: "aiResponse", // 展示为「情绪指数」
+      label: "情绪指数",
       value: aiValue,
       statusLabel: m.available
         ? `实测 MR ${Math.round(m.mention_rate)} / SoV ${Math.round(m.share_of_voice)}`

@@ -560,7 +560,7 @@ export const en: TranslationMap = {
         strong: "强 (Strong)",
       },
       highRiskWarning: "高危警告：共 {count} 个优化项",
-      coreAdvantagesTitle: "核心优势分析",
+      coreAdvantagesTitle: "核心总结",
       startOptimization: "开启优化引擎",
       industryScoreTitle: "行业GEO可见性评分",
       industryScoreHint: "为您抓取并分析同行业TOP数据",

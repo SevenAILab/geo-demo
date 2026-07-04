@@ -24,6 +24,7 @@ import {
   crawlerPosture,
 } from "./geo-lib/technical.mjs";
 import { avg, round2 } from "./geo-lib/util.mjs";
+import { logScoreRun } from "./score-log.mjs";
 
 // ── 页面级打分（§3A + §4A/§4B）──
 export function scorePage(s) {
@@ -145,7 +146,7 @@ function parseArgs(argv) {
   return out;
 }
 
-function cliMain() {
+async function cliMain() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.pages) {
     console.error("Usage: node geo-score.mjs --pages pages.json --checks checks.json \\");
@@ -163,14 +164,13 @@ function cliMain() {
     opts.R = Number(args.runs) || 0;
   }
   const scorecard = scoreSite(pages, opts);
+  await logScoreRun(scorecard, { url: pages[0]?.url ?? args.pages });
   console.log(JSON.stringify(scorecard, null, 2));
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  try {
-    cliMain();
-  } catch (error) {
+  cliMain().catch((error) => {
     console.error(error.message);
     process.exit(1);
-  }
+  });
 }

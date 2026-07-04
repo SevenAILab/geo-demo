@@ -15,17 +15,22 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 import { crawl } from "./geo-crawl.mjs";
 import { probe as runProbe } from "./geo-probe.mjs";
 import { scoreSite } from "./geo-score.mjs";
 import { siteChecks } from "./geo-site-checks.mjs";
+import { logScoreRun } from "./score-log.mjs";
+
+// probe 需要大模型 key。显式从 geo-scoring-kit/.env 加载（不依赖 cwd，网关子进程也生效）。
+const KIT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url))); // geo-scoring-kit/
+dotenv.config({ path: path.join(KIT_DIR, ".env") });
 
 const PORT = Number(process.env.PORT) || 8799;
 const HOST = "127.0.0.1";
 const DEFAULT_URL = "https://www.cloudflare.com/"; // 案例默认站，可在表单里改
 
 // probe 输入文件（有 key 才用；缺失/无 key 时 scoreUrl 静默降级为 on-page）
-const KIT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url))); // geo-scoring-kit/
 const QUERY_SET_FILE = path.join(KIT_DIR, "out", "probe.query_set.json");
 const COMPETITORS_FILE = path.join(KIT_DIR, "out", "probe.competitors.json");
 const readJsonSafe = (p) => {
@@ -78,6 +83,7 @@ async function scoreUrl(input, opts = {}) {
   }
 
   const scorecard = scoreSite(pages, scoreOpts);
+  await logScoreRun(scorecard, { url: urls.join(","), probe: probeInfo });
   return { scorecard, checks, pages, origin, probeInfo };
 }
 

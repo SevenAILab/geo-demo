@@ -11,7 +11,7 @@ const report: GeoReport = {
     { id: "entity", label: "实体权威", value: 67, statusLabel: "权威信号充分" },
     {
       id: "aiResponse",
-      label: "AI 可见性",
+      label: "情绪指数",
       value: 61,
       statusLabel: "on-page 可引用性（未接实测 probe）",
     },
@@ -51,7 +51,7 @@ describe("buildGeoReportMarkdown", () => {
   it("includes score, advantage, metrics and warnings sections", () => {
     expect(md).toContain("# GEO 可见性分析报告");
     expect(md).toContain("总评分：71/100");
-    expect(md).toContain("## 核心优势分析");
+    expect(md).toContain("## 核心总结");
     expect(md).toContain("Acme 站点 71/100");
     expect(md).toContain("## 中部相关指标");
     expect(md).toContain("- 结构化数据：62% — 结构化数据部分缺失");

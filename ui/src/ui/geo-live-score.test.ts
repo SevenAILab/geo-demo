@@ -25,11 +25,11 @@ describe("scorecardToGeoReport", () => {
     // 技术架构 = 技术层分
     expect(r.metrics[0].label).toBe("技术架构");
     expect(r.metrics[0].value).toBe(87); // round(86.91)
-    // 声音贡献 = 内容层(品牌)分
-    expect(r.metrics[1].label).toBe("声音贡献");
+    // 声音份额 = 内容层(品牌)分
+    expect(r.metrics[1].label).toBe("声音份额");
     expect(r.metrics[1].value).toBe(63); // round(62.6)
-    // 无实测 → AI 可见性用 on-page ai_citability
-    expect(r.metrics[2].label).toBe("AI 可见性");
+    // 无实测 → 情绪指数用 on-page ai_citability
+    expect(r.metrics[2].label).toBe("情绪指数");
     expect(r.metrics[2].value).toBe(61);
     expect(r.metrics[2].statusLabel).toContain("未接实测");
     // 红线缺口 → high 优先

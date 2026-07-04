@@ -55,6 +55,10 @@ async function runInitialGeoAssessment(host: GeoHost): Promise<void> {
   try {
     await host.controlUiBootstrapReady?.catch(() => undefined);
     await runGeoSkill(host, "assessment");
+  } catch (error) {
+    console.warn("[geo] assessment failed:", error);
+    host.geoReportStatus = "error";
+    host.geoPendingSkill = null;
   } finally {
     updateGeoRunFromHost(host);
     host.requestUpdate?.();
@@ -75,11 +79,19 @@ export async function startGeoExperience(host: GeoHost): Promise<boolean> {
   resetGeoPhaseData(host);
   host.geoReportStatus = "loading";
   host.geoPendingSkill = "assessment";
-  createGeoRun(host);
-  host.geoStarting = false;
-  void runInitialGeoAssessment(host);
-  host.requestUpdate?.();
-  return true;
+  try {
+    createGeoRun(host);
+    void runInitialGeoAssessment(host);
+    return true;
+  } catch (error) {
+    console.warn("[geo] failed to start assessment:", error);
+    host.geoReportStatus = "error";
+    host.geoPendingSkill = null;
+    return false;
+  } finally {
+    host.geoStarting = false;
+    host.requestUpdate?.();
+  }
 }
 
 export function backToGeoLanding(host: GeoHost): void {

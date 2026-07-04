@@ -8,6 +8,7 @@ import {
   createDemoGeoReport,
 } from "./geo-demo-data.ts";
 import { scheduleGeoRunPersist, type GeoHistoryHost } from "./geo-history.ts";
+import { recordGeoIndustryVisibility } from "./geo-industry-history.ts";
 import { fetchLiveGeoReport } from "./geo-live-score.ts";
 import {
   type GeoBrandStory,
@@ -19,6 +20,7 @@ import {
 } from "./geo-parsers.ts";
 import type { GeoReport } from "./geo-report.ts";
 import { beginGeoSkillSession } from "./geo-session.ts";
+import { requestGeoCoreSummary } from "./geo-summary.ts";
 
 export const GEO_SKILL_PATHS: Record<GeoSkillAction, string> = {
   assessment: "skills/geo-assessment/SKILL.md",
@@ -110,23 +112,56 @@ export function buildGeoSkillPrompt(
   }
 }
 
-// 联调：assessment 阶段拉真实 scorecard；后端不可达/报错时置 error 态（视图提示启动后端）。
+// 联调：assessment 阶段拉真实 scorecard；后端不可达/报错时回退 demo。
 async function applyAssessmentResult(host: GeoSkillHost): Promise<void> {
   if (host.geoLiveScore === false) {
-    host.geoReport = createDemoGeoReport(host.geoSiteUrl);
+    host.geoReport = recordGeoIndustryVisibility(
+      host.geoSiteUrl,
+      createDemoGeoReport(host.geoSiteUrl),
+    );
     host.geoReportStatus = "ready";
     return;
   }
   try {
-    host.geoReport = await fetchLiveGeoReport(host.geoSiteUrl, {
-      probe: host.geoLiveProbe === true,
+    const probe = host.geoLiveProbe === true;
+    const report = await fetchLiveGeoReport(host.geoSiteUrl, {
+      probe,
       brand: host.geoBrandStory?.brandName,
+      // 真实 probe 会串行调大模型，耗时更长；放宽超时并压低 runs 控制调用数/额度。
+      runs: probe ? 1 : undefined,
+      timeoutMs: probe ? 90_000 : 20_000,
     });
+    host.geoReport = recordGeoIndustryVisibility(host.geoSiteUrl, report);
     host.geoReportStatus = "ready";
   } catch (error) {
     console.warn("[geo] live score unavailable:", error);
-    host.geoReport = createDemoGeoReport(host.geoSiteUrl);
+    host.geoReport = recordGeoIndustryVisibility(
+      host.geoSiteUrl,
+      createDemoGeoReport(host.geoSiteUrl),
+    );
     host.geoReportStatus = "ready";
+  }
+}
+
+async function refreshAssessmentCoreSummary(host: GeoSkillHost, report: GeoReport): Promise<void> {
+  if (!host.connected || !host.client) {
+    return;
+  }
+  try {
+    const summary = await requestGeoCoreSummary({
+      client: host.client,
+      currentSessionKey: host.sessionKey,
+      siteUrl: host.geoSiteUrl,
+      report,
+    });
+    if (!summary || host.geoReport !== report) {
+      return;
+    }
+    host.geoReport = { ...report, summary };
+    maybePersistGeoRun(host);
+    host.requestUpdate?.();
+  } catch (error) {
+    console.warn("[geo] openclaw summary unavailable:", error);
   }
 }
 
@@ -206,6 +241,9 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
       await applyAssessmentResult(host);
       host.geoPendingSkill = null;
       maybePersistGeoRun(host);
+      if (host.geoReport) {
+        void refreshAssessmentCoreSummary(host, host.geoReport);
+      }
       return true;
     } finally {
       host.geoSkillBusy = false;

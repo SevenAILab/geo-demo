@@ -37,8 +37,8 @@ const METRIC_ICONS: Record<GeoReportMetricId, TemplateResult> = {
 
 const METRIC_DISPLAY_LABELS: Record<GeoReportMetricId, string> = {
   schema: "技术架构",
-  entity: "声音贡献",
-  aiResponse: "AI 可见性",
+  entity: "声音份额",
+  aiResponse: "情绪指数",
 };
 
 const METRIC_DISPLAY_ORDER: readonly GeoReportMetricId[] = ["entity", "schema", "aiResponse"];
@@ -87,6 +87,28 @@ function renderScoreRing(score: number, toneClass: string) {
 
 function renderScoreCard(report: GeoReport) {
   const toneClass = scoreToneClass(report.totalScore);
+  const warningDetails =
+    report.gaps.length > 0
+      ? html`
+          <div class="geo-assessment-v2__warning-popover" role="tooltip">
+            <strong class="geo-assessment-v2__warning-popover-title">具体优化项</strong>
+            <ol class="geo-assessment-v2__warning-list">
+              ${report.gaps.map(
+                (gap) => html`
+                  <li class="geo-assessment-v2__warning-item">
+                    <span class="geo-assessment-v2__warning-item-title">${gap.title}</span>
+                    ${gap.description && gap.description !== gap.title
+                      ? html`<span class="geo-assessment-v2__warning-item-description"
+                          >${gap.description}</span
+                        >`
+                      : nothing}
+                  </li>
+                `,
+              )}
+            </ol>
+          </div>
+        `
+      : nothing;
   return html`
     <section class="geo-assessment-v2__card geo-assessment-v2__score-card">
       <div class="geo-assessment-v2__score-ring-wrap">
@@ -96,11 +118,12 @@ function renderScoreCard(report: GeoReport) {
           <span>/100</span>
         </div>
       </div>
-      <div class="geo-assessment-v2__warning" role="status">
+      <div class="geo-assessment-v2__warning" role="status" tabindex="0">
         <span class="geo-assessment-v2__warning-icon" aria-hidden="true"
           >${icons.alertTriangle}</span
         >
         ${t("geo.assessment.highRiskWarning", { count: String(report.gaps.length) })}
+        ${warningDetails}
       </div>
     </section>
   `;

@@ -270,6 +270,8 @@ export class OpenClawApp extends LitElement {
   @state() activityEntries: ActivityEntry[] = [];
   @state() geoSiteUrl = "https://merlord.com";
   @state() geoPhase: GeoPhase = "landing";
+  // 默认开启真实 AI 实测（probe）：每次体检调大模型算 MR/SoV。需 geo-scoring-kit/.env 配 key。
+  @state() geoLiveProbe = true;
   @state() geoStarting = false;
   @state() geoPreviewBlocked = false;
   @state() geoReport: GeoReport | null = null;

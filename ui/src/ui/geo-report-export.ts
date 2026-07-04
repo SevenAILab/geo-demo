@@ -18,7 +18,7 @@ export function buildGeoReportMarkdown(
     `- 生成时间：${new Date(now).toISOString()}`,
     `- 总评分：${report.totalScore}/100（可见性：${RATING_LABEL[report.rating] ?? report.rating}）`,
     "",
-    "## 核心优势分析",
+    "## 核心总结",
     report.summary || "（无）",
     "",
     "## 中部相关指标",
