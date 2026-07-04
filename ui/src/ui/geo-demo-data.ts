@@ -1,4 +1,9 @@
-import type { GeoBrandStory, GeoMonitoring, GeoRepairPack } from "./geo-parsers.ts";
+import type {
+  GeoBrandStory,
+  GeoMonitoring,
+  GeoOutputCenter,
+  GeoRepairPack,
+} from "./geo-parsers.ts";
 import type { GeoReport } from "./geo-report.ts";
 
 export function deriveBrandNameFromUrl(siteUrl: string): string {
@@ -119,6 +124,44 @@ export function createDemoGeoBrandStory(siteUrl: string): GeoBrandStory {
 
 export function createDemoGeoRepairPack(): GeoRepairPack {
   return { jsonLd: DEMO_JSON_LD, llmsTxt: DEMO_LLMS_TXT };
+}
+
+// 评分后端不可达 / geoLiveScore=false 时的产出中心兜底：形状对齐 contentCategories()
+// 的固定 4 类（id/tags 白名单），保证 parseGeoOutputCenterJson 通过、UI 不卡 loading。
+export function createDemoGeoOutputCenter(siteUrl: string): GeoOutputCenter {
+  const brand = deriveBrandNameFromUrl(siteUrl);
+  return {
+    categories: [
+      {
+        id: "tech-infra",
+        title: "技术基建修复",
+        description: `${brand} 的抓取性与结构化数据仍有缺口，需先放开可发现性并补齐 Schema。`,
+        impact: "high",
+        tags: ["techInfra"],
+      },
+      {
+        id: "brand-content",
+        title: "品牌内容修复",
+        description: `${brand} 重点页深度不足，缺标题 / 表格 / 列表等承重可引用结构。`,
+        impact: "medium",
+        tags: ["brandContent", "structure"],
+      },
+      {
+        id: "structure",
+        title: "结构呈现修复",
+        description: `${brand} 公开页 FAQ / 直答与元信息不全，摘要呈现打折。`,
+        impact: "medium",
+        tags: ["structure"],
+      },
+      {
+        id: "continuous-article",
+        title: "持续文章修复",
+        description: `${brand} 更新与作者署名不足，需持续产出可引用长文抢占差异化提问。`,
+        impact: "low",
+        tags: ["continuousArticle", "brandContent"],
+      },
+    ],
+  };
 }
 
 export function createDemoGeoMonitoring(): GeoMonitoring {

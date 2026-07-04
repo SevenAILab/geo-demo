@@ -2,6 +2,7 @@
 // geo-probe.mjs — 跑 query_set × 模型 × R → 产出 SPEC §1 的 probe_runs[]
 // 复用 cross-model-validate.mjs 的 MODEL_REGISTRY（claude/gpt-4o/qwen/deepseek）。
 // 每条记录: { q, model, run, mentioned, rank, stance, competitors_hit }
+//   competitors_hit: [{ name, rank, stance }] —— 命中竞品也带名次/立场，供行业可见性排名聚合。
 // 用法: node geo-probe.mjs --brand "品牌" --queries q.json --competitors c.json \
 //        --models claude,gpt-4o --runs 3 --yes-spend [--json]
 import fs from "node:fs";
@@ -37,24 +38,30 @@ function parseBrands(text) {
 // 把一次回答映射成一条 probe_run（本品牌视角）
 function scoreAnswer({ q, model, run, brands, brand, competitors }) {
   const brandKey = norm(brand);
-  const compKeys = competitors.map(norm);
   let rank = null;
   let stance = "neutral";
   const competitors_hit = [];
+  const seen = new Set();
 
   brands.forEach((b, i) => {
     const k = norm(b.name);
-    if (k.includes(brandKey) || brandKey.includes(k)) {
+    const pos = i + 1; // 排序清单里的名次（1-based），本品牌与竞品同一口径
+    const st = b.stance || "neutral";
+    if (brandKey && (k.includes(brandKey) || brandKey.includes(k))) {
       if (rank == null) {
-        rank = i + 1;
-        stance = b.stance || "neutral";
+        rank = pos;
+        stance = st;
       }
-    } else if (compKeys.some((ck) => k.includes(ck) || ck.includes(k))) {
-      const hit = competitors.find((c) => {
-        const ck = norm(c);
-        return k.includes(ck) || ck.includes(k);
-      });
-      if (hit && !competitors_hit.includes(hit)) competitors_hit.push(hit);
+      return;
+    }
+    // 竞品也记名次/立场（排序清单已带位置）：首次出现取最好名次，industryRanking 用。
+    const hit = competitors.find((c) => {
+      const ck = norm(c);
+      return ck && (k.includes(ck) || ck.includes(k));
+    });
+    if (hit && !seen.has(hit)) {
+      seen.add(hit);
+      competitors_hit.push({ name: hit, rank: pos, stance: st });
     }
   });
 

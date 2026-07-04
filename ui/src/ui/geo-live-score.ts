@@ -1,6 +1,7 @@
 // geo-live-score.ts — 联调：从真实评分后端（geo-scoring-kit/geo-dev-server）取 scorecard，
 // 映射成 UI 的 GeoReport。dev-only：默认打 127.0.0.1:8799，可用 window.__GEO_SCORE_ENDPOINT__ 覆盖。
 import { deriveBrandNameFromUrl } from "./geo-demo-data.ts";
+import { type GeoOutputCenter, parseGeoOutputCenterJson } from "./geo-parsers.ts";
 import type {
   GeoReport,
   GeoReportGap,
@@ -31,6 +32,8 @@ type Scorecard = {
     ai_citability: number;
   };
   strategic_gaps: string[];
+  // 行业可见性排名（A 口径，仅在跑过 probe 且知道本品牌名时有值）：本品牌 + 各竞品同口径分。
+  industry?: Array<{ name: string; score: number; owned?: boolean }>;
 };
 
 export type LiveScoreOptions = {
@@ -38,6 +41,7 @@ export type LiveScoreOptions = {
   brand?: string;
   models?: string;
   runs?: number;
+  competitors?: string[]; // 未跑 probe 时，行业排名回退用真实竞品名（brandStory）而非占位标杆
   endpoint?: string;
   signal?: AbortSignal;
   timeoutMs?: number; // 超时保护，默认 20s；到点 abort，避免 UI 卡在 loading
@@ -83,7 +87,64 @@ function aiVisibilityStatus(v: number, measured: boolean): string {
   return "on-page 可引用性偏弱（未接实测 probe）";
 }
 
-export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport {
+const initialOf = (name: string): string => (name.trim().charAt(0) || "品").toUpperCase();
+const clampInt = (n: number): number => Math.max(0, Math.min(100, Math.round(n)));
+
+// 行业排名三档回退：① 真实 probe 行业可见性 → ② 真实竞品名(brandStory)+估算分 → ③ 占位标杆。
+function resolveRankings(
+  sc: Scorecard,
+  brand: string,
+  currentVisibility: number,
+  totalScore: number,
+  competitors: string[],
+): GeoReport["industryAnalysis"]["rankings"] {
+  if (sc.industry && sc.industry.length > 0) {
+    // 本品牌与竞品同口径（posDecay×stance），owned 用其行业分而非「情绪指数」以保排名自洽。
+    return sc.industry.map((row, i) => ({
+      id: row.owned ? "owned" : `c${i + 1}`,
+      initial: initialOf(row.owned ? brand : row.name),
+      name: row.owned ? brand : row.name,
+      score: clampInt(row.score),
+      owned: row.owned ? true : undefined,
+    }));
+  }
+  const owned = {
+    id: "owned",
+    initial: initialOf(brand),
+    name: brand,
+    score: currentVisibility,
+    owned: true as const,
+  };
+  const names = competitors
+    .map((c) => c.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  if (names.length > 0) {
+    const offsets = [12, 6, -4, -11];
+    return [
+      owned,
+      ...names.map((name, i) => ({
+        id: `c${i + 1}`,
+        initial: initialOf(name),
+        name,
+        score: clampInt(totalScore + (offsets[i] ?? -4)),
+      })),
+    ];
+  }
+  return [
+    owned,
+    { id: "c1", initial: "A", name: "行业标杆 A", score: Math.min(100, totalScore + 12) },
+    { id: "c2", initial: "B", name: "行业标杆 B", score: Math.min(100, totalScore + 6) },
+    { id: "c3", initial: "C", name: "行业标杆 C", score: Math.max(0, totalScore - 4) },
+    { id: "c4", initial: "D", name: "行业标杆 D", score: Math.max(0, totalScore - 11) },
+  ];
+}
+
+export function scorecardToGeoReport(
+  sc: Scorecard,
+  siteUrl: string,
+  competitors: string[] = [],
+): GeoReport {
   const brand = deriveBrandNameFromUrl(siteUrl);
   const cat = sc.category_averages;
   const m = sc.content_layer.measured;
@@ -131,6 +192,10 @@ export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport 
   const totalScore = Math.round(sc.site_score);
   const currentVisibility = aiValue;
 
+  const rankings = resolveRankings(sc, brand, currentVisibility, totalScore, competitors);
+  const ownedRank = [...rankings].sort((a, b) => b.score - a.score).findIndex((r) => r.owned) + 1;
+  const yourRanking = ownedRank > 0 ? `#${ownedRank} - 您的排名` : "#暂无 - 您的排名";
+
   return {
     totalScore,
     rating: ratingForGrade(sc.site_grade),
@@ -139,7 +204,7 @@ export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport 
     gaps,
     industryAnalysis: {
       currentVisibility,
-      yourRanking: "#暂无 - 您的排名",
+      yourRanking,
       trend: [
         { date: "9/21", value: Math.max(0, currentVisibility - 8) },
         { date: "9/22", value: Math.max(0, currentVisibility - 5) },
@@ -148,19 +213,7 @@ export function scorecardToGeoReport(sc: Scorecard, siteUrl: string): GeoReport 
         { date: "9/25", value: Math.max(0, currentVisibility - 1) },
         { date: "9/26", value: currentVisibility },
       ],
-      rankings: [
-        {
-          id: "owned",
-          initial: brand.charAt(0) || "品",
-          name: brand,
-          score: currentVisibility,
-          owned: true,
-        },
-        { id: "c1", initial: "A", name: "行业标杆 A", score: Math.min(100, totalScore + 12) },
-        { id: "c2", initial: "B", name: "行业标杆 B", score: Math.min(100, totalScore + 6) },
-        { id: "c3", initial: "C", name: "行业标杆 C", score: Math.max(0, totalScore - 4) },
-        { id: "c4", initial: "D", name: "行业标杆 D", score: Math.max(0, totalScore - 11) },
-      ],
+      rankings,
     },
   };
 }
@@ -194,7 +247,51 @@ export async function fetchLiveGeoReport(
       throw new Error(`score backend ${res.status}`);
     }
     const scorecard = (await res.json()) as Scorecard;
-    return scorecardToGeoReport(scorecard, siteUrl);
+    return scorecardToGeoReport(scorecard, siteUrl, opts.competitors ?? []);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+export type LiveContentOptions = {
+  brand?: string;
+  endpoint?: string;
+  signal?: AbortSignal;
+  timeoutMs?: number; // /api/content 会现场重跑评分（站点检查+爬页面），默认放宽到 30s
+};
+
+/**
+ * 联调入口：命中评分后端 /api/content，取回 scorecard 派生的「四大修复大类」卡片。
+ * 与 fetchLiveGeoReport 同构：失败向上抛，由调用方决定是否回退 demo。
+ */
+export async function fetchLiveGeoContent(
+  siteUrl: string,
+  opts: LiveContentOptions = {},
+): Promise<GeoOutputCenter> {
+  const base = scoreEndpoint(opts.endpoint);
+  const params = new URLSearchParams({ url: siteUrl });
+  if (opts.brand) {
+    params.set("brand", opts.brand);
+  }
+  const timeoutMs = opts.timeoutMs ?? 30_000;
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  if (opts.signal) {
+    opts.signal.addEventListener("abort", () => controller?.abort(), { once: true });
+  }
+  try {
+    const res = await fetch(`${base}/api/content?${params.toString()}`, {
+      method: "GET",
+      signal: controller?.signal ?? opts.signal,
+    });
+    if (!res.ok) {
+      throw new Error(`content backend ${res.status}`);
+    }
+    const output = parseGeoOutputCenterJson(await res.json());
+    if (!output) {
+      throw new Error("content backend returned invalid categories");
+    }
+    return output;
   } finally {
     if (timer) clearTimeout(timer);
   }

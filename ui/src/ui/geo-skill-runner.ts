@@ -1,18 +1,22 @@
 import { t } from "../i18n/index.ts";
 import { handleSendChat, isChatBusy, type ChatHost } from "./app-chat.ts";
 import { loadChatHistory, type ChatState } from "./controllers/chat.ts";
+import { requestGeoBrandStory } from "./geo-brand-story.ts";
 import {
   createDemoGeoBrandStory,
   createDemoGeoMonitoring,
+  createDemoGeoOutputCenter,
   createDemoGeoRepairPack,
   createDemoGeoReport,
 } from "./geo-demo-data.ts";
+import { buildGeoRepairPack } from "./geo-fixpack.ts";
 import { scheduleGeoRunPersist, type GeoHistoryHost } from "./geo-history.ts";
 import { recordGeoIndustryVisibility } from "./geo-industry-history.ts";
-import { fetchLiveGeoReport } from "./geo-live-score.ts";
+import { fetchLiveGeoContent, fetchLiveGeoReport } from "./geo-live-score.ts";
 import {
   type GeoBrandStory,
   type GeoDataStatus,
+  type GeoOutputCenter,
   type GeoRepairPack,
   type GeoSkillAction,
   type GeoSyncHost,
@@ -131,6 +135,8 @@ async function applyAssessmentResult(host: GeoSkillHost): Promise<void> {
     const report = await fetchLiveGeoReport(host.geoSiteUrl, {
       probe,
       brand: host.geoBrandStory?.brandName,
+      // 未跑 probe 时，行业排名回退用真实竞品名（brandStory）而非占位标杆。
+      competitors: host.geoBrandStory?.competitors,
       // 真实 probe 会串行调大模型，耗时更长；放宽超时并压低 runs 控制调用数/额度。
       runs: probe ? 1 : undefined,
       timeoutMs: probe ? 90_000 : 20_000,
@@ -144,6 +150,23 @@ async function applyAssessmentResult(host: GeoSkillHost): Promise<void> {
       createDemoGeoReport(host.geoSiteUrl),
     );
     host.geoReportStatus = "ready";
+  }
+}
+
+// content（产出中心「四大修复大类」）改由确定性评分后端派生，不再走大模型。
+// 与 assessment 同构：命中本地评分后端 /api/content；geoLiveScore=false 或后端不可达时回退 demo。
+// 入参 = siteUrl(+品牌故事名，供后端点名品牌)；出参 = 解析后的 GeoOutputCenter。
+async function resolveGeoOutputCenter(host: GeoSkillHost): Promise<GeoOutputCenter> {
+  if (host.geoLiveScore === false) {
+    return createDemoGeoOutputCenter(host.geoSiteUrl);
+  }
+  try {
+    return await fetchLiveGeoContent(host.geoSiteUrl, {
+      brand: host.geoBrandStory?.brandName,
+    });
+  } catch (error) {
+    console.warn("[geo] live content unavailable:", error);
+    return createDemoGeoOutputCenter(host.geoSiteUrl);
   }
 }
 
@@ -202,12 +225,6 @@ async function applyDevGeoSkillResult(host: GeoSkillHost, action: GeoSkillAction
       host.geoBrandStory = createDemoGeoBrandStory(host.geoSiteUrl);
       host.geoBrandStoryStatus = "ready";
       break;
-    case "content":
-      break;
-    case "fixpack":
-      host.geoRepairPack = createDemoGeoRepairPack();
-      host.geoRepairPackStatus = "ready";
-      break;
     case "monitoring":
       host.geoMonitoring = createDemoGeoMonitoring();
       host.geoMonitoringStatus = "ready";
@@ -254,6 +271,43 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
       host.requestUpdate?.();
     }
   }
+  // content 与 assessment 同为确定性后端派生（非大模型），故同样先于网关/dev 分支处理，
+  // 无论是否连网关都命中本地评分后端 /api/content。
+  if (action === "content") {
+    host.geoSkillBusy = true;
+    host.geoPendingSkill = action;
+    host.requestUpdate?.();
+    try {
+      host.geoOutputCenter = await resolveGeoOutputCenter(host);
+      host.geoOutputStatus = "ready";
+      host.geoPendingSkill = null;
+      maybePersistGeoRun(host);
+      return true;
+    } finally {
+      host.geoSkillBusy = false;
+      host.requestUpdate?.();
+    }
+  }
+  // fixpack 是 brandStory 的确定性模板转换（Schema.org JSON-LD + llms.txt），
+  // 纯代码生成、无需 agent/LLM/网络——最彻底的“不新增服务/进程”，且确定性天然满足
+  // geo-fixpack “只描述可见事实、不编造数据” 红线。与 content 同为确定性派生，先于网关/dev 分支。
+  if (action === "fixpack") {
+    host.geoSkillBusy = true;
+    host.geoPendingSkill = action;
+    host.requestUpdate?.();
+    try {
+      host.geoRepairPack = host.geoBrandStory
+        ? buildGeoRepairPack(host.geoBrandStory, host.geoSiteUrl)
+        : createDemoGeoRepairPack();
+      host.geoRepairPackStatus = "ready";
+      host.geoPendingSkill = null;
+      maybePersistGeoRun(host);
+      return true;
+    } finally {
+      host.geoSkillBusy = false;
+      host.requestUpdate?.();
+    }
+  }
   if (host.geoDevSkipSkillWait === true) {
     host.geoSkillBusy = true;
     host.geoPendingSkill = action;
@@ -274,6 +328,42 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
     try {
       await applyDevGeoSkillResult(host, action);
       return true;
+    } finally {
+      host.geoSkillBusy = false;
+      host.requestUpdate?.();
+    }
+  }
+
+  // 已连网关：brand-story 走后台专用 agent 调用（不新增服务/进程、不污染主聊天）。
+  // 入参 = siteUrl + 体检报告（经 buildGeoSkillPrompt）；出参 = 解析后的 GeoBrandStory。
+  if (action === "brandStory") {
+    const client = host.client;
+    if (!client) {
+      setGeoSkillStatus(host, action, "error");
+      return false;
+    }
+    host.geoSkillBusy = true;
+    host.geoPendingSkill = action;
+    host.requestUpdate?.();
+    try {
+      const prompt = buildGeoSkillPrompt("brandStory", {
+        siteUrl: host.geoSiteUrl,
+        report: host.geoReport,
+      });
+      const story = await requestGeoBrandStory({
+        client,
+        currentSessionKey: host.sessionKey,
+        prompt,
+      });
+      if (story) {
+        host.geoBrandStory = story;
+        host.geoBrandStoryStatus = "ready";
+      } else {
+        setGeoSkillStatus(host, action, "error");
+      }
+      host.geoPendingSkill = null;
+      maybePersistGeoRun(host);
+      return Boolean(story);
     } finally {
       host.geoSkillBusy = false;
       host.requestUpdate?.();

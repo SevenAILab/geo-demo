@@ -914,38 +914,6 @@ export function syncGeoStateFromChat(host: GeoSyncHost): void {
     }
   }
 
-  if (shouldSyncSkill(host, "content", "outputCenter")) {
-    const output = resolveParsedFromChat(
-      host.chatMessages,
-      host.chatStream,
-      parseGeoOutputCenterJson,
-    );
-    const preserveOutput = shouldPreserveReadySnapshot(
-      output,
-      host.geoOutputCenter,
-      host.geoOutputStatus,
-    );
-    const nextStatus = resolveStatus(
-      Boolean(preserveOutput ? host.geoOutputCenter : output),
-      runActive,
-      skillBusy,
-      host.geoOutputStatus,
-    );
-    if (
-      (!preserveOutput && host.geoOutputCenter !== output) ||
-      host.geoOutputStatus !== nextStatus
-    ) {
-      if (!preserveOutput) {
-        host.geoOutputCenter = output;
-      }
-      host.geoOutputStatus = nextStatus;
-      changed = true;
-    }
-    if (output && host.geoPendingSkill === "content") {
-      host.geoPendingSkill = null;
-    }
-  }
-
   if (shouldSyncSkill(host, "fixpack", "repairPack")) {
     const pack = resolveParsedFromChat(host.chatMessages, host.chatStream, parseGeoRepairPackJson);
     const preservePack = shouldPreserveReadySnapshot(

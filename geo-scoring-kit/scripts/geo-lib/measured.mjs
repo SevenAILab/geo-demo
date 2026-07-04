@@ -1,5 +1,5 @@
 // geo-lib/measured.mjs — SPEC §4C 内容层·实测验证（可选，需 probe_runs）
-import { num } from "./util.mjs";
+import { num, round2 } from "./util.mjs";
 
 // 位置衰减：第1=1.0 第2=0.6 第3=0.4 其后=0.2
 export function posDecay(rank) {
@@ -14,11 +14,13 @@ export function posDecay(rank) {
 export const STANCE = { rec: 1.0, neutral: 0.5, neg: 0 };
 const stanceVal = (s) => STANCE[s] ?? STANCE.neutral;
 
-// 竞品在 probe_runs 里只给名字（competitors_hit:[...]），无各自 rank/stance。
-// SPEC 分母是「本品牌+竞品出现」的 pos_decay·stance 之和，但竞品位置未知。
-// 实现决定（已在 README/回话中标注）：竞品按 neutral 立场、统一 COMPETITOR_DECAY 计入分母。
-// 想更精确须让 geo-probe 产出带 rank 的竞品记录；此常量是唯一可调旋钮。
+// competitors_hit 现带 {name,rank,stance}（见 geo-probe.mjs）。measured() 的 SoV 分母
+// 仍按统一 COMPETITOR_DECAY 计竞品（保持既有 SoV 口径稳定）；竞品的真实名次由
+// industryRanking() 消费，用来排「本品牌 vs 竞品」的行业可见性。
 export const COMPETITOR_DECAY = 0.4;
+
+// 兼容旧形状：competitors_hit 元素可能是字符串（老 probe_runs）或 {name,...}。
+const compName = (c) => (typeof c === "string" ? c : c?.name);
 
 /**
  * @param querySet   [{q, weight}]
@@ -67,4 +69,59 @@ export function measured(querySet = [], probeRuns = [], modelCount = 0, R = 0) {
     share_of_voice: SoV,
     measured_score: MR * 0.4 + SoV * 0.6,
   };
+}
+
+/**
+ * 行业可见性排名（A 口径）：本品牌 + 各竞品在同一 probe 下的加权可见度。
+ * 与 SoV 同口径复用 posDecay×stance；每个品牌一个 0–100 分（每轮都排第1且 rec=100）。
+ * 竞品名次来自 competitors_hit:[{name,rank,stance}]；旧字符串形状缺名次→按未命中(0)算。
+ * @param {{brand?:string, querySet?:Array, probeRuns?:Array, modelCount?:number, R?:number}} p
+ * @returns {Array<{name:string, score:number, owned:boolean}>} 按 score 降序；无实测→[]
+ */
+export function industryRanking({ brand, querySet = [], probeRuns = [], modelCount = 0, R = 0 }) {
+  const denomRuns = modelCount * R;
+  const wSum = querySet.reduce((a, q) => a + num(q.weight), 0);
+  if (!querySet.length || !denomRuns || !wSum) {
+    return [];
+  }
+
+  // 出现过的竞品名（按名字去重，保持首次出现顺序）
+  const compNames = [];
+  for (const p of probeRuns) {
+    for (const c of p.competitors_hit || []) {
+      const name = compName(c);
+      if (name && !compNames.includes(name)) {
+        compNames.push(name);
+      }
+    }
+  }
+
+  // 单个品牌加权可见度：Σ_q weight×(Σ_runs decay×stance / denomRuns) / wSum ×100
+  const visFor = (pick) => {
+    let acc = 0;
+    for (const { q, weight } of querySet) {
+      let s = 0;
+      for (const p of probeRuns) {
+        if (p.q === q) s += pick(p);
+      }
+      acc += num(weight) * (s / denomRuns);
+    }
+    return round2(100 * (acc / wSum));
+  };
+
+  const rows = [
+    {
+      name: brand || "本品牌",
+      score: visFor((p) => (p.mentioned ? posDecay(p.rank) * stanceVal(p.stance) : 0)),
+      owned: true,
+    },
+  ];
+  for (const name of compNames) {
+    const score = visFor((p) => {
+      const hit = (p.competitors_hit || []).find((c) => compName(c) === name);
+      return hit && typeof hit !== "string" ? posDecay(hit.rank) * stanceVal(hit.stance) : 0;
+    });
+    rows.push({ name, score, owned: false });
+  }
+  return rows.sort((a, b) => b.score - a.score);
 }

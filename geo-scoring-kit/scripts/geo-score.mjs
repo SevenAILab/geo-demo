@@ -13,7 +13,7 @@ import {
   pageContentScore,
 } from "./geo-lib/content.mjs";
 import { gradeFor, applyRedline, strategicGaps } from "./geo-lib/grade.mjs";
-import { measured } from "./geo-lib/measured.mjs";
+import { measured, industryRanking } from "./geo-lib/measured.mjs";
 import { pageType, pathOf } from "./geo-lib/page-type.mjs";
 import {
   technicalFoundation,
@@ -58,7 +58,7 @@ export function scorePage(s) {
 }
 
 // ── 站点级打分（§3C + §4D + §5 + §6）──
-// opts: { checks, querySet, probeRuns, modelCount, R }
+// opts: { checks, querySet, probeRuns, modelCount, R, brand, competitors }
 export function scoreSite(pages = [], opts = {}) {
   const scored = pages.map(scorePage);
   const { score: fnd, notes: foundationNotes } = foundation(opts.checks);
@@ -74,6 +74,18 @@ export function scoreSite(pages = [], opts = {}) {
   const m = opts.probeRuns?.length
     ? measured(opts.querySet, opts.probeRuns, opts.modelCount, opts.R)
     : { available: false, mention_rate: 0, share_of_voice: 0, measured_score: 0 };
+
+  // 行业可见性排名（A 口径）：有实测且知道本品牌名时，排本品牌 vs 竞品；否则空。
+  const industry =
+    opts.probeRuns?.length && opts.brand
+      ? industryRanking({
+          brand: opts.brand,
+          querySet: opts.querySet,
+          probeRuns: opts.probeRuns,
+          modelCount: opts.modelCount,
+          R: opts.R,
+        })
+      : [];
 
   // §4D 内容层 = 均值（无实测）/ 均值×0.7 + 实测×0.3（有实测）
   const contentLayer = round2(
@@ -127,6 +139,7 @@ export function scoreSite(pages = [], opts = {}) {
     },
     category_averages: categoryAverages,
     strategic_gaps: gaps,
+    industry,
     pages: scored,
   };
 }

@@ -71,7 +71,7 @@ export function buildGeoCoreSummaryPrompt(report: GeoReport, siteUrl: string): s
   ].join("\n");
 }
 
-function findLastAssistantText(messages: unknown[]): string | null {
+export function findLastAssistantText(messages: unknown[]): string | null {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index];
     if (!message || typeof message !== "object") {

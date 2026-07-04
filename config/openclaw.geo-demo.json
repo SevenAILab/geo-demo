@@ -1,4 +1,12 @@
 {
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openai/gpt-5",
+        "fallbacks": ["openai/gpt-4"]
+      }
+    }
+  },
   "gateway": {
     "mode": "local",
     "controlUi": {

@@ -17,6 +17,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { crawl } from "./geo-crawl.mjs";
+import { contentCategories } from "./geo-lib/content-categories.mjs";
 import { probe as runProbe } from "./geo-probe.mjs";
 import { scoreSite } from "./geo-score.mjs";
 import { siteChecks } from "./geo-site-checks.mjs";
@@ -73,6 +74,8 @@ async function scoreUrl(input, opts = {}) {
           querySet,
           modelCount: r.modelCount,
           R: r.R,
+          brand, // 供 industryRanking 标注本品牌、排「本品牌 vs 竞品」的行业可见性
+          competitors,
         };
         probeInfo = { requested: true, ran: true, brand, models, runs, count: r.probe_runs.length };
       } catch (e) {
@@ -288,10 +291,21 @@ const server = http.createServer(async (req, res) => {
         "application/json; charset=utf-8",
       );
     }
+    if (u.pathname === "/api/content") {
+      // 产出中心「四大修复大类」：同 /api/score 无状态地现场评分，再把 scorecard 派生成 4 类卡片。
+      // 代价：会再跑一次 站点检查+爬页面（数秒）；dev-only 联调工具可接受。
+      const url = u.searchParams.get("url");
+      if (!url) return send(res, 400, JSON.stringify({ error: "missing url" }), "application/json");
+      const brand = u.searchParams.get("brand") || "";
+      console.error(`[api] content ${url}`);
+      const data = await scoreUrl(url);
+      const out = contentCategories(data.scorecard, { brand });
+      return send(res, 200, JSON.stringify(out, null, 2), "application/json; charset=utf-8");
+    }
     send(res, 404, formPage(DEFAULT_URL, `未知路径: ${u.pathname}`));
   } catch (e) {
     console.error("[error]", e.message);
-    if (u.pathname === "/api/score")
+    if (u.pathname === "/api/score" || u.pathname === "/api/content")
       return send(res, 500, JSON.stringify({ error: e.message }), "application/json");
     send(res, 200, formPage(u.searchParams.get("url") || DEFAULT_URL, `打分失败: ${e.message}`));
   }
