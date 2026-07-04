@@ -445,6 +445,27 @@
     {
       "count": 1,
       "kind": "object-property",
+      "name": "description",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Answer engines do not have one concise page that defines the brand, product, and audience."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "description",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Buyers ask AI tools for alternatives, but the site does not provide comparison-ready evidence."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "description",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Organization, Product, and FAQ schema should be added to reinforce machine-readable context."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
       "name": "label",
       "path": "ui/src/ui/geo-demo-data.ts",
       "text": "答案就绪度"
@@ -475,7 +496,42 @@
       "kind": "object-property",
       "name": "label",
       "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "A trusted health information brand that turns expert guidance into AI-citable answers."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "AI response"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Entity graph"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
       "text": "llms.txt 指令"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Practical care pathways that help readers move from symptoms to next actions."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "label",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Schema.org"
     },
     {
       "count": 1,
@@ -524,7 +580,28 @@
       "kind": "object-property",
       "name": "title",
       "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Missing comparison content"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "No canonical brand fact source"
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
       "text": "Optimizing Semantic SEO for SaaS..."
+    },
+    {
+      "count": 1,
+      "kind": "object-property",
+      "name": "title",
+      "path": "ui/src/ui/geo-demo-data.ts",
+      "text": "Structured data is incomplete"
     },
     {
       "count": 1,
@@ -4074,13 +4151,6 @@
       "name": "text",
       "path": "ui/src/ui/views/dreaming.ts",
       "text": "Z"
-    },
-    {
-      "count": 1,
-      "kind": "html-text",
-      "name": "text",
-      "path": "ui/src/ui/views/geo-assessment.ts",
-      "text": "OpenBrand"
     },
     {
       "count": 1,

@@ -1,5 +1,13 @@
 import { extractText } from "./chat/message-extract.ts";
-import type { GeoReport, GeoReportGap, GeoReportMetric, GeoReportRating } from "./geo-report.ts";
+import type {
+  GeoIndustryRanking,
+  GeoReport,
+  GeoReportGap,
+  GeoReportIndustryAnalysis,
+  GeoReportMetric,
+  GeoReportRating,
+  GeoVisibilityTrendPoint,
+} from "./geo-report.ts";
 
 export type GeoDataStatus = "idle" | "loading" | "ready" | "error";
 
@@ -157,6 +165,69 @@ function parseGap(raw: unknown): GeoReportGap | null {
   return { id, title, description, impact: impact as GeoReportGap["impact"] };
 }
 
+function parseTrendPoint(raw: unknown): GeoVisibilityTrendPoint | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const date = text(item.date);
+  const value = clampScore(item.value);
+  if (!date || value === null) {
+    return null;
+  }
+  return { date, value };
+}
+
+function parseRanking(raw: unknown): GeoIndustryRanking | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const id = text(item.id);
+  const initial = text(item.initial);
+  const name = text(item.name);
+  const score = clampScore(item.score);
+  if (!id || !initial || !name || score === null) {
+    return null;
+  }
+  return {
+    id,
+    initial,
+    name,
+    score,
+    owned: item.owned === true ? true : undefined,
+  };
+}
+
+function parseIndustryAnalysis(raw: unknown): GeoReportIndustryAnalysis | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const item = raw as Record<string, unknown>;
+  const currentVisibility = clampScore(item.currentVisibility);
+  const yourRanking = text(item.yourRanking);
+  if (currentVisibility === null || !yourRanking) {
+    return null;
+  }
+  if (!Array.isArray(item.trend) || !Array.isArray(item.rankings)) {
+    return null;
+  }
+  const trend = item.trend
+    .map(parseTrendPoint)
+    .filter((point): point is GeoVisibilityTrendPoint => point !== null);
+  const rankings = item.rankings
+    .map(parseRanking)
+    .filter((entry): entry is GeoIndustryRanking => entry !== null);
+  if (trend.length < 3 || rankings.length < 3) {
+    return null;
+  }
+  const ownedCount = rankings.filter((entry) => entry.owned).length;
+  if (ownedCount !== 1) {
+    return null;
+  }
+  return { currentVisibility, yourRanking, trend, rankings };
+}
+
 export function parseGeoReportJson(raw: unknown): GeoReport | null {
   if (!raw || typeof raw !== "object") {
     return null;
@@ -183,12 +254,17 @@ export function parseGeoReportJson(raw: unknown): GeoReport | null {
   if (metrics.length === 0 || gaps.length === 0) {
     return null;
   }
+  const industryAnalysis = parseIndustryAnalysis(item.industryAnalysis);
+  if (!industryAnalysis) {
+    return null;
+  }
   return {
     totalScore,
     rating: rating as GeoReportRating,
     summary,
     metrics,
     gaps,
+    industryAnalysis,
   };
 }
 

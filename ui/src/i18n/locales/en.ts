@@ -537,7 +537,7 @@ export const en: TranslationMap = {
       errorBody: "Agent 未返回有效 JSON。请检查 Gateway 对话或重试。",
       retry: "重试",
       assessmentPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n请对 {url} 做 GEO 体检：AI 可见度、Schema/实体识别、内容可引用性，识别关键结构缺口。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合 skills/geo-assessment 输出契约，不要输出其他 JSON。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。",
+        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n请对 {url} 做 GEO 体检：AI 可见度、Schema/实体识别、内容可引用性，识别关键结构缺口，并生成行业可见度对标分析（industryAnalysis：历史趋势 trend、竞品排名 rankings）。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合 skills/geo-assessment 输出契约（含 industryAnalysis），不要输出其他 JSON。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。",
       brandStoryPrompt:
         '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n上一轮体检报告：\n```json\n{reportJson}\n```\n\n从缺口与站点内容提炼品牌事实，生成 2–6 条可执行价值主张候选，并补全 differentiator。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  "brandName": "品牌名",\n  "industry": "所属行业",\n  "valuePropOptions": [\n    { "id": "vp-1", "label": "价值主张描述（可执行）", "suggested": true }\n  ],\n  "valueProps": ["vp-1"],\n  "valuePropOther": "",\n  "audience": "目标受众",\n  "differentiator": "差异化优势（2-3 句）",\n  "competitors": ["https://竞品1.com"],\n  "aiPreview": {\n    "entity": "实体标签",\n    "type": "业务类型",\n    "audience": "AI 将识别的受众"\n  }\n}\n\nvaluePropOptions 至少 2 条；valueProps 为 suggested=true 的 id 列表；differentiator、aiPreview 各字段均不可留空。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。',
       contentPrompt:
@@ -548,6 +548,8 @@ export const en: TranslationMap = {
         "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、文章预览。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。\n\nJSON 中所有面向用户的字符串字段（含 dimensions.label、topics.title、recentPublishes.title/ago、articlePreview）必须使用简体中文；枚举/id 等技术字段保持英文。",
     },
     assessment: {
+      badge: "体检报告",
+      pageTitle: "GEO可见性分析报告",
       brandTagline: "HEALTH INTELLIGENCE",
       reportVersion: "Report v2.4",
       totalScoreLabel: "Brand AI Visibility Total Score",
@@ -556,6 +558,27 @@ export const en: TranslationMap = {
         weak: "弱 (Weak)",
         moderate: "中 (Moderate)",
         strong: "强 (Strong)",
+      },
+      highRiskWarning: "高危警告：共 {count} 个优化项",
+      coreAdvantagesTitle: "核心优势分析",
+      startOptimization: "开启优化引擎",
+      industryScoreTitle: "行业GEO可见性评分",
+      industryScoreHint: "为您抓取并分析同行业TOP数据",
+      chartConfig: "图表配置",
+      historicalVisibility: "历史搜索可见度排行",
+      visibilityRanking: "可见度得分排名",
+      yourRanking: "#暂无 - 您的排名",
+      ownedTag: "拥有",
+      customCompetitor: "自定义竞品",
+      gapsToggle: "关键结构缺口分析 ({count})",
+      currentPeriod: "当前期间",
+      compareCompetitors: "比较竞争对手",
+      assetColumn: "资产",
+      scoreColumn: "可见性评分",
+      metricLabels: {
+        schema: "架构一致性",
+        entity: "心智显著度",
+        aiResponse: "共鸣指数",
       },
       gapsTitle: "关键结构缺口分析",
       impact: {
