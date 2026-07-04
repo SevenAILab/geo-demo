@@ -753,6 +753,77 @@ async function terminateGatewayProcessTree(pid: number, graceMs: number): Promis
   await waitForProcessExit(pid, 5_000);
 }
 
+const GATEWAY_STOP_PORT_RELEASE_TIMEOUT_MS = 1_000;
+const GATEWAY_STOP_PORT_RELEASE_POLL_MS = 100;
+const GATEWAY_STOP_FORCE_PORT_RELEASE_TIMEOUT_MS = 500;
+const GATEWAY_STOP_PROCESS_EXIT_TIMEOUT_MS = 1_000;
+
+async function terminateScheduledTaskGatewayListenersForStop(
+  env: GatewayServiceEnv,
+): Promise<number[]> {
+  if (!shouldManageGatewayListenerPort(env)) {
+    return [];
+  }
+  const port = await resolveScheduledTaskPort(env);
+  if (!port) {
+    return [];
+  }
+  const pids = await resolveScheduledTaskGatewayListenerPids(port);
+  for (const pid of pids) {
+    await terminateGatewayProcessTreeForStop(pid);
+  }
+  return pids;
+}
+
+async function terminateScheduledTaskNodeHostForStop(env: GatewayServiceEnv): Promise<number[]> {
+  const matched = await resolveScheduledTaskNodeHostProcess(env);
+  if (!matched) {
+    return [];
+  }
+  await terminateGatewayProcessTreeForStop(matched.pid);
+  return [matched.pid];
+}
+
+async function terminateGatewayProcessTreeForStop(pid: number): Promise<void> {
+  killProcessTree(pid, { force: true });
+  if (process.platform === "win32") {
+    await waitForProcessExit(pid, GATEWAY_STOP_PROCESS_EXIT_TIMEOUT_MS);
+  }
+}
+
+async function waitForGatewayPortReleaseForStop(
+  port: number,
+  timeoutMs = GATEWAY_STOP_PORT_RELEASE_TIMEOUT_MS,
+): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const diagnostics = await inspectPortUsage(port).catch(() => null);
+    if (diagnostics?.status === "free") {
+      return true;
+    }
+    await sleep(GATEWAY_STOP_PORT_RELEASE_POLL_MS);
+  }
+  return false;
+}
+
+async function terminateBusyPortListenersForStop(port: number): Promise<number[]> {
+  const diagnostics = await inspectPortUsage(port).catch(() => null);
+  if (diagnostics?.status !== "busy") {
+    return [];
+  }
+  const pids = Array.from(
+    new Set(
+      diagnostics.listeners
+        .map((listener) => listener.pid)
+        .filter((pid): pid is number => typeof pid === "number" && Number.isFinite(pid) && pid > 0),
+    ),
+  );
+  for (const pid of pids) {
+    await terminateGatewayProcessTreeForStop(pid);
+  }
+  return pids;
+}
+
 async function waitForGatewayPortRelease(port: number, timeoutMs = 5_000): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -884,7 +955,7 @@ async function stopStartupEntry(
 ): Promise<void> {
   const runtime = await resolveFallbackRuntime(env);
   if (typeof runtime.pid === "number" && runtime.pid > 0) {
-    await terminateGatewayProcessTree(runtime.pid, 300);
+    await terminateGatewayProcessTreeForStop(runtime.pid);
   }
   stdout.write(`${formatLine("Stopped Windows login item", resolveTaskName(env))}\n`);
 }
@@ -895,7 +966,7 @@ async function terminateInstalledStartupRuntime(env: GatewayServiceEnv): Promise
   }
   const runtime = await resolveFallbackRuntime(env);
   if (typeof runtime.pid === "number" && runtime.pid > 0) {
-    await terminateGatewayProcessTree(runtime.pid, 300);
+    await terminateGatewayProcessTreeForStop(runtime.pid);
   }
 }
 
@@ -1282,39 +1353,36 @@ function isTaskNotRunning(res: { stdout: string; stderr: string; code: number })
 
 export async function stopScheduledTask({ stdout, env }: GatewayServiceControlArgs): Promise<void> {
   const effectiveEnv = env ?? (process.env as GatewayServiceEnv);
-  try {
+  const taskRegistered = await isRegisteredScheduledTask(effectiveEnv).catch(() => false);
+  if (!taskRegistered) {
+    if (await isStartupEntryInstalled(effectiveEnv)) {
+      await stopStartupEntry(effectiveEnv, stdout);
+      return;
+    }
     await assertSchtasksAvailable();
-  } catch (err) {
-    if (await isStartupEntryInstalled(effectiveEnv)) {
-      await stopStartupEntry(effectiveEnv, stdout);
-      return;
-    }
-    throw err;
-  }
-  if (!(await isRegisteredScheduledTask(effectiveEnv))) {
-    if (await isStartupEntryInstalled(effectiveEnv)) {
-      await stopStartupEntry(effectiveEnv, stdout);
-      return;
-    }
   }
   const taskName = resolveTaskName(effectiveEnv);
+  const manageGatewayPort = shouldManageGatewayListenerPort(effectiveEnv);
+  const stopPort = manageGatewayPort ? await resolveScheduledTaskPort(effectiveEnv) : null;
+  // Kill listeners before schtasks /End so stop does not wait on graceful task shutdown.
+  if (manageGatewayPort) {
+    await terminateScheduledTaskGatewayListenersForStop(effectiveEnv);
+  } else {
+    await terminateScheduledTaskNodeHostForStop(effectiveEnv);
+  }
+  await terminateInstalledStartupRuntime(effectiveEnv);
   const res = await execSchtasks(["/End", "/TN", taskName]);
   if (res.code !== 0 && !isTaskNotRunning(res)) {
     throw new Error(`schtasks end failed: ${res.stderr || res.stdout}`.trim());
   }
-  const manageGatewayPort = shouldManageGatewayListenerPort(effectiveEnv);
-  const stopPort = manageGatewayPort ? await resolveScheduledTaskPort(effectiveEnv) : null;
-  if (manageGatewayPort) {
-    await terminateScheduledTaskGatewayListeners(effectiveEnv);
-  } else {
-    await terminateScheduledTaskNodeHost(effectiveEnv);
-  }
-  await terminateInstalledStartupRuntime(effectiveEnv);
   if (stopPort) {
-    const released = await waitForGatewayPortRelease(stopPort);
+    const released = await waitForGatewayPortReleaseForStop(stopPort);
     if (!released) {
-      await terminateBusyPortListeners(stopPort);
-      const releasedAfterForce = await waitForGatewayPortRelease(stopPort, 2_000);
+      await terminateBusyPortListenersForStop(stopPort);
+      const releasedAfterForce = await waitForGatewayPortReleaseForStop(
+        stopPort,
+        GATEWAY_STOP_FORCE_PORT_RELEASE_TIMEOUT_MS,
+      );
       if (!releasedAfterForce) {
         throw new Error(`gateway port ${stopPort} is still busy after stop`);
       }

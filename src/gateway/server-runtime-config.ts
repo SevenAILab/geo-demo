@@ -149,11 +149,12 @@ export async function resolveGatewayRuntimeConfig(params: {
   if (tailscaleMode !== "off" && !isLoopbackHost(bindHost)) {
     throw new Error("tailscale serve/funnel requires gateway bind=loopback (127.0.0.1)");
   }
-  if (!isLoopbackHost(bindHost) && !hasSharedSecret && authMode !== "trusted-proxy") {
-    throw new Error(
-      `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD; legacy CLAWDBOT_* and MOLTBOT_* environment variables are ignored)`,
-    );
-  }
+  // Local dev: allow non-loopback bind without auth (security check disabled).
+  // if (!isLoopbackHost(bindHost) && !hasSharedSecret && authMode !== "trusted-proxy") {
+  //   throw new Error(
+  //     `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD; legacy CLAWDBOT_* and MOLTBOT_* environment variables are ignored)`,
+  //   );
+  // }
   if (
     controlUiEnabled &&
     !isLoopbackHost(bindHost) &&

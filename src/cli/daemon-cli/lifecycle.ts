@@ -13,8 +13,8 @@ import { probeGateway } from "../../gateway/probe.js";
 import {
   findVerifiedGatewayListenerPidsOnPortSync,
   formatGatewayPidList,
-  signalVerifiedGatewayPidSync,
 } from "../../infra/gateway-processes.js";
+import { killProcessTree } from "../../process/kill-tree.js";
 import type { SafeGatewayRestartRequestResult } from "../../infra/restart-coordinator.js";
 import { type GatewayRestartIntent, writeGatewayRestartIntentSync } from "../../infra/restart.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -153,11 +153,11 @@ async function stopGatewayWithoutServiceManager(port: number) {
     return null;
   }
   for (const pid of pids) {
-    signalVerifiedGatewayPidSync(pid, "SIGTERM");
+    killProcessTree(pid, { force: true });
   }
   return {
     result: "stopped" as const,
-    message: `Gateway stop signal sent to unmanaged process${pids.length === 1 ? "" : "es"} on port ${port}: ${formatGatewayPidList(pids)}.`,
+    message: `Gateway stopped unmanaged process${pids.length === 1 ? "" : "es"} on port ${port}: ${formatGatewayPidList(pids)}.`,
   };
 }
 

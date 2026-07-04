@@ -20,4 +20,12 @@ openclaw onboard
 
 pnpm openclaw dashboard --no-open
 
+
+局域网（需先停止已有 Gateway：`openclaw gateway stop`）
+pnpm openclaw config set gateway.bind lan
+pnpm openclaw config set gateway.controlUi.dangerouslyDisableDeviceAuth true
+pnpm openclaw gateway run
+# 另一终端启动 UI 热重载（默认 http://<本机IP>:5173）
+pnpm ui:dev
+
 ```
