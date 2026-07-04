@@ -74,6 +74,8 @@ export type GeoProps = GeoLandingProps &
     onRetryRepairPack: () => void;
     onRetryMonitoring: () => void;
     onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
+    onSaveBrandStoryDraft: () => void;
+    brandStoryDraftFlash: boolean;
   };
 
 function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string) => void) {
@@ -234,9 +236,11 @@ export function renderGeo(props: GeoProps) {
       brandStory: props.brandStory,
       status: props.brandStoryStatus,
       skillBusy: props.skillBusy,
+      draftSavedFlash: props.brandStoryDraftFlash,
       onBack: props.onBackToAssessment,
       onExitToConsole: props.onExitToConsole,
       onConfirmGenerate: props.onConfirmGenerate,
+      onSaveDraft: props.onSaveBrandStoryDraft,
       onRetry: props.onRetryBrandStory,
       onValuePropsChange: props.onValuePropsChange,
     });

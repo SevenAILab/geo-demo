@@ -127,6 +127,7 @@ import {
   restoreGeoRun,
   restoreGeoRunById,
   restoreGeoSessionForPhase,
+  saveGeoBrandStoryDraft,
   startGeoExperience,
   updateGeoBrandStoryValueProps,
 } from "./controllers/geo.ts";
@@ -2675,6 +2676,14 @@ export function renderApp(state: AppViewState) {
                   void openGeoMonitoringPanel(state as never, { force: true }),
                 onValuePropsChange: (valueProps, valuePropOther) => {
                   updateGeoBrandStoryValueProps(state as never, valueProps, valuePropOther);
+                },
+                brandStoryDraftFlash: state.geoBrandStoryDraftFlash,
+                onSaveBrandStoryDraft: () => {
+                  saveGeoBrandStoryDraft(state as never);
+                  state.geoBrandStoryDraftFlash = true;
+                  window.setTimeout(() => {
+                    state.geoBrandStoryDraftFlash = false;
+                  }, 2000);
                 },
                 onExitToConsole: () => {
                   state.setTab("overview" as Tab);

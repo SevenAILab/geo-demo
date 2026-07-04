@@ -279,6 +279,7 @@ export class OpenClawApp extends LitElement {
   @state() geoSkillBusy = false;
   @state() geoBrandStory: GeoBrandStory | null = null;
   @state() geoBrandStoryStatus: GeoDataStatus = "idle";
+  @state() geoBrandStoryDraftFlash = false;
   @state() geoOutputCenter: GeoOutputCenter | null = null;
   @state() geoOutputStatus: GeoDataStatus = "idle";
   @state() geoRepairPack: GeoRepairPack | null = null;
