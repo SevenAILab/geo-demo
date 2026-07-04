@@ -1610,6 +1610,10 @@
 .geo-code-block__content code {
   color: inherit;
   font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
 }
 
 .geo-code-block__content--lines {
