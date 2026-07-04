@@ -101,6 +101,8 @@ export type AppViewState = {
   embedSandboxMode: EmbedSandboxMode;
   allowExternalEmbedUrls: boolean;
   chatMessageMaxWidth?: string | null;
+  geoDevSkipSkillWait: boolean;
+  geoPersistHistory: boolean;
   sessionKey: string;
   chatSessionMessageSubscriptionKey?: string | null;
   chatSessionMessageSubscriptionRequestedKey?: string | null;

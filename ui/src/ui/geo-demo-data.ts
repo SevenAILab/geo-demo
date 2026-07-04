@@ -73,8 +73,19 @@ export function createDemoGeoBrandStory(siteUrl: string): GeoBrandStory {
   return {
     brandName,
     industry: "Digital health content and services",
-    valueProp:
-      "A trusted health information brand that turns expert guidance into AI-citable answers.",
+    valuePropOptions: [
+      {
+        id: "trusted-health-answers",
+        label:
+          "A trusted health information brand that turns expert guidance into AI-citable answers.",
+        suggested: true,
+      },
+      {
+        id: "care-pathways",
+        label: "Practical care pathways that help readers move from symptoms to next actions.",
+      },
+    ],
+    valueProps: ["trusted-health-answers"],
     audience: "Health-conscious readers, patients, and care teams",
     differentiator:
       "Combines expert-reviewed content, practical care pathways, and structured knowledge assets.",

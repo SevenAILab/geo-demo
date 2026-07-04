@@ -23,7 +23,6 @@ import {
 import { persistChatComposerState, restoreChatComposerState } from "./chat/composer-persistence.ts";
 import { startControlUiResponsivenessObserver } from "./control-ui-performance.ts";
 import { loadControlUiBootstrapConfig } from "./controllers/control-ui-bootstrap.ts";
-import { detectGeoResume } from "./controllers/geo.ts";
 import type { Tab } from "./navigation.ts";
 import type { ChatQueueItem } from "./ui-types.ts";
 
@@ -108,14 +107,7 @@ export function handleConnected(host: LifecycleHost) {
   host.controlUiBootstrapReady = loadControlUiBootstrapConfig(
     host as unknown as Parameters<typeof loadControlUiBootstrapConfig>[0],
     { applyIdentity: false },
-  ).then(() => {
-    // `geoPersistHistory` is only known after bootstrap; re-check the resume
-    // offer if the demo is already the active tab (e.g. a direct deep link).
-    const geoHost = host as unknown as Parameters<typeof detectGeoResume>[0];
-    if (geoHost.tab === "geo") {
-      detectGeoResume(geoHost);
-    }
-  });
+  );
   syncTabWithLocation(host as unknown as Parameters<typeof syncTabWithLocation>[0], true);
   const hasPendingGatewaySwitch =
     typeof host.pendingGatewayUrl === "string" && host.pendingGatewayUrl.trim();

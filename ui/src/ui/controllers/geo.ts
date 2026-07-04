@@ -68,7 +68,8 @@ export async function startGeoExperience(host: GeoHost): Promise<boolean> {
   createGeoRun(host);
   host.requestUpdate?.();
   try {
-    if (!host.connected || !host.client) {
+    await host.controlUiBootstrapReady?.catch(() => undefined);
+    if (host.geoDevSkipSkillWait !== true && (!host.connected || !host.client)) {
       return true;
     }
     const ok = await runGeoSkill(host, "assessment");

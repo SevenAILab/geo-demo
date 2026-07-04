@@ -14,6 +14,7 @@ import { resolveAgentIdFromSessionKey } from "./session-key.ts";
 
 export type GeoSessionHost = AppViewState & {
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
+  geoPersistHistory: boolean;
   requestUpdate?: () => void;
 };
 

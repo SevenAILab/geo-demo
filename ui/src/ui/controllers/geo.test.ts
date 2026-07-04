@@ -1,15 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearGeoHistory, loadGeoHistory } from "../geo-history-storage.ts";
-import { syncGeoStateFromChat } from "../geo-parsers.ts";
-import { phaseToSkillAction, restoreGeoSession } from "../geo-session.ts";
-import { loadChatHistory } from "./chat.ts";
 import type { GeoHost } from "./geo.ts";
-import {
-  backToGeoLanding,
-  detectGeoResume,
-  resumeGeoExperience,
-  startGeoExperience,
-} from "./geo.ts";
+import { backToGeoLanding, startGeoExperience } from "./geo.ts";
 
 const runGeoSkillMock = vi.hoisted(() =>
   vi.fn(async (host: GeoHost, action: string) => {
@@ -28,6 +19,13 @@ const runGeoSkillMock = vi.hoisted(() =>
   }),
 );
 
+const geoHistoryMocks = vi.hoisted(() => ({
+  clearGeoActiveRun: vi.fn(),
+  createGeoRun: vi.fn(),
+  markGeoFlowActive: vi.fn(),
+  updateGeoRunFromHost: vi.fn(),
+}));
+
 vi.mock("../geo-skill-runner.ts", () => ({
   runGeoSkill: runGeoSkillMock,
 }));
@@ -41,8 +39,19 @@ vi.mock("../geo-report.ts", () => ({
 }));
 
 vi.mock("../geo-parsers.ts", () => ({
+  isGeoStepReady: vi.fn(() => false),
   resetGeoPhaseData: vi.fn(),
-  syncGeoStateFromChat: vi.fn(),
+}));
+
+vi.mock("../geo-history.ts", () => ({
+  applyGeoRunSnapshot: vi.fn(),
+  clearGeoActiveRun: geoHistoryMocks.clearGeoActiveRun,
+  createGeoRun: geoHistoryMocks.createGeoRun,
+  getGeoRunSnapshot: vi.fn(),
+  markGeoFlowActive: geoHistoryMocks.markGeoFlowActive,
+  persistGeoRunSnapshot: vi.fn(),
+  refreshGeoHistory: vi.fn(),
+  updateGeoRunFromHost: geoHistoryMocks.updateGeoRunFromHost,
 }));
 
 vi.mock("../geo-session.ts", () => ({
@@ -52,12 +61,6 @@ vi.mock("../geo-session.ts", () => ({
 
 vi.mock("./chat.ts", () => ({
   loadChatHistory: vi.fn(async () => undefined),
-}));
-
-vi.mock("../geo-history-storage.ts", () => ({
-  clearGeoHistory: vi.fn(),
-  loadGeoHistory: vi.fn(() => null),
-  saveGeoHistory: vi.fn(),
 }));
 
 function createHost(): GeoHost {
@@ -78,10 +81,12 @@ function createHost(): GeoHost {
     chatStream: null,
     client: null,
     connected: false,
+    geoActiveRunId: null,
     geoBrandStory: null,
     geoBrandStoryStatus: "idle",
     geoChatSidebarOpen: false,
     geoDevSkipSkillWait: false,
+    geoHistoryRuns: [],
     geoMonitoring: null,
     geoMonitoringStatus: "idle",
     geoOutputCenter: null,
@@ -93,9 +98,8 @@ function createHost(): GeoHost {
     geoRepairPackStatus: "idle",
     geoReport: null,
     geoReportStatus: "idle",
+    geoResumeDismissed: false,
     geoSessionKeys: {},
-    geoResumeSnapshot: null,
-    geoPersistHistory: false,
     geoSiteUrl: "merlord.com",
     geoSkillBusy: false,
     geoStarting: false,
@@ -114,8 +118,6 @@ function createHost(): GeoHost {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(loadGeoHistory).mockReturnValue(null);
-  vi.mocked(phaseToSkillAction).mockReturnValue(null);
 });
 
 describe("startGeoExperience", () => {
@@ -134,82 +136,17 @@ describe("startGeoExperience", () => {
   });
 });
 
-describe("detectGeoResume", () => {
-  it("does nothing when the persist flag is disabled", () => {
-    const host = createHost();
-    host.geoPersistHistory = false;
-    vi.mocked(loadGeoHistory).mockReturnValue({
-      siteUrl: "https://merlord.com",
-      phase: "assessment",
-      sessionKeys: { assessment: "sess-a" },
-    });
-
-    detectGeoResume(host);
-
-    expect(host.geoResumeSnapshot).toBeNull();
-    expect(loadGeoHistory).not.toHaveBeenCalled();
-  });
-
-  it("surfaces a stored snapshot on the landing page when the flag is enabled", () => {
-    const host = createHost();
-    host.geoPersistHistory = true;
-    host.geoPhase = "landing";
-    const snapshot = {
-      siteUrl: "https://merlord.com",
-      phase: "brandStory" as const,
-      sessionKeys: { assessment: "sess-a", brandStory: "sess-b" },
-    };
-    vi.mocked(loadGeoHistory).mockReturnValue(snapshot);
-
-    detectGeoResume(host);
-
-    expect(host.geoResumeSnapshot).toBe(snapshot);
-  });
-});
-
-describe("resumeGeoExperience", () => {
-  it("restores site, session keys, and phase, then loads history and re-syncs", async () => {
-    const host = createHost();
-    host.geoResumeSnapshot = {
-      siteUrl: "https://merlord.com",
-      phase: "brandStory",
-      sessionKeys: { assessment: "sess-a", brandStory: "sess-b" },
-    };
-    vi.mocked(phaseToSkillAction).mockReturnValueOnce("brandStory");
-
-    await expect(resumeGeoExperience(host)).resolves.toBe(true);
-
-    expect(host.geoSiteUrl).toBe("https://merlord.com");
-    expect(host.geoPhase).toBe("brandStory");
-    expect(host.geoSessionKeys).toEqual({ assessment: "sess-a", brandStory: "sess-b" });
-    expect(host.geoResumeSnapshot).toBeNull();
-    expect(restoreGeoSession).toHaveBeenCalledWith(host, "brandStory");
-    expect(loadChatHistory).toHaveBeenCalledWith(host);
-    expect(syncGeoStateFromChat).toHaveBeenCalledWith(host);
-  });
-
-  it("returns false when there is no snapshot to resume", async () => {
-    const host = createHost();
-    host.geoResumeSnapshot = null;
-
-    await expect(resumeGeoExperience(host)).resolves.toBe(false);
-    expect(loadChatHistory).not.toHaveBeenCalled();
-  });
-});
-
 describe("backToGeoLanding", () => {
-  it("clears persisted history and the resume offer", () => {
+  it("clears the active run and returns to the landing page", () => {
     const host = createHost();
-    host.geoResumeSnapshot = {
-      siteUrl: "https://merlord.com",
-      phase: "assessment",
-      sessionKeys: { assessment: "sess-a" },
-    };
+    host.geoPhase = "brandStory";
+    host.geoStarting = true;
 
     backToGeoLanding(host);
 
     expect(host.geoPhase).toBe("landing");
-    expect(host.geoResumeSnapshot).toBeNull();
-    expect(clearGeoHistory).toHaveBeenCalledWith("wss://gw.example/openclaw");
+    expect(host.geoStarting).toBe(false);
+    expect(geoHistoryMocks.clearGeoActiveRun).toHaveBeenCalledWith(host);
+    expect(geoHistoryMocks.markGeoFlowActive).toHaveBeenCalledWith("landing");
   });
 });

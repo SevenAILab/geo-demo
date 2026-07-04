@@ -74,27 +74,6 @@ export type GeoProps = GeoLandingProps &
     onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
   };
 
-const LANDING_STEPS = [
-  {
-    iconClass: "geo-step__icon--scan",
-    icon: icons.search,
-    titleKey: "geo.landing.steps.scan.title",
-    bodyKey: "geo.landing.steps.scan.body",
-  },
-  {
-    iconClass: "geo-step__icon--fix",
-    icon: icons.wrench,
-    titleKey: "geo.landing.steps.fix.title",
-    bodyKey: "geo.landing.steps.fix.body",
-  },
-  {
-    iconClass: "geo-step__icon--track",
-    icon: icons.barChart,
-    titleKey: "geo.landing.steps.track.title",
-    bodyKey: "geo.landing.steps.track.body",
-  },
-] as const;
-
 function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string) => void) {
   const score = run.report?.totalScore;
   return html`
@@ -104,7 +83,11 @@ function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string)
         <span class="geo-history__phase">${t(geoPhaseProgressLabel(run.phase))}</span>
         <span class="geo-history__time">${formatRelativeTimestamp(run.updatedAt)}</span>
         ${score != null
-          ? html`<span class="geo-history__score">${t("geo.history.score", { score })}</span>`
+          ? html`<span class="geo-history__score"
+              >${t("geo.history.score", {
+                score: String(score),
+              })}</span
+            >`
           : nothing}
       </span>
     </button>
@@ -211,21 +194,6 @@ export function renderGeoLanding(props: GeoLandingProps) {
               </section>
             `
           : nothing}
-
-        <section class="geo-landing__steps">
-          <h2 class="geo-landing__steps-title">${t("geo.landing.stepsTitle")}</h2>
-          <div class="geo-landing__steps-grid">
-            ${LANDING_STEPS.map(
-              (step) => html`
-                <article class="geo-step">
-                  <div class="geo-step__icon ${step.iconClass}">${step.icon}</div>
-                  <h3 class="geo-step__title">${t(step.titleKey)}</h3>
-                  <p class="geo-step__body">${t(step.bodyKey)}</p>
-                </article>
-              `,
-            )}
-          </div>
-        </section>
       </main>
 
       <footer class="geo-landing__footer">
