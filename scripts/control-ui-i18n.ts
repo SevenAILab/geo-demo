@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { completeSimple, type AssistantMessage, type Model } from "openclaw/plugin-sdk/llm";
 import * as ts from "typescript";
 import { formatErrorMessage } from "../src/infra/errors.ts";
+import { resolvePnpmRunner } from "./pnpm-runner.mjs";
 
 interface TranslationMap {
   [key: string]: string | TranslationMap;
@@ -83,7 +84,8 @@ type RawCopyBaseline = {
 const CONTROL_UI_I18N_WORKFLOW = 1;
 const DEFAULT_OPENAI_MODEL = "gpt-5.5";
 const DEFAULT_ANTHROPIC_MODEL = "claude-opus-4-6";
-const DEFAULT_PROVIDER = "openai";
+const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+const DEFAULT_PROVIDER = "deepseek";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
 const LOCALES_DIR = path.join(ROOT, "ui", "src", "i18n", "locales");
@@ -109,9 +111,19 @@ const ENV_BATCH_CHAR_BUDGET = "OPENCLAW_CONTROL_UI_I18N_BATCH_CHAR_BUDGET";
 const ENV_PROMPT_TIMEOUT = "OPENCLAW_CONTROL_UI_I18N_PROMPT_TIMEOUT";
 const ENV_AUTH_OPTIONAL = "OPENCLAW_CONTROL_UI_I18N_AUTH_OPTIONAL";
 
-type TranslationProvider = "openai" | "anthropic";
+type TranslationProvider = "deepseek" | "openai" | "anthropic";
 
 const TRANSLATION_PROVIDER_DEFAULTS: Record<TranslationProvider, Omit<Model, "id" | "name">> = {
+  deepseek: {
+    api: "openai-completions",
+    provider: "deepseek",
+    baseUrl: "https://api.deepseek.com",
+    reasoning: false,
+    input: ["text"],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 131_072,
+    maxTokens: 8_192,
+  },
   openai: {
     api: "openai-responses",
     provider: "openai",
@@ -269,6 +281,9 @@ function resolveConfiguredProvider(): string {
   if (configured) {
     return configured;
   }
+  if (process.env.DEEPSEEK_API_KEY?.trim()) {
+    return "deepseek";
+  }
   if (process.env.OPENAI_API_KEY?.trim()) {
     return "openai";
   }
@@ -283,18 +298,27 @@ function resolveConfiguredModel(): string {
   if (configured) {
     return configured;
   }
-  return resolveConfiguredProvider() === "anthropic"
-    ? DEFAULT_ANTHROPIC_MODEL
-    : DEFAULT_OPENAI_MODEL;
+  switch (resolveConfiguredProvider()) {
+    case "anthropic":
+      return DEFAULT_ANTHROPIC_MODEL;
+    case "deepseek":
+      return DEFAULT_DEEPSEEK_MODEL;
+    default:
+      return DEFAULT_OPENAI_MODEL;
+  }
 }
 
 function hasTranslationProvider(): boolean {
-  return Boolean(process.env.OPENAI_API_KEY?.trim() || process.env.ANTHROPIC_API_KEY?.trim());
+  return Boolean(
+    process.env.DEEPSEEK_API_KEY?.trim() ||
+    process.env.OPENAI_API_KEY?.trim() ||
+    process.env.ANTHROPIC_API_KEY?.trim(),
+  );
 }
 
 function resolveKnownTranslationProvider(): TranslationProvider {
   const provider = resolveConfiguredProvider();
-  if (provider === "openai" || provider === "anthropic") {
+  if (provider === "deepseek" || provider === "openai" || provider === "anthropic") {
     return provider;
   }
   throw new Error(`Unsupported translation provider: ${provider}`);
@@ -953,7 +977,9 @@ type RunProcessOptions = {
   killGraceMs?: number;
   maxOutputChars?: number;
   rejectOnFailure?: boolean;
+  shell?: boolean;
   timeoutMs?: number;
+  windowsVerbatimArguments?: boolean;
 };
 
 type ProcessOutputCapture = {
@@ -1001,6 +1027,10 @@ export async function runProcess(
       detached: useProcessGroup,
       env: process.env,
       stdio: ["pipe", "pipe", "pipe"],
+      ...(options.shell !== undefined ? { shell: options.shell } : {}),
+      ...(options.windowsVerbatimArguments !== undefined
+        ? { windowsVerbatimArguments: options.windowsVerbatimArguments }
+        : {}),
     });
 
     const maxOutputChars = resolveRunProcessOutputLimit(options);
@@ -1166,14 +1196,15 @@ export async function runProcess(
 }
 
 async function formatGeneratedTypeScript(filePath: string, source: string): Promise<string> {
-  const result = await runProcess(
-    "pnpm",
-    ["exec", "oxfmt", "--stdin-filepath", path.relative(ROOT, filePath)],
-    {
-      input: source,
-      rejectOnFailure: true,
-    },
-  );
+  const runner = resolvePnpmRunner({
+    pnpmArgs: ["exec", "oxfmt", "--stdin-filepath", path.relative(ROOT, filePath)],
+  });
+  const result = await runProcess(runner.command, runner.args, {
+    input: source,
+    rejectOnFailure: true,
+    shell: runner.shell,
+    windowsVerbatimArguments: runner.windowsVerbatimArguments,
+  });
   return restoreReplacementCorruptedStringLiterals(source, result.stdout);
 }
 

@@ -124,9 +124,11 @@ import {
   openGeoOutputCenter,
   openGeoRepairPack,
   reassessGeo,
+  restoreGeoRun,
+  restoreGeoRunById,
   restoreGeoSessionForPhase,
-  resumeGeoExperience,
   startGeoExperience,
+  updateGeoBrandStoryValueProps,
 } from "./controllers/geo.ts";
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
@@ -164,6 +166,7 @@ import { getCronJobPayload } from "./cron-payload.ts";
 import { buildExternalLinkRel, EXTERNAL_LINK_TARGET } from "./external-link.ts";
 import { formatTimeMs } from "./format.ts";
 import { formatRelativeTimestamp } from "./format.ts";
+import { dismissGeoResume, shouldShowGeoResumeBanner } from "./geo-history.ts";
 import { icons } from "./icons.ts";
 import { createLazyView, renderLazyView } from "./lazy-view.ts";
 import {
@@ -2630,10 +2633,21 @@ export function renderApp(state: AppViewState) {
                 onStartExperience: () => {
                   void startGeoExperience(state as never);
                 },
-                resumeAvailable: state.geoResumeSnapshot != null,
-                resumeSiteUrl: state.geoResumeSnapshot?.siteUrl ?? null,
-                onResume: () => {
-                  void resumeGeoExperience(state as never);
+                history: state.geoHistoryRuns,
+                resumeRun: shouldShowGeoResumeBanner(state as never),
+                onRestoreRun: (runId) => {
+                  void restoreGeoRunById(state as never, runId);
+                },
+                onContinueResume: () => {
+                  const resume = shouldShowGeoResumeBanner(state as never);
+                  if (!resume) {
+                    return;
+                  }
+                  state.geoActiveRunId = resume.id;
+                  void restoreGeoRun(state as never);
+                },
+                onDismissResume: () => {
+                  dismissGeoResume(state as never);
                 },
                 onBack: () => backToGeoLanding(state),
                 onBackToAssessment: () => {
@@ -2653,10 +2667,14 @@ export function renderApp(state: AppViewState) {
                 onOpenRepairPack: () => void openGeoRepairPack(state as never),
                 onOpenMonitoringPanel: () => void openGeoMonitoringPanel(state as never),
                 onReassess: () => void reassessGeo(state as never),
-                onRetryBrandStory: () => void openGeoBrandStory(state as never),
-                onRetryOutput: () => void openGeoOutputCenter(state as never),
-                onRetryRepairPack: () => void openGeoRepairPack(state as never),
-                onRetryMonitoring: () => void openGeoMonitoringPanel(state as never),
+                onRetryBrandStory: () => void openGeoBrandStory(state as never, { force: true }),
+                onRetryOutput: () => void openGeoOutputCenter(state as never, { force: true }),
+                onRetryRepairPack: () => void openGeoRepairPack(state as never, { force: true }),
+                onRetryMonitoring: () =>
+                  void openGeoMonitoringPanel(state as never, { force: true }),
+                onValuePropsChange: (valueProps, valuePropOther) => {
+                  updateGeoBrandStoryValueProps(state as never, valueProps, valuePropOther);
+                },
                 onExitToConsole: () => {
                   state.setTab("overview" as Tab);
                 },

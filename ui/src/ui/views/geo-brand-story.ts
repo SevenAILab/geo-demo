@@ -1,7 +1,12 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
-import { isGeoBrandStoryComplete, type GeoBrandStory, type GeoDataStatus } from "../geo-parsers.ts";
 import { deriveBrandNameFromUrl } from "../geo-demo-data.ts";
+import {
+  GEO_VALUE_PROP_OTHER_ID,
+  isGeoBrandStoryComplete,
+  type GeoBrandStory,
+  type GeoDataStatus,
+} from "../geo-parsers.ts";
 import { renderGeoFlowLayout } from "./geo-flow-layout.ts";
 
 export type GeoBrandStoryProps = {
@@ -16,6 +21,7 @@ export type GeoBrandStoryProps = {
   onExitToConsole: () => void;
   onConfirmGenerate: () => void;
   onRetry: () => void;
+  onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
 };
 
 function renderInlineLoading() {
@@ -37,6 +43,22 @@ function renderInlineError(onRetry: () => void) {
   `;
 }
 
+function toggleValueProp(
+  current: string[],
+  id: string,
+  checked: boolean,
+  onChange: (valueProps: string[], valuePropOther: string) => void,
+  valuePropOther: string,
+) {
+  const next = new Set(current);
+  if (checked) {
+    next.add(id);
+  } else {
+    next.delete(id);
+  }
+  onChange([...next], valuePropOther);
+}
+
 export function renderGeoBrandStory(props: GeoBrandStoryProps) {
   const data = props.brandStory;
   const loading = props.status === "loading" || props.skillBusy;
@@ -44,12 +66,17 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
   const skeletonName = loading && !data ? deriveBrandNameFromUrl(props.siteUrl) : "";
   const brandName = data?.brandName ?? skeletonName;
   const industry = data?.industry ?? "";
-  const valueProp = data?.valueProp ?? "";
+  const valuePropOptions = data?.valuePropOptions ?? [];
+  const valueProps = data?.valueProps ?? [];
+  const valuePropOther = data?.valuePropOther ?? "";
   const audience = data?.audience ?? "";
   const differentiator = data?.differentiator ?? "";
   const competitors = data?.competitors ?? [];
   const preview = data?.aiPreview;
   const canConfirm = isGeoBrandStoryComplete(data);
+  const valuePropGap = !loading && valueProps.length === 0;
+  const otherSelected = valueProps.includes(GEO_VALUE_PROP_OTHER_ID);
+  const editable = !loading && Boolean(data);
 
   const header = html`
     <header class="geo-page__header">
@@ -82,16 +109,72 @@ export function renderGeoBrandStory(props: GeoBrandStoryProps) {
           <span class="geo-field__label">${t("geo.brandStory.industry")}</span>
           <input type="text" class="geo-field__input" .value=${industry} readonly />
         </label>
-        <label class="geo-field ${!valueProp ? "geo-field--gap" : ""}">
+        <div class="geo-field ${valuePropGap ? "geo-field--gap" : ""}">
           <span class="geo-field__label">${t("geo.brandStory.valueProp")}</span>
-          <input
-            type="text"
-            class="geo-field__input"
-            .value=${valueProp}
-            placeholder=${t("geo.brandStory.gapPlaceholder")}
-            readonly
-          />
-        </label>
+          <p class="geo-field__hint">${t("geo.brandStory.valuePropHint")}</p>
+          ${valuePropOptions.length > 0
+            ? html`
+                <div
+                  class="geo-value-prop-options"
+                  role="group"
+                  aria-label=${t("geo.brandStory.valueProp")}
+                >
+                  ${valuePropOptions.map(
+                    (option) => html`
+                      <label class="geo-value-prop-option">
+                        <input
+                          type="checkbox"
+                          .checked=${valueProps.includes(option.id)}
+                          ?disabled=${!editable}
+                          @change=${(event: Event) => {
+                            toggleValueProp(
+                              valueProps,
+                              option.id,
+                              (event.target as HTMLInputElement).checked,
+                              props.onValuePropsChange,
+                              valuePropOther,
+                            );
+                          }}
+                        />
+                        <span>${option.label}</span>
+                      </label>
+                    `,
+                  )}
+                </div>
+              `
+            : html` <p class="geo-field__placeholder">${t("geo.brandStory.gapPlaceholder")}</p> `}
+          <label class="geo-value-prop-option geo-value-prop-option--other">
+            <input
+              type="checkbox"
+              .checked=${otherSelected}
+              ?disabled=${!editable}
+              @change=${(event: Event) => {
+                toggleValueProp(
+                  valueProps,
+                  GEO_VALUE_PROP_OTHER_ID,
+                  (event.target as HTMLInputElement).checked,
+                  props.onValuePropsChange,
+                  valuePropOther,
+                );
+              }}
+            />
+            <span>${t("geo.brandStory.valuePropOther")}</span>
+          </label>
+          ${otherSelected
+            ? html`
+                <input
+                  type="text"
+                  class="geo-field__input geo-value-prop-other"
+                  .value=${valuePropOther}
+                  placeholder=${t("geo.brandStory.valuePropOtherPlaceholder")}
+                  ?disabled=${!editable}
+                  @input=${(event: Event) => {
+                    props.onValuePropsChange(valueProps, (event.target as HTMLInputElement).value);
+                  }}
+                />
+              `
+            : nothing}
+        </div>
         <label class="geo-field">
           <span class="geo-field__label">${t("geo.brandStory.audience")}</span>
           <input type="text" class="geo-field__input" .value=${audience} readonly />

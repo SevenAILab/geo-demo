@@ -1,6 +1,12 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 import type { GeoPhase } from "../controllers/geo.ts";
+import { formatRelativeTimestamp } from "../format.ts";
+import {
+  formatGeoRunSiteLabel,
+  geoPhaseProgressLabel,
+  type GeoRunSnapshot,
+} from "../geo-history.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -29,12 +35,14 @@ export type GeoLandingProps = {
   siteUrl: string;
   starting: boolean;
   skillBusy: boolean;
-  resumeAvailable: boolean;
-  resumeSiteUrl: string | null;
+  history: GeoRunSnapshot[];
+  resumeRun: GeoRunSnapshot | null;
   onSiteUrlChange: (next: string) => void;
   onStartExperience: () => void;
-  onResume: () => void;
   onExitToConsole: () => void;
+  onRestoreRun: (runId: string) => void;
+  onContinueResume: () => void;
+  onDismissResume: () => void;
 };
 
 export type GeoProps = GeoLandingProps &
@@ -63,6 +71,7 @@ export type GeoProps = GeoLandingProps &
     onRetryOutput: () => void;
     onRetryRepairPack: () => void;
     onRetryMonitoring: () => void;
+    onValuePropsChange: (valueProps: string[], valuePropOther: string) => void;
   };
 
 const LANDING_STEPS = [
@@ -85,6 +94,22 @@ const LANDING_STEPS = [
     bodyKey: "geo.landing.steps.track.body",
   },
 ] as const;
+
+function renderGeoHistoryItem(run: GeoRunSnapshot, onRestoreRun: (runId: string) => void) {
+  const score = run.report?.totalScore;
+  return html`
+    <button type="button" class="geo-history__item" @click=${() => onRestoreRun(run.id)}>
+      <span class="geo-history__site">${formatGeoRunSiteLabel(run.siteUrl)}</span>
+      <span class="geo-history__meta">
+        <span class="geo-history__phase">${t(geoPhaseProgressLabel(run.phase))}</span>
+        <span class="geo-history__time">${formatRelativeTimestamp(run.updatedAt)}</span>
+        ${score != null
+          ? html`<span class="geo-history__score">${t("geo.history.score", { score })}</span>`
+          : nothing}
+      </span>
+    </button>
+  `;
+}
 
 export function renderGeoLanding(props: GeoLandingProps) {
   const busy = props.starting || props.skillBusy;
@@ -117,6 +142,36 @@ export function renderGeoLanding(props: GeoLandingProps) {
           <h1 class="geo-landing__title">${t("geo.landing.heroTitle")}</h1>
           <p class="geo-landing__subtitle">${t("geo.landing.heroSubtitle")}</p>
 
+          ${props.resumeRun
+            ? html`
+                <div class="geo-history__banner" role="status">
+                  <p class="geo-history__banner-text">
+                    ${t("geo.history.resumeBanner", {
+                      url: formatGeoRunSiteLabel(props.resumeRun.siteUrl),
+                    })}
+                  </p>
+                  <div class="geo-history__banner-actions">
+                    <button
+                      type="button"
+                      class="geo-history__banner-continue"
+                      ?disabled=${busy}
+                      @click=${props.onContinueResume}
+                    >
+                      ${t("geo.history.continue")}
+                    </button>
+                    <button
+                      type="button"
+                      class="geo-history__banner-dismiss"
+                      ?disabled=${busy}
+                      @click=${props.onDismissResume}
+                    >
+                      ${t("geo.history.dismiss")}
+                    </button>
+                  </div>
+                </div>
+              `
+            : nothing}
+
           <div class="geo-landing__search">
             <span class="geo-landing__search-icon" aria-hidden="true">${icons.globe}</span>
             <input
@@ -143,20 +198,19 @@ export function renderGeoLanding(props: GeoLandingProps) {
               ${busy ? t("geo.starting") : t("geo.startExperience")}
             </button>
           </div>
-          ${props.resumeAvailable
-            ? html`
-                <button
-                  type="button"
-                  class="geo-landing__resume"
-                  ?disabled=${busy}
-                  @click=${props.onResume}
-                >
-                  ${t("geo.resume.button", { url: props.resumeSiteUrl ?? "" })}
-                </button>
-              `
-            : nothing}
           <p class="geo-landing__examples">${t("geo.landing.examples")}</p>
         </section>
+
+        ${props.history.length > 0
+          ? html`
+              <section class="geo-history" aria-label=${t("geo.history.title")}>
+                <h2 class="geo-history__title">${t("geo.history.title")}</h2>
+                <div class="geo-history__list">
+                  ${props.history.map((run) => renderGeoHistoryItem(run, props.onRestoreRun))}
+                </div>
+              </section>
+            `
+          : nothing}
 
         <section class="geo-landing__steps">
           <h2 class="geo-landing__steps-title">${t("geo.landing.stepsTitle")}</h2>
@@ -214,6 +268,7 @@ export function renderGeo(props: GeoProps) {
       onExitToConsole: props.onExitToConsole,
       onConfirmGenerate: props.onConfirmGenerate,
       onRetry: props.onRetryBrandStory,
+      onValuePropsChange: props.onValuePropsChange,
     });
   }
   if (props.phase === "outputCenter") {

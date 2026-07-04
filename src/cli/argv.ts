@@ -461,6 +461,10 @@ export function shouldMigrateStateFromPath(path: string[]): boolean {
   if (primary === "config" && (secondary === "get" || secondary === "unset")) {
     return false;
   }
+  // Stop is a lifecycle command; skip legacy state migration so shutdown stays fast.
+  if (primary === "gateway" && secondary === "stop") {
+    return false;
+  }
   return true;
 }
 

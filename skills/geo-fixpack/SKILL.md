@@ -27,6 +27,11 @@ description: 生成可粘贴的主站修复包：Schema.org JSON-LD 与 llms.txt
 - llmsTxt 含品牌名、核心产品、LLM 引用指令（# Instructions for LLMs）
 - 不输出 HTML，仅两个字符串字段
 
+## 语言
+
+- `llmsTxt` 中的品牌事实段落使用**简体中文**；`# Instructions for LLMs` 等规范标题可保留英文
+- 其他面向用户的字符串字段使用简体中文
+
 ## references
 
 - `references/jsonld-rules.md`

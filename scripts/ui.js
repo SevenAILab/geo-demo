@@ -15,7 +15,7 @@ const WINDOWS_CMD_EXE_EXTENSIONS = new Set([".cmd", ".bat"]);
 
 function usage() {
   // keep this tiny; it's invoked from npm scripts too
-  process.stderr.write("Usage: node scripts/ui.js <install|dev|build|test> [...args]\n");
+  process.stderr.write("Usage: node scripts/ui.js <install|dev|dev-build|build|test> [...args]\n");
 }
 
 export function shouldUseCmdExeForCommand(cmd, platform = process.platform) {
@@ -207,6 +207,14 @@ export function main(argv = process.argv.slice(2)) {
   }
 
   const script = resolveScriptAction(action);
+  if (action === "dev-build") {
+    if (!depsInstalled("build")) {
+      runPnpmSync(["install"], process.env);
+    }
+    runPnpmSync(["run", "build", ...rest]);
+    runPnpm(["run", "dev", ...rest]);
+    return;
+  }
   if (action !== "install" && !script) {
     usage();
     process.exit(2);

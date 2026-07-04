@@ -21,7 +21,7 @@ import type {
 } from "./controllers/skills.ts";
 import type { EmbedSandboxMode } from "./embed-sandbox.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
-import type { GeoHistorySnapshot } from "./geo-history-storage.ts";
+import type { GeoRunSnapshot } from "./geo-history.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -101,8 +101,6 @@ export type AppViewState = {
   embedSandboxMode: EmbedSandboxMode;
   allowExternalEmbedUrls: boolean;
   chatMessageMaxWidth?: string | null;
-  geoDevSkipSkillWait: boolean;
-  geoPersistHistory: boolean;
   sessionKey: string;
   chatSessionMessageSubscriptionKey?: string | null;
   chatSessionMessageSubscriptionRequestedKey?: string | null;
@@ -130,8 +128,10 @@ export type AppViewState = {
   geoMonitoring: GeoMonitoring | null;
   geoMonitoringStatus: GeoDataStatus;
   geoSessionKeys: Partial<Record<GeoSkillAction, string>>;
-  geoResumeSnapshot: GeoHistorySnapshot | null;
   geoChatSidebarOpen: boolean;
+  geoHistoryRuns: GeoRunSnapshot[];
+  geoActiveRunId: string | null;
+  geoResumeDismissed: boolean;
   activityFilterText: string;
   activityStatusFilters: Record<ActivityStatus, boolean>;
   activityToolFilter: string;

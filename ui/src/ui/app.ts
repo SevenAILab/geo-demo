@@ -104,7 +104,7 @@ import {
 } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { GeoPhase, GeoReport, GeoReportStatus } from "./controllers/geo.ts";
-import { detectGeoResume } from "./controllers/geo.ts";
+import { refreshGeoHistory } from "./controllers/geo.ts";
 import type { SkillWorkshopState } from "./controllers/skill-workshop.ts";
 import type {
   ClawHubSearchResult,
@@ -114,7 +114,7 @@ import type {
 } from "./controllers/skills.ts";
 import { importCustomThemeFromUrl } from "./custom-theme.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
-import type { GeoHistorySnapshot } from "./geo-history-storage.ts";
+import type { GeoRunSnapshot } from "./geo-history.ts";
 import type {
   GeoBrandStory,
   GeoDataStatus,
@@ -165,7 +165,7 @@ declare global {
 
 function resolveInitialTab(): Tab {
   if (typeof window === "undefined") {
-    return "geo";
+    return "chat";
   }
   const basePath = inferBasePathFromPathname(window.location.pathname);
   return resolveRouteFromPathname(window.location.pathname, basePath).tab;
@@ -255,8 +255,6 @@ export class OpenClawApp extends LitElement {
   @state() embedSandboxMode: "strict" | "scripts" | "trusted" = "scripts";
   @state() allowExternalEmbedUrls = false;
   @state() chatMessageMaxWidth: string | null = null;
-  @state() geoDevSkipSkillWait = false;
-  @state() geoPersistHistory = false;
   @state() serverVersion: string | null = null;
 
   @state() sessionKey = this.settings.sessionKey;
@@ -286,8 +284,10 @@ export class OpenClawApp extends LitElement {
   @state() geoMonitoring: GeoMonitoring | null = null;
   @state() geoMonitoringStatus: GeoDataStatus = "idle";
   @state() geoSessionKeys: Partial<Record<GeoSkillAction, string>> = {};
-  @state() geoResumeSnapshot: GeoHistorySnapshot | null = null;
-  @state() geoChatSidebarOpen = true;
+  @state() geoChatSidebarOpen = false;
+  @state() geoHistoryRuns: GeoRunSnapshot[] = [];
+  @state() geoActiveRunId: string | null = null;
+  @state() geoResumeDismissed = false;
   @state() activityFilterText = "";
   @state() activityStatusFilters: Record<ActivityStatus, boolean> = {
     running: true,
@@ -858,6 +858,7 @@ export class OpenClawApp extends LitElement {
     document.addEventListener("keydown", this.chatMobileControlsKeydownHandler);
     document.addEventListener("pointerdown", this.chatMobileControlsPointerdownHandler);
     handleConnected(this as unknown as Parameters<typeof handleConnected>[0]);
+    refreshGeoHistory(this as never);
     this.nativeBridgeCleanup = initNativeBridge(this);
     void this.initWebPushState();
   }
@@ -887,6 +888,9 @@ export class OpenClawApp extends LitElement {
 
   protected override updated(changed: Map<PropertyKey, unknown>) {
     handleUpdated(this as unknown as Parameters<typeof handleUpdated>[0], changed);
+    if (changed.has("tab") && this.tab === "geo") {
+      refreshGeoHistory(this as never);
+    }
     // Some render callbacks assign tab directly while preparing nested panel state.
     if (changed.has("tab") && this.tab !== "chat" && this.chatMobileControlsOpen) {
       this.setChatMobileControlsOpen(false);
@@ -982,9 +986,6 @@ export class OpenClawApp extends LitElement {
     setTabInternal(this as unknown as Parameters<typeof setTabInternal>[0], next);
     if (next !== "chat") {
       this.setChatMobileControlsOpen(false);
-    }
-    if (next === "geo") {
-      detectGeoResume(this as unknown as Parameters<typeof detectGeoResume>[0]);
     }
     this.navDrawerOpen = false;
   }

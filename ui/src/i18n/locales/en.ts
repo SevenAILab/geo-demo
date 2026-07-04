@@ -464,9 +464,6 @@ export const en: TranslationMap = {
     startExperience: "开始体检 →",
     starting: "正在进入…",
     back: "返回",
-    resume: {
-      button: "继续上次分析（{url}）→",
-    },
     backToConsole: "返回控制台",
     humanEye: "HUMAN EYE · 人眼所见",
     chatTitle: "GEO 分析对话",
@@ -474,6 +471,23 @@ export const en: TranslationMap = {
       chatTitle: "GEO Agent 对话",
       hideChat: "隐藏对话",
       showChat: "显示对话",
+    },
+    history: {
+      title: "历史记录",
+      empty: "暂无 GEO 分析记录",
+      continue: "继续上次",
+      dismiss: "开始新的",
+      restore: "恢复",
+      score: "{score} 分",
+      resumeBanner: "您有未完成的 GEO 分析（{url}），是否继续？",
+      progress: {
+        started: "已开始",
+        assessment: "体检",
+        brandStory: "品牌故事",
+        outputCenter: "产出中心",
+        repairPack: "修复包",
+        monitoringPanel: "监测面板",
+      },
     },
     landing: {
       navLabel: "主导航",
@@ -523,15 +537,15 @@ export const en: TranslationMap = {
       errorBody: "Agent 未返回有效 JSON。请检查 Gateway 对话或重试。",
       retry: "重试",
       assessmentPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n请对 {url} 做 GEO 体检：AI 可见度、Schema/实体识别、内容可引用性，识别关键结构缺口。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合 skills/geo-assessment 输出契约，不要输出其他 JSON。",
+        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n请对 {url} 做 GEO 体检：AI 可见度、Schema/实体识别、内容可引用性，识别关键结构缺口。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合 skills/geo-assessment 输出契约，不要输出其他 JSON。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。",
       brandStoryPrompt:
-        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n上一轮体检报告：\n```json\n{reportJson}\n```\n\n从缺口与站点内容提炼品牌事实，补全 valueProp 与 differentiator。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  "brandName": "品牌名",\n  "industry": "所属行业",\n  "valueProp": "价值主张（一句话，可执行）",\n  "audience": "目标受众",\n  "differentiator": "差异化优势（2-3 句）",\n  "competitors": ["https://竞品1.com"],\n  "aiPreview": {\n    "entity": "实体标签",\n    "type": "业务类型",\n    "audience": "AI 将识别的受众"\n  }\n}\n\nvalueProp、differentiator、aiPreview 各字段均不可留空。',
+        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n上一轮体检报告：\n```json\n{reportJson}\n```\n\n从缺口与站点内容提炼品牌事实，生成 2–6 条可执行价值主张候选，并补全 differentiator。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON：\n{\n  "brandName": "品牌名",\n  "industry": "所属行业",\n  "valuePropOptions": [\n    { "id": "vp-1", "label": "价值主张描述（可执行）", "suggested": true }\n  ],\n  "valueProps": ["vp-1"],\n  "valuePropOther": "",\n  "audience": "目标受众",\n  "differentiator": "差异化优势（2-3 句）",\n  "competitors": ["https://竞品1.com"],\n  "aiPreview": {\n    "entity": "实体标签",\n    "type": "业务类型",\n    "audience": "AI 将识别的受众"\n  }\n}\n\nvaluePropOptions 至少 2 条；valueProps 为 suggested=true 的 id 列表；differentiator、aiPreview 各字段均不可留空。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。',
       contentPrompt:
-        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO-native 内容资产列表（article/faq/case 各至少一条）。资产标题应覆盖体检报告 gaps 中 high impact 主题。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON 或 Markdown 表格：\n{\n  "assets": [\n    { "id": "article-01", "type": "article", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "faq-01", "type": "faq", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "case-01", "type": "case", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" }\n  ],\n  "brandVoice": "authoritative, transparent, precise",\n  "constraints": "no jargon, max 3 sentences per paragraph"\n}\n\n至少 3 条 assets，type 仅 article|faq|case 且三种各至少 1 条；scoreTone 仅 good|warn；brandVoice 与 constraints 不可留空。',
+        '请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO-native 内容资产列表（article/faq/case 各至少一条）。资产标题应覆盖体检报告 gaps 中 high impact 主题。\n\n分析完成后，在回复末尾输出唯一一个 JSON 代码块（```json），严格符合以下 schema，不要输出其他 JSON 或 Markdown 表格：\n{\n  "assets": [\n    { "id": "article-01", "type": "article", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "faq-01", "type": "faq", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" },\n    { "id": "case-01", "type": "case", "title": "标题", "score": 0-100 整数, "scoreTone": "good" | "warn" }\n  ],\n  "brandVoice": "权威、透明、精准",\n  "constraints": "避免行话，每段不超过 3 句"\n}\n\n至少 3 条 assets，type 仅 article|faq|case 且三种各至少 1 条；scoreTone 仅 good|warn；brandVoice 与 constraints 不可留空。\n\nJSON 中所有面向用户的字符串字段必须使用简体中文；枚举/id 等技术字段保持英文。',
       fixpackPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成可粘贴的 JSON-LD 与 llms.txt，只描述可见事实。\n\n在回复末尾输出唯一一个 JSON 代码块，含 jsonLd 与 llmsTxt 字符串字段，严格符合 skills/geo-fixpack 输出契约。",
+        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成可粘贴的 JSON-LD 与 llms.txt，只描述可见事实。\n\n在回复末尾输出唯一一个 JSON 代码块，含 jsonLd 与 llmsTxt 字符串字段，严格符合 skills/geo-fixpack 输出契约。\n\nllmsTxt 中的品牌事实段落使用简体中文；# Instructions for LLMs 等规范标题可保留英文。JSON 中其他面向用户的字符串字段必须使用简体中文。",
       monitoringPrompt:
-        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、文章预览。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。",
+        "请先读取并严格遵循 workspace 技能 `{skillPath}` 及其 references 方法论。\n\n站点：{url}\n\n体检报告：\n```json\n{reportJson}\n```\n\n品牌故事：\n```json\n{brandJson}\n```\n\n生成 GEO 监测面板数据：六维分数、推荐选题、文章预览。\n\n在回复末尾输出唯一一个 JSON 代码块，严格符合 skills/geo-monitoring 输出契约。\n\nJSON 中所有面向用户的字符串字段（含 dimensions.label、topics.title、recentPublishes.title/ago、articlePreview）必须使用简体中文；枚举/id 等技术字段保持英文。",
     },
     assessment: {
       brandTagline: "HEALTH INTELLIGENCE",
@@ -561,6 +575,9 @@ export const en: TranslationMap = {
       brandName: "品牌名称",
       industry: "所属行业",
       valueProp: "价值主张 *",
+      valuePropHint: "从 AI 分析结果中选择，可多选",
+      valuePropOther: "其他",
+      valuePropOtherPlaceholder: "输入自定义价值主张",
       audience: "目标受众",
       differentiator: "差异化优势 *",
       gapPlaceholder: "[缺口 - 请输入]",
@@ -585,6 +602,7 @@ export const en: TranslationMap = {
       typeFaq: "常见问题",
       typeCase: "案例研究",
       optimize: "优化",
+      optimizeAll: "全部优化",
       contextRules: "上下文规则",
       brandVoice: "品牌声音：authoritative, transparent, precise",
       constraints: "限制条件：no jargon, max 3 sentences per paragraph",

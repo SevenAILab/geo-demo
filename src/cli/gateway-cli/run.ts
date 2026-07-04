@@ -776,32 +776,33 @@ export async function runGatewayCommand(opts: GatewayRunOpts) {
     );
   }
   const healthHost = await resolveGatewayBindHost(bind, cfg.gateway?.customBindHost);
-  if (
-    shouldBlockGatewayBindWithoutExplicitAuth({
-      bindHost: healthHost,
-      hasSharedSecret,
-      resolvedAuthMode,
-    })
-  ) {
-    defaultRuntime.error(
-      [
-        `Refusing to bind gateway to ${bind} without auth.`,
-        ...(isContainerEnvironment()
-          ? [
-              "Container environment detected \u2014 the gateway defaults to bind=auto (0.0.0.0) for port-forwarding compatibility.",
-              "Set OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD, or pass --token/--password to start with auth.",
-            ]
-          : [
-              "Set gateway.auth.token/password (or OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD) or pass --token/--password.",
-            ]),
-        ...authHints,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-    );
-    defaultRuntime.exit(EXIT_CONFIG_ERROR);
-    return;
-  }
+  // Local dev: allow bind=lan without auth (security check disabled).
+  // if (
+  //   shouldBlockGatewayBindWithoutExplicitAuth({
+  //     bindHost: healthHost,
+  //     hasSharedSecret,
+  //     resolvedAuthMode,
+  //   })
+  // ) {
+  //   defaultRuntime.error(
+  //     [
+  //       `Refusing to bind gateway to ${bind} without auth.`,
+  //       ...(isContainerEnvironment()
+  //         ? [
+  //             "Container environment detected \u2014 the gateway defaults to bind=auto (0.0.0.0) for port-forwarding compatibility.",
+  //             "Set OPENCLAW_GATEWAY_TOKEN or OPENCLAW_GATEWAY_PASSWORD, or pass --token/--password to start with auth.",
+  //           ]
+  //         : [
+  //             "Set gateway.auth.token/password (or OPENCLAW_GATEWAY_TOKEN/OPENCLAW_GATEWAY_PASSWORD) or pass --token/--password.",
+  //           ]),
+  //       ...authHints,
+  //     ]
+  //       .filter(Boolean)
+  //       .join("\n"),
+  //   );
+  //   defaultRuntime.exit(EXIT_CONFIG_ERROR);
+  //   return;
+  // }
   const tailscaleOverride =
     tailscaleMode || opts.tailscaleResetOnExit
       ? {

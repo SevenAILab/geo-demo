@@ -40,10 +40,43 @@ describe("control-ui-i18n placeholder validation", () => {
 
 describe("control-ui-i18n translation runtime resolution", () => {
   it("uses the in-tree OpenClaw LLM model catalog", () => {
-    expect(resolveTranslationModel()).toMatchObject({
-      id: "gpt-5.5",
-      provider: "openai",
-    });
+    const saved = {
+      provider: process.env.OPENCLAW_CONTROL_UI_I18N_PROVIDER,
+      deepseek: process.env.DEEPSEEK_API_KEY,
+      openai: process.env.OPENAI_API_KEY,
+      anthropic: process.env.ANTHROPIC_API_KEY,
+    };
+    delete process.env.OPENCLAW_CONTROL_UI_I18N_PROVIDER;
+    delete process.env.DEEPSEEK_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+    try {
+      expect(resolveTranslationModel()).toMatchObject({
+        id: "deepseek-chat",
+        provider: "deepseek",
+      });
+    } finally {
+      if (saved.provider === undefined) {
+        delete process.env.OPENCLAW_CONTROL_UI_I18N_PROVIDER;
+      } else {
+        process.env.OPENCLAW_CONTROL_UI_I18N_PROVIDER = saved.provider;
+      }
+      if (saved.deepseek === undefined) {
+        delete process.env.DEEPSEEK_API_KEY;
+      } else {
+        process.env.DEEPSEEK_API_KEY = saved.deepseek;
+      }
+      if (saved.openai === undefined) {
+        delete process.env.OPENAI_API_KEY;
+      } else {
+        process.env.OPENAI_API_KEY = saved.openai;
+      }
+      if (saved.anthropic === undefined) {
+        delete process.env.ANTHROPIC_API_KEY;
+      } else {
+        process.env.ANTHROPIC_API_KEY = saved.anthropic;
+      }
+    }
   });
 });
 

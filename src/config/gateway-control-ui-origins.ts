@@ -31,6 +31,7 @@ export function buildDefaultControlUiAllowedOrigins(params: {
   port: number;
   bind: unknown;
   customBindHost?: string;
+  extraOrigins?: string[];
 }): string[] {
   const origins = new Set<string>([
     `http://localhost:${params.port}`,
@@ -39,6 +40,12 @@ export function buildDefaultControlUiAllowedOrigins(params: {
   const customBindHost = params.customBindHost?.trim();
   if (params.bind === "custom" && customBindHost) {
     origins.add(`http://${customBindHost}:${params.port}`);
+  }
+  for (const origin of params.extraOrigins ?? []) {
+    const trimmed = origin.trim();
+    if (trimmed) {
+      origins.add(trimmed);
+    }
   }
   return [...origins];
 }
@@ -59,7 +66,8 @@ export function ensureControlUiAllowedOriginsForNonLoopbackBind(
      *  default to `"auto"` (container) so that origins can be seeded
      *  proactively.  Keeping this as an injected callback avoids a hard
      *  dependency from the config layer on the gateway runtime layer. */
-    isContainerEnvironment?: () => boolean;
+    /** Optional extra origins to seed (for example LAN UI dev hosts). */
+    extraOrigins?: string[];
   },
 ): {
   config: OpenClawConfig;
@@ -97,6 +105,7 @@ export function ensureControlUiAllowedOriginsForNonLoopbackBind(
     port,
     bind: effectiveBind,
     customBindHost: config.gateway?.customBindHost,
+    extraOrigins: opts?.extraOrigins,
   });
   return {
     config: {

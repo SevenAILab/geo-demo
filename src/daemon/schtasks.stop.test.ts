@@ -72,7 +72,11 @@ function busyPortUsage(
   };
 }
 
-function expectGatewayTermination(pid: number) {
+function expectStopGatewayTermination(pid: number) {
+  expect(killProcessTree).toHaveBeenCalledWith(pid, { force: true });
+}
+
+function expectRestartGatewayTermination(pid: number) {
   if (process.platform === "win32") {
     expect(killProcessTree).not.toHaveBeenCalled();
     return;
@@ -110,7 +114,7 @@ afterEach(() => {
 describe("Scheduled Task stop/restart cleanup", () => {
   it("kills lingering verified gateway listeners after schtasks stop", async () => {
     await withPreparedGatewayTask(async ({ env, stdout }) => {
-      pushSuccessfulSchtasksResponses(3);
+      pushSuccessfulSchtasksResponses(2);
       findVerifiedGatewayListenerPidsOnPortSync.mockReturnValue([4242]);
       inspectPortUsage
         .mockResolvedValueOnce(busyPortUsage(4242))
@@ -119,17 +123,17 @@ describe("Scheduled Task stop/restart cleanup", () => {
       await stopScheduledTask({ env, stdout });
 
       expect(findVerifiedGatewayListenerPidsOnPortSync).toHaveBeenCalledWith(GATEWAY_PORT);
-      expectGatewayTermination(4242);
+      expectStopGatewayTermination(4242);
       expect(inspectPortUsage).toHaveBeenCalledTimes(2);
     });
   });
 
   it("force-kills remaining busy port listeners when the first stop pass does not free the port", async () => {
     await withPreparedGatewayTask(async ({ env, stdout }) => {
-      pushSuccessfulSchtasksResponses(3);
+      pushSuccessfulSchtasksResponses(2);
       findVerifiedGatewayListenerPidsOnPortSync.mockReturnValue([4242]);
       inspectPortUsage.mockResolvedValueOnce(busyPortUsage(4242));
-      for (let i = 0; i < 19; i += 1) {
+      for (let i = 0; i < 9; i += 1) {
         inspectPortUsage.mockResolvedValueOnce(busyPortUsage(4242));
       }
       inspectPortUsage
@@ -138,19 +142,15 @@ describe("Scheduled Task stop/restart cleanup", () => {
 
       await stopScheduledTask({ env, stdout });
 
-      if (process.platform !== "win32") {
-        expect(killProcessTree).toHaveBeenNthCalledWith(1, 4242, { graceMs: 300 });
-        expect(killProcessTree).toHaveBeenNthCalledWith(2, 5252, { graceMs: 300 });
-      } else {
-        expect(killProcessTree).not.toHaveBeenCalled();
-      }
-      expect(inspectPortUsage.mock.calls.length).toBeGreaterThanOrEqual(22);
+      expect(killProcessTree).toHaveBeenNthCalledWith(1, 4242, { force: true });
+      expect(killProcessTree).toHaveBeenNthCalledWith(2, 5252, { force: true });
+      expect(inspectPortUsage.mock.calls.length).toBeGreaterThanOrEqual(12);
     });
   });
 
   it("falls back to inspected gateway listeners when sync verification misses on Windows", async () => {
     await withPreparedGatewayTask(async ({ env, stdout }) => {
-      pushSuccessfulSchtasksResponses(3);
+      pushSuccessfulSchtasksResponses(2);
       findVerifiedGatewayListenerPidsOnPortSync.mockReturnValue([]);
       inspectPortUsage
         .mockResolvedValueOnce(
@@ -163,7 +163,7 @@ describe("Scheduled Task stop/restart cleanup", () => {
 
       await stopScheduledTask({ env, stdout });
 
-      expectGatewayTermination(6262);
+      expectStopGatewayTermination(6262);
       expect(inspectPortUsage).toHaveBeenCalledTimes(2);
     });
   });
@@ -182,7 +182,6 @@ describe("Scheduled Task stop/restart cleanup", () => {
       expect(inspectPortUsage).not.toHaveBeenCalled();
       expect(killProcessTree).not.toHaveBeenCalled();
       expect(schtasksCalls).toEqual([
-        ["/Query"],
         ["/Query", "/TN", "OpenClaw Node"],
         ["/End", "/TN", "OpenClaw Node"],
       ]);
@@ -202,7 +201,7 @@ describe("Scheduled Task stop/restart cleanup", () => {
       });
 
       expect(findVerifiedGatewayListenerPidsOnPortSync).toHaveBeenCalledWith(GATEWAY_PORT);
-      expectGatewayTermination(5151);
+      expectRestartGatewayTermination(5151);
       expect(inspectPortUsage).toHaveBeenCalledTimes(2);
       expect(schtasksCalls).toEqual([
         ["/Query"],

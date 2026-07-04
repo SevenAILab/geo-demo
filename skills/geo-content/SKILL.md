@@ -38,8 +38,8 @@ description: 基于品牌事实生成 GEO-native 内容资产列表（文章、F
       "scoreTone": "good"
     }
   ],
-  "brandVoice": "authoritative, transparent, precise",
-  "constraints": "no jargon, max 3 sentences per paragraph"
+  "brandVoice": "权威、透明、精准",
+  "constraints": "避免行话，每段不超过 3 句"
 }
 ```
 
@@ -55,6 +55,11 @@ description: 基于品牌事实生成 GEO-native 内容资产列表（文章、F
 - score 0–100；**scoreTone 仅 `good` 或 `warn`**（禁止 `warning`、`bad` 等变体）
 - 标题应覆盖 gaps 中的 high impact 主题
 - brandVoice、constraints 必须为非空字符串
+
+## 语言
+
+- JSON 中所有面向用户的字符串字段（`assets.title`、`brandVoice`、`constraints`）必须使用**简体中文**
+- 枚举/id 等技术字段（`type`、`scoreTone`、`id`）保持英文
 
 ## references
 
