@@ -1,9 +1,9 @@
 import { html, nothing, svg } from "lit";
 import type { GeoVisibilityTrendPoint } from "../geo-report.ts";
 
-const CHART_WIDTH = 360;
-const CHART_HEIGHT = 180;
-const PADDING = { top: 16, right: 16, bottom: 36, left: 48 };
+const CHART_WIDTH = 320;
+const CHART_HEIGHT = 140;
+const PADDING = { top: 10, right: 12, bottom: 28, left: 44 };
 const AXIS_FILL = "#94a3b8";
 const GRID_STROKE = "#e2e8f0";
 
@@ -11,7 +11,7 @@ function computeYDomain(values: number[]): { min: number; max: number } {
   const dataMin = Math.min(...values);
   const dataMax = Math.max(...values);
   const span = dataMax - dataMin || 4;
-  const pad = span * 0.14;
+  const pad = span * 0.08;
   return { min: dataMin - pad, max: dataMax + pad };
 }
 
@@ -85,6 +85,7 @@ export function renderVisibilityTrendChart(
       <svg
         class="geo-assessment-v2__chart-svg"
         viewBox="0 0 ${CHART_WIDTH} ${CHART_HEIGHT}"
+        preserveAspectRatio="xMidYMid meet"
         overflow="visible"
         aria-hidden="true"
       >
@@ -107,7 +108,7 @@ export function renderVisibilityTrendChart(
                 y="${y + 4}"
                 text-anchor="end"
                 fill="${AXIS_FILL}"
-                font-size="11"
+                font-size="10"
               >
                 ${formatTickLabel(tick)}
               </text>
@@ -120,10 +121,10 @@ export function renderVisibilityTrendChart(
               <text
                 class="geo-assessment-v2__chart-date"
                 x="${x}"
-                y="${CHART_HEIGHT - 8}"
+                y="${CHART_HEIGHT - 6}"
                 text-anchor="middle"
                 fill="${AXIS_FILL}"
-                font-size="11"
+                font-size="10"
               >
                 ${formatXLabel(point, index)}
               </text>

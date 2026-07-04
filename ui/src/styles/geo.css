@@ -2437,10 +2437,17 @@
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   gap: 24px;
+  align-items: stretch;
+}
+
+.geo-assessment-v2__industry-chart {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
 }
 
 .geo-assessment-v2__section-title {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 14px;
   font-weight: 700;
   color: #334155;
@@ -2449,27 +2456,29 @@
 .geo-assessment-v2__chart-wrap {
   display: grid;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .geo-assessment-v2__chart-value {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 4px;
 }
 
 .geo-assessment-v2__chart-value strong {
-  font-size: 28px;
+  font-size: 24px;
   color: #0f172a;
 }
 
 .geo-assessment-v2__chart-delta {
   color: #94a3b8;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .geo-assessment-v2__chart-svg {
+  display: block;
   width: 100%;
-  max-width: 420px;
   height: auto;
   overflow: visible;
 }
@@ -2482,13 +2491,13 @@
 .geo-assessment-v2__chart-axis,
 .geo-assessment-v2__chart-date {
   fill: #94a3b8;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .geo-assessment-v2__chart-line {
   fill: none;
   stroke: #7c3aed;
-  stroke-width: 2.5;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -2500,8 +2509,8 @@
 .geo-assessment-v2__chart-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 0;
 }
 
 .geo-assessment-v2__legend-item {
