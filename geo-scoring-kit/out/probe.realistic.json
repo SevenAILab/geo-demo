@@ -1,0 +1,10 @@
+[
+  { "q": "best SEO tool for backlink analysis", "model": "claude", "run": 1, "mentioned": true,  "rank": 1,    "stance": "rec",     "competitors_hit": ["Semrush","Moz"] },
+  { "q": "best SEO tool for backlink analysis", "model": "claude", "run": 2, "mentioned": true,  "rank": 2,    "stance": "rec",     "competitors_hit": ["Semrush"] },
+  { "q": "best SEO tool for backlink analysis", "model": "gpt-4o", "run": 1, "mentioned": true,  "rank": 1,    "stance": "rec",     "competitors_hit": ["Semrush","Moz"] },
+  { "q": "best SEO tool for backlink analysis", "model": "gpt-4o", "run": 2, "mentioned": false, "rank": null, "stance": "neutral", "competitors_hit": ["Semrush","Moz"] },
+  { "q": "top tools to track keyword rankings",  "model": "claude", "run": 1, "mentioned": true,  "rank": 3,    "stance": "neutral", "competitors_hit": ["Semrush"] },
+  { "q": "top tools to track keyword rankings",  "model": "claude", "run": 2, "mentioned": false, "rank": null, "stance": "neutral", "competitors_hit": ["Semrush","Moz"] },
+  { "q": "top tools to track keyword rankings",  "model": "gpt-4o", "run": 1, "mentioned": false, "rank": null, "stance": "neutral", "competitors_hit": ["Semrush"] },
+  { "q": "top tools to track keyword rankings",  "model": "gpt-4o", "run": 2, "mentioned": true,  "rank": 2,    "stance": "rec",     "competitors_hit": [] }
+]
