@@ -36,6 +36,14 @@ const METRIC_ICONS: Record<GeoReportMetricId, TemplateResult> = {
   aiResponse: icons.activity,
 };
 
+const METRIC_DISPLAY_LABELS: Record<GeoReportMetricId, string> = {
+  schema: "技术架构",
+  entity: "声音份额",
+  aiResponse: "情绪指数",
+};
+
+const METRIC_DISPLAY_ORDER: readonly GeoReportMetricId[] = ["entity", "schema", "aiResponse"];
+
 function scoreToneClass(score: number): string {
   if (score <= 50) {
     return "geo-assessment-v2__score--low";
@@ -56,10 +64,8 @@ function metricBarToneClass(value: number): string {
   return "geo-assessment-v2__metric-fill--high";
 }
 
-function metricDisplayLabel(id: GeoReportMetricId, fallback: string): string {
-  const key = `geo.assessment.metricLabels.${id}`;
-  const label = t(key);
-  return label === key ? fallback : label;
+function metricDisplayLabel(id: GeoReportMetricId): string {
+  return METRIC_DISPLAY_LABELS[id];
 }
 
 function renderScoreRing(score: number, toneClass: string) {
@@ -92,7 +98,9 @@ function renderScoreCard(report: GeoReport) {
         </div>
       </div>
       <div class="geo-assessment-v2__warning" role="status">
-        <span class="geo-assessment-v2__warning-icon" aria-hidden="true">${icons.alertTriangle}</span>
+        <span class="geo-assessment-v2__warning-icon" aria-hidden="true"
+          >${icons.alertTriangle}</span
+        >
         ${t("geo.assessment.highRiskWarning", { count: String(report.gaps.length) })}
       </div>
     </section>
@@ -105,7 +113,11 @@ function renderAdvantagesCard(report: GeoReport, canFix: boolean, onFixGaps: () 
       <h2 class="geo-assessment-v2__card-title">${t("geo.assessment.coreAdvantagesTitle")}</h2>
       <p class="geo-assessment-v2__advantages-text">${report.summary}</p>
       <div class="geo-assessment-v2__advantages-actions">
-        <button type="button" class="geo-assessment-v2__btn geo-assessment-v2__btn--secondary" disabled>
+        <button
+          type="button"
+          class="geo-assessment-v2__btn geo-assessment-v2__btn--secondary"
+          disabled
+        >
           ${icons.download} ${t("geo.analysis.exportReport")}
         </button>
         <button
@@ -128,11 +140,14 @@ function renderMetricCard(metric: GeoReportMetric) {
     <article class="geo-assessment-v2__card geo-assessment-v2__metric-card">
       <div class="geo-assessment-v2__metric-head">
         <span class="geo-assessment-v2__metric-icon" aria-hidden="true">${icon}</span>
-        <span class="geo-assessment-v2__metric-label">${metricDisplayLabel(metric.id, metric.label)}</span>
+        <span class="geo-assessment-v2__metric-label">${metricDisplayLabel(metric.id)}</span>
         <strong class="geo-assessment-v2__metric-value">${metric.value}%</strong>
       </div>
       <div class="geo-assessment-v2__metric-bar" aria-hidden="true">
-        <span class="geo-assessment-v2__metric-fill ${fillClass}" style="width: ${metric.value}%"></span>
+        <span
+          class="geo-assessment-v2__metric-fill ${fillClass}"
+          style="width: ${metric.value}%"
+        ></span>
       </div>
       <p class="geo-assessment-v2__metric-status">${metric.statusLabel}</p>
     </article>
@@ -140,9 +155,12 @@ function renderMetricCard(metric: GeoReportMetric) {
 }
 
 function renderMetricCards(metrics: GeoReportMetric[]) {
+  const sortedMetrics = [...metrics].sort(
+    (a, b) => METRIC_DISPLAY_ORDER.indexOf(a.id) - METRIC_DISPLAY_ORDER.indexOf(b.id),
+  );
   return html`
     <div class="geo-assessment-v2__metrics-row">
-      ${metrics.map((metric) => renderMetricCard(metric))}
+      ${sortedMetrics.map((metric) => renderMetricCard(metric))}
     </div>
   `;
 }
@@ -162,7 +180,9 @@ function renderIndustrySection(report: GeoReport) {
       </header>
       <div class="geo-assessment-v2__industry-body">
         <div class="geo-assessment-v2__industry-chart">
-          <h3 class="geo-assessment-v2__section-title">${t("geo.assessment.historicalVisibility")}</h3>
+          <h3 class="geo-assessment-v2__section-title">
+            ${t("geo.assessment.historicalVisibility")}
+          </h3>
           ${renderVisibilityTrendChart(industryAnalysis.trend, industryAnalysis.currentVisibility)}
           <div class="geo-assessment-v2__chart-legend">
             <label class="geo-assessment-v2__legend-item geo-assessment-v2__legend-item--active">
@@ -191,7 +211,9 @@ function renderIndustrySection(report: GeoReport) {
                     <span class="geo-assessment-v2__ranking-badge">${item.initial}</span>
                     <span>${item.name}</span>
                     ${item.owned
-                      ? html`<span class="geo-assessment-v2__owned-tag">${t("geo.assessment.ownedTag")}</span>`
+                      ? html`<span class="geo-assessment-v2__owned-tag"
+                          >${t("geo.assessment.ownedTag")}</span
+                        >`
                       : nothing}
                   </span>
                   <span class="geo-assessment-v2__ranking-score">${item.score}%</span>
@@ -200,8 +222,12 @@ function renderIndustrySection(report: GeoReport) {
             )}
             <div class="geo-assessment-v2__ranking-row geo-assessment-v2__ranking-row--custom">
               <span class="geo-assessment-v2__ranking-asset">
-                <span class="geo-assessment-v2__ranking-index">${industryAnalysis.rankings.length + 1}</span>
-                <span class="geo-assessment-v2__ranking-custom">${t("geo.assessment.customCompetitor")}</span>
+                <span class="geo-assessment-v2__ranking-index"
+                  >${industryAnalysis.rankings.length + 1}</span
+                >
+                <span class="geo-assessment-v2__ranking-custom"
+                  >${t("geo.assessment.customCompetitor")}</span
+                >
               </span>
               <span class="geo-assessment-v2__ranking-score">
                 <span class="geo-assessment-v2__ranking-empty"></span>
@@ -264,7 +290,9 @@ function renderReportSkeleton() {
         </div>
       </div>
       <div class="geo-assessment-v2__metrics-row">
-        ${[0, 1, 2].map(() => html`<div class="geo-assessment-v2__card geo-skeleton geo-skeleton__metric"></div>`)}
+        ${[0, 1, 2].map(
+          () => html`<div class="geo-assessment-v2__card geo-skeleton geo-skeleton__metric"></div>`,
+        )}
       </div>
       <div class="geo-assessment-v2__card geo-skeleton geo-skeleton__industry"></div>
     </div>
@@ -276,11 +304,9 @@ function renderReportContent(report: GeoReport, canFix: boolean, onFixGaps: () =
     <div class="geo-assessment-v2">
       <h1 class="geo-assessment-v2__title">${t("geo.assessment.pageTitle")}</h1>
       <div class="geo-assessment-v2__top-row">
-        ${renderScoreCard(report)}
-        ${renderAdvantagesCard(report, canFix, onFixGaps)}
+        ${renderScoreCard(report)} ${renderAdvantagesCard(report, canFix, onFixGaps)}
       </div>
-      ${renderMetricCards(report.metrics)}
-      ${renderIndustrySection(report)}
+      ${renderMetricCards(report.metrics)} ${renderIndustrySection(report)}
       ${renderGapsCollapsible(report.gaps)}
     </div>
   `;
