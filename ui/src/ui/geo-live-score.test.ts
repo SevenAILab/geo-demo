@@ -22,12 +22,21 @@ describe("scorecardToGeoReport", () => {
     expect(r.totalScore).toBe(71);
     expect(r.rating).toBe("moderate"); // grade C
     expect(r.metrics.map((m) => m.id)).toEqual(["schema", "entity", "aiResponse"]);
-    // 无实测 → aiResponse 用 on-page ai_citability
+    // 技术架构 = 技术层分
+    expect(r.metrics[0].label).toBe("技术架构");
+    expect(r.metrics[0].value).toBe(87); // round(86.91)
+    // 声音贡献 = 内容层(品牌)分
+    expect(r.metrics[1].label).toBe("声音贡献");
+    expect(r.metrics[1].value).toBe(63); // round(62.6)
+    // 无实测 → AI 可见性用 on-page ai_citability
+    expect(r.metrics[2].label).toBe("AI 可见性");
     expect(r.metrics[2].value).toBe(61);
     expect(r.metrics[2].statusLabel).toContain("未接实测");
     // 红线缺口 → high 优先
     expect(r.gaps[0].impact).toBe("high");
     expect(r.summary).toContain("Acme");
+    expect(r.summary).toContain("技术分 87");
+    expect(r.summary).toContain("品牌分 63");
   });
 
   it("uses measured MR/SoV for aiResponse when probe ran", () => {
