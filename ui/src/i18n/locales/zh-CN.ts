@@ -568,7 +568,7 @@ export const zh_CN: TranslationMap = {
       chartConfig: "图表配置",
       historicalVisibility: "历史搜索可见度排行",
       visibilityRanking: "可见度得分排名",
-      yourRanking: "#暂无 - 您的排名",
+      yourRanking: "暂无 - 您的排名",
       ownedTag: "拥有",
       customCompetitor: "自定义竞品",
       gapsToggle: "关键结构缺口分析 ({count})",

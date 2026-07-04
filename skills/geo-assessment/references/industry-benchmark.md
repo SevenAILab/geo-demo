@@ -27,7 +27,7 @@
 
 ## yourRanking
 
-- 若 owned 条目不在 TOP 内或分数偏低：`#暂无 - 您的排名`
+- 若 owned 条目不在 TOP 内或分数偏低：`暂无 - 您的排名`
 - 若可估算排名：`#N - 您的排名`（N 为正整数）
 
 ## currentVisibility

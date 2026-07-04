@@ -56,7 +56,7 @@
   ],
   "industryAnalysis": {
     "currentVisibility": 68,
-    "yourRanking": "#暂无 - 您的排名",
+    "yourRanking": "暂无 - 您的排名",
     "trend": [
       { "date": "3/24", "value": 42 },
       { "date": "5/24", "value": 55 },

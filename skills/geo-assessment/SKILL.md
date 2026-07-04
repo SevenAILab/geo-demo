@@ -32,7 +32,7 @@ description: 对独立站做 GEO（Generative Engine Optimization）体检，评
   "gaps": [{ "id": "gap-01", "title": "缺口标题", "impact": "high", "description": "缺口说明" }],
   "industryAnalysis": {
     "currentVisibility": 53.7,
-    "yourRanking": "#暂无 - 您的排名",
+    "yourRanking": "暂无 - 您的排名",
     "trend": [
       { "date": "9/21", "value": 45.2 },
       { "date": "9/26", "value": 53.7 }

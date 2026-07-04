@@ -2444,7 +2444,7 @@
   --geo-chart-title-size: 13px;
   --geo-chart-value-size: 22px;
   --geo-chart-meta-size: 11px;
-  --geo-chart-axis-size: 7.7px;
+  --geo-chart-axis-size: 5px;
   display: grid;
   gap: 8px;
   min-width: 0;

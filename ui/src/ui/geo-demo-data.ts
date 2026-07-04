@@ -61,7 +61,7 @@ export function createDemoGeoReport(siteUrl: string): GeoReport {
     ],
     industryAnalysis: {
       currentVisibility,
-      yourRanking: "#暂无 - 您的排名",
+      yourRanking: "暂无 - 您的排名",
       trend: [
         { date: "9/21", value: 35.2 },
         { date: "9/22", value: 37.6 },

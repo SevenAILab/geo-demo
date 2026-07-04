@@ -1,0 +1,80 @@
+{
+  "totalScore": 70,
+  "rating": "moderate",
+  "summary": "Merlord 在结构化数据方面表现优秀（Organization/Product/FAQ/BlogPosting 全量 JSON-LD），llms.txt 和 Agent API Manifest 使其对 AI 代理非常友好。但纯 SPA 客户端渲染让非 JS AI 爬虫无法读取主体内容，缺乏 sameAs 社交链接和 LocalBusiness 等本地 Schema，限制了实体连通性和本地 AI 可见度。",
+  "metrics": [
+    {
+      "id": "schema",
+      "label": "Schema.org",
+      "value": 75,
+      "statusLabel": "全量 JSON-LD 结构，覆盖 Organization、WebSite、Product、BlogPosting、BreadcrumbList、FAQPage。但缺少 sameAs、LocalBusiness 和 Review 类型。"
+    },
+    {
+      "id": "entity",
+      "label": "实体连通性",
+      "value": 70,
+      "statusLabel": "品牌名、联系信息、产品 SKU 在页面和 JSON-LD 中高度一致，Organization @id 跨页面复用良好。但无社交媒体 sameAs 链接，无外部权威引用，无竞品对比。"
+    },
+    {
+      "id": "aiResponse",
+      "label": "AI 响应",
+      "value": 65,
+      "statusLabel": "llms.txt 内容丰富（产品目录、购买指南、FAQ、API），Agent API Manifest 和 MCP 支持出色。但纯 SPA 渲染导致内容在服务器端 HTML 中不可见，AI 爬虫需执行 JS 才能读取正文。"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-01",
+      "title": "纯 SPA 客户端渲染阻碍 AI 爬虫抓取正文内容",
+      "impact": "high",
+      "description": "首页及所有子页面（FAQ、Inspiration、About）均为 React SPA，服务器返回的是仅有 <div id=\"root\"></div> 的空壳 HTML。主流 AI 爬虫（如 OpenAI GPTBot、Google-Extended）若不做 JS 渲染将完全看不到购买指南、产品描述、FAQ 答案等核心内容，仅能读取 meta 标签和 JSON-LD。"
+    },
+    {
+      "id": "gap-02",
+      "title": "缺少社交媒体 sameAs 链接和社交图谱",
+      "impact": "high",
+      "description": "Organization JSON-LD 中未包含 sameAs 属性，页面上也未放置 Instagram、Pinterest、Houzz 或 YouTube 等社交链接。AI 实体识别将无法构建 Merlord 的品牌社交图谱，降低跨平台引用概率。"
+    },
+    {
+      "id": "gap-03",
+      "title": "缺少 LocalBusiness Schema 限制本地 AI 可见度",
+      "impact": "medium",
+      "description": "已使用 Organization 但未扩展为 LocalBusiness。对于「淋浴门安装 加州」「frameless shower doors Walnut」等本地化 AI 查询，缺少 LocalBusiness + GeoCoordinates 将削弱 AI 在地理相关回答中推荐 Merlord 的概率。"
+    },
+    {
+      "id": "gap-04",
+      "title": "产品页缺少 Review/Rating 和聚合评分 Schema",
+      "impact": "medium",
+      "description": "Product 页面已有完整 offers 和 shippingDetails，但缺少 AggregateRating 和 Review JSON-LD。AI 在回答「best frameless shower door」类问题时，会优先引用含评分 Schema 的产品。"
+    },
+    {
+      "id": "gap-05",
+      "title": "文章页仅靠 SPA 渲染，缺少 Article body 服务器端兜底",
+      "impact": "medium",
+      "description": "BlogPosting JSON-LD 没有 articleBody 属性，真正的文章正文仅通过 JS 在客户端渲染。如果 AI 爬虫不执行 JS，只能拿到 headline 和 description，无法引用正文中的规格对比和安装指导等原创内容。"
+    },
+    {
+      "id": "gap-06",
+      "title": "llms.txt 缺少核心页面中文档级结构化摘要",
+      "impact": "low",
+      "description": "llms.txt 提供了丰富的 URL 列表，但未为 FAQ、购买指南等关键页面提供机器可读的摘要或关键事实点，留不住仅访问 llms.txt 的轻量 AI 代理。"
+    }
+  ],
+  "industryAnalysis": {
+    "currentVisibility": 70.0,
+    "yourRanking": "暂无 - 您的排名",
+    "trend": [
+      { "date": "1/24", "value": 25.0 },
+      { "date": "3/26", "value": 42.0 },
+      { "date": "5/26", "value": 58.0 },
+      { "date": "7/26", "value": 70.0 }
+    ],
+    "rankings": [
+      { "id": "dreamline", "initial": "D", "name": "DreamLine", "score": 82.5, "owned": false },
+      { "id": "basco", "initial": "B", "name": "Basco", "score": 76.0, "owned": false },
+      { "id": "vigo", "initial": "V", "name": "Vigo", "score": 72.3, "owned": false },
+      { "id": "merlord", "initial": "M", "name": "Merlord", "score": 70.0, "owned": true },
+      { "id": "ove", "initial": "O", "name": "OVE Decors", "score": 68.5, "owned": false }
+    ]
+  }
+}
