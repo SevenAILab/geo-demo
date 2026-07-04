@@ -1,0 +1,74 @@
+{
+  "totalScore": 72,
+  "rating": "moderate",
+  "summary": "Merlord 已具备良好的 GEO 基础：完整的 Organization/Product/BlogPosting/FAQPage JSON-LD、出色的 llms.txt 和 AI Agent Manifest，内容质量高、FAQ 覆盖真实买家问题。核心短板在于 SPA 纯客户端渲染导致 AI 爬虫获取正文困难、缺少同站实体连通（sameAs/社交图谱）、产品页缺少 Review 和 AggregateRating 模式、以及服务/保修页与首页共用 title 和 description，产生 SEO 内容竞争。",
+  "metrics": [
+    {
+      "id": "schema",
+      "label": "Schema.org",
+      "value": 82,
+      "statusLabel": "JSON-LD 覆盖全面（Organization、WebSite、Product、BlogPosting、FAQPage、BreadcrumbList），但缺少 sameAs 社交链接、LocalBusiness 子类型、Review/AggregateRating"
+    },
+    {
+      "id": "entity",
+      "label": "实体连通性",
+      "value": 65,
+      "statusLabel": "品牌名和产品名一致性好，有高质量内容体系（指南+FAQ+llms.txt+Agent API），但 SPA 架构使多数正文对 AI 爬虫不可见，缺少社交图谱 sameAs 与外链实体验证"
+    },
+    {
+      "id": "aiResponse",
+      "label": "AI 响应",
+      "value": 68,
+      "statusLabel": "llms.txt 极其完整、有 MCP 接口和 Agent Manifest，FAQ 覆盖真实买家疑问，内容可引用性强；但 SPA 客户端渲染导致纯 JS 页面中的正文对 AI 爬虫隐藏"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-01",
+      "title": "SPA 客户端渲染导致正文对 AI 爬虫不可见",
+      "impact": "high",
+      "description": "React SPA 架构下，所有页面的实际内容（about、services、warranty、products、articles 正文）均由 JavaScript 渲染。AI 爬虫和生成引擎若未执行 JS，只能看到空白的 <div id='root'>，无法引用站点的核心信息和品牌价值主张。"
+    },
+    {
+      "id": "gap-02",
+      "title": "缺少 sameAs 社交图谱与外链实体验证",
+      "impact": "high",
+      "description": "Organization JSON-LD 中未包含 sameAs 字段，没有链接到 Instagram、Pinterest、Houzz 等家居类社交平台。AI 引擎无法在外部知识图谱中将 Merlord 与其社交资产关联，削弱品牌实体的可信度和可验证性。"
+    },
+    {
+      "id": "gap-03",
+      "title": "产品页缺少 Reviews/AggregateRating 模式",
+      "impact": "medium",
+      "description": "Product JSON-LD 中没有 AggregateRating 或 Review 结构。AI 搜索在抽取产品评价摘要时无法获取任何结构化评分数据，相比有评价模式的竞品在 AI 摘要中的表达力降低。"
+    },
+    {
+      "id": "gap-04",
+      "title": "内页（about、warranty、services）与首页共用标题和描述",
+      "impact": "medium",
+      "description": "about、warranty、services、products、inspiration 等内页的 <title> 和 <meta description> 全部与首页完全一致（'Merlord — Premium Frameless Shower Doors'）。AI 爬虫在索引时会认为这些是重复页面，无法区分各自主题，导致内页不被独立收录与引用。"
+    },
+    {
+      "id": "gap-05",
+      "title": "缺少 LocalBusiness Schema 子类型",
+      "impact": "medium",
+      "description": "当前使用 Organization 类型，但 Merlord 有实体地址和本地服务范围（Walnut, CA）。使用 HomeAndConstructionBusiness 或 LocalBusiness 子类型可以让 AI 更准确地将品牌归类为浴室建材商，提高在地化搜索和 AI 推荐的匹配精度。"
+    }
+  ],
+  "industryAnalysis": {
+    "currentVisibility": 68,
+    "yourRanking": "#暂无 - 您的排名",
+    "trend": [
+      { "date": "3/24", "value": 42 },
+      { "date": "5/24", "value": 55 },
+      { "date": "6/24", "value": 68 }
+    ],
+    "rankings": [
+      { "id": "delta", "initial": "D", "name": "Delta Shower Doors", "score": 85, "owned": false },
+      { "id": "dreamline", "initial": "D", "name": "Dreamline（美标）", "score": 78, "owned": false },
+      { "id": "swann", "initial": "S", "name": "Swann（Moen 旗下）", "score": 76, "owned": false },
+      { "id": "vigo", "initial": "V", "name": "Vigo Industries", "score": 72, "owned": false },
+      { "id": "merlord", "initial": "M", "name": "Merlord", "score": 68, "owned": true },
+      { "id": "fpn", "initial": "F", "name": "Frameless Pivot Niche 新锐品牌", "score": 62, "owned": false }
+    ]
+  }
+}
