@@ -1751,54 +1751,78 @@ async function agentCommandInternal(
               provider: providerOverride,
               model: modelOverride,
             });
-            return attemptExecutionRuntime.runAgentAttempt({
+            // openclaw 对话计时：每次真实的模型尝试（含 fallback 重试各算一次）
+            // 打一对结构化开始/结束日志，便于在 gateway 服务里分析调用耗时。
+            // 与外部大模型调用（geo-scoring-kit）保持同一 [llm-call] 格式。
+            const llmCallLabel = `id=${runId} kind=openclaw provider=${sanitizeForLog(
               providerOverride,
-              modelOverride,
-              modelFallbacksOverride: effectiveFallbacksOverride,
-              originalProvider: provider,
-              cfg,
-              sessionEntry: attemptSessionEntry,
-              sessionId,
-              sessionKey,
-              sessionAgentId,
-              sessionFile: attemptSessionFile,
-              workspaceDir,
-              cwd,
-              body,
-              isFallbackRetry,
-              resolvedThinkLevel,
-              fastMode: resolveFastModeState({
+            )} model=${sanitizeForLog(modelOverride)} attempt=${fallbackAttemptIndex}`;
+            const llmCallStartedAt = Date.now();
+            log.info(`[llm-call] START ${llmCallLabel}`);
+            try {
+              const attemptResult = await attemptExecutionRuntime.runAgentAttempt({
+                providerOverride,
+                modelOverride,
+                modelFallbacksOverride: effectiveFallbacksOverride,
+                originalProvider: provider,
                 cfg,
-                provider: providerOverride,
-                model: modelOverride,
-                agentId: sessionAgentId,
-                sessionEntry,
-              }).enabled,
-              timeoutMs,
-              runId,
-              opts,
-              runContext,
-              spawnedBy,
-              messageChannel,
-              skillsSnapshot,
-              resolvedVerboseLevel,
-              agentDir,
-              authProfileProvider: providerForAuthProfileValidation,
-              sessionStore: suppressVisibleSessionEffects ? undefined : sessionStore,
-              storePath: suppressVisibleSessionEffects ? undefined : storePath,
-              pluginsEnabled,
-              ...(manifestMetadataSnapshot ? { metadataSnapshot: manifestMetadataSnapshot } : {}),
-              allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
-              sessionHasHistory:
-                !isNewSession ||
-                (await attemptExecutionRuntime.sessionFileHasContent(attemptSessionFile)),
-              suppressPromptPersistenceOnRetry:
-                opts.suppressPromptPersistence === true ||
-                (isFallbackRetry && attemptLifecycleState.currentTurnUserMessagePersisted),
-              onUserMessagePersisted: attemptLifecycleCallbacks.onUserMessagePersisted,
-              onAgentEvent: attemptLifecycleCallbacks.onAgentEvent,
-              deferTerminalLifecycleEnd: true,
-            });
+                sessionEntry: attemptSessionEntry,
+                sessionId,
+                sessionKey,
+                sessionAgentId,
+                sessionFile: attemptSessionFile,
+                workspaceDir,
+                cwd,
+                body,
+                isFallbackRetry,
+                resolvedThinkLevel,
+                fastMode: resolveFastModeState({
+                  cfg,
+                  provider: providerOverride,
+                  model: modelOverride,
+                  agentId: sessionAgentId,
+                  sessionEntry,
+                }).enabled,
+                timeoutMs,
+                runId,
+                opts,
+                runContext,
+                spawnedBy,
+                messageChannel,
+                skillsSnapshot,
+                resolvedVerboseLevel,
+                agentDir,
+                authProfileProvider: providerForAuthProfileValidation,
+                sessionStore: suppressVisibleSessionEffects ? undefined : sessionStore,
+                storePath: suppressVisibleSessionEffects ? undefined : storePath,
+                pluginsEnabled,
+                ...(manifestMetadataSnapshot ? { metadataSnapshot: manifestMetadataSnapshot } : {}),
+                allowTransientCooldownProbe: runOptions?.allowTransientCooldownProbe,
+                sessionHasHistory:
+                  !isNewSession ||
+                  (await attemptExecutionRuntime.sessionFileHasContent(attemptSessionFile)),
+                suppressPromptPersistenceOnRetry:
+                  opts.suppressPromptPersistence === true ||
+                  (isFallbackRetry && attemptLifecycleState.currentTurnUserMessagePersisted),
+                onUserMessagePersisted: attemptLifecycleCallbacks.onUserMessagePersisted,
+                onAgentEvent: attemptLifecycleCallbacks.onAgentEvent,
+                deferTerminalLifecycleEnd: true,
+              });
+              log.info(
+                `[llm-call] END ${llmCallLabel} duration=${Date.now() - llmCallStartedAt}ms ok=true`,
+              );
+              return attemptResult;
+            } catch (llmCallError) {
+              log.warn(
+                `[llm-call] END ${llmCallLabel} duration=${Date.now() - llmCallStartedAt}ms ok=false error=${sanitizeForLog(
+                  String(
+                    (llmCallError as { message?: unknown } | null | undefined)?.message ??
+                      llmCallError,
+                  ),
+                )}`,
+              );
+              throw llmCallError;
+            }
           },
         });
         result = fallbackResult.result;

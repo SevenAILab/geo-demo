@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { logLlmCall } from "./call-log.mjs";
 
 function requireEnv(name) {
   const value = process.env[name];
@@ -48,18 +49,24 @@ async function callOpenAICompatible(systemPrompt, userPrompt, opts = {}) {
 }
 
 export async function callOpenAI(systemPrompt, userPrompt, opts = {}) {
-  return callOpenAICompatible(systemPrompt, userPrompt, {
-    ...opts,
-    model: opts.model || "gpt-4o",
-    envKey: "OPENAI_API_KEY",
-  });
+  const model = opts.model || "gpt-4o";
+  const run = () =>
+    callOpenAICompatible(systemPrompt, userPrompt, {
+      ...opts,
+      model,
+      envKey: "OPENAI_API_KEY",
+    });
+  return opts.dryRun ? run() : logLlmCall({ provider: "openai", model }, run);
 }
 
 export async function callDeepSeek(systemPrompt, userPrompt, opts = {}) {
-  return callOpenAICompatible(systemPrompt, userPrompt, {
-    ...opts,
-    model: opts.model || "deepseek-chat",
-    envKey: "DEEPSEEK_API_KEY",
-    baseURL: opts.baseURL || "https://api.deepseek.com",
-  });
+  const model = opts.model || "deepseek-chat";
+  const run = () =>
+    callOpenAICompatible(systemPrompt, userPrompt, {
+      ...opts,
+      model,
+      envKey: "DEEPSEEK_API_KEY",
+      baseURL: opts.baseURL || "https://api.deepseek.com",
+    });
+  return opts.dryRun ? run() : logLlmCall({ provider: "deepseek", model }, run);
 }

@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import "dotenv/config";
+import { logLlmCall } from "./call-log.mjs";
 
 export const DEFAULT_CLAUDE_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5-20250929";
 
@@ -227,26 +228,36 @@ export async function callClaude(systemPromptOrArgs, userPrompt, opts = {}) {
   if (normalized.opts.dryRun)
     return dryRunResponse(normalized.systemPrompt, normalized.userPrompt, model);
 
-  return withTransientLLMRetry(
-    async () => {
-      const wireApi = getWireApi(normalized.opts);
-      if (wireApi === "responses") {
-        return callOpenAIResponses(normalized.systemPrompt, normalized.userPrompt, normalized.opts);
-      }
-      if (wireApi === "chat_completions" || wireApi === "chat-completions") {
-        return callOpenAIChatCompletions(
+  return logLlmCall({ provider: "claude", model }, () =>
+    withTransientLLMRetry(
+      async () => {
+        const wireApi = getWireApi(normalized.opts);
+        if (wireApi === "responses") {
+          return callOpenAIResponses(
+            normalized.systemPrompt,
+            normalized.userPrompt,
+            normalized.opts,
+          );
+        }
+        if (wireApi === "chat_completions" || wireApi === "chat-completions") {
+          return callOpenAIChatCompletions(
+            normalized.systemPrompt,
+            normalized.userPrompt,
+            normalized.opts,
+          );
+        }
+
+        return callAnthropicMessages(
           normalized.systemPrompt,
           normalized.userPrompt,
           normalized.opts,
         );
-      }
-
-      return callAnthropicMessages(normalized.systemPrompt, normalized.userPrompt, normalized.opts);
-    },
-    {
-      maxAttempts: normalized.opts.retryAttempts ?? normalized.opts.llmRetryAttempts,
-      baseDelayMs: normalized.opts.retryDelayMs ?? normalized.opts.llmRetryDelayMs,
-      onRetry: normalized.opts.onRetry,
-    },
+      },
+      {
+        maxAttempts: normalized.opts.retryAttempts ?? normalized.opts.llmRetryAttempts,
+        baseDelayMs: normalized.opts.retryDelayMs ?? normalized.opts.llmRetryDelayMs,
+        onRetry: normalized.opts.onRetry,
+      },
+    ),
   );
 }
