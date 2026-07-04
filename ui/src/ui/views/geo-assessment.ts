@@ -148,9 +148,6 @@ export function renderGeoAssessment(props: GeoAssessmentProps) {
       </div>
       <div class="geo-assessment__header-actions geo-page__header-actions">
         <button type="button" class="btn btn--sm" @click=${props.onBack}>${t("geo.back")}</button>
-        // <button type="button" class="btn btn--sm" @click=${props.onExitToConsole}>
-        //   ${t("geo.backToConsole")}
-        // </button>
         <button type="button" class="btn btn--sm" disabled>
           ${icons.download} ${t("geo.analysis.exportReport")}
         </button>
