@@ -3,7 +3,8 @@
     "mode": "local",
     "controlUi": {
       "geoDevSkipSkillWait": false,
-      "geoPersistHistory": true
+      "geoPersistHistory": true,
+      "geoOnly": true
     }
   }
 }

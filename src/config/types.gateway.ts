@@ -134,6 +134,8 @@ export type GatewayControlUiConfig = {
   geoDevSkipSkillWait?: boolean;
   /** Persist GEO demo chat history client-side so a prior session can be resumed on re-entry. */
   geoPersistHistory?: boolean;
+  /** Restrict Control UI navigation to the GEO demo tab only. */
+  geoOnly?: boolean;
   /** Allowed browser origins for Control UI/WebChat websocket connections. */
   allowedOrigins?: string[];
   /**

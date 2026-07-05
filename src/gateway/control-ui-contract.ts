@@ -17,4 +17,5 @@ export type ControlUiBootstrapConfig = {
   chatMessageMaxWidth?: string;
   geoDevSkipSkillWait?: boolean;
   geoPersistHistory?: boolean;
+  geoOnly?: boolean;
 };

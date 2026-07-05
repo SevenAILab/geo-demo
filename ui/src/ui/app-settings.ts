@@ -105,6 +105,7 @@ type SettingsHost = {
   eventLog: unknown[];
   eventLogBuffer: unknown[];
   basePath: string;
+  geoOnly?: boolean;
   agentsList?: AgentsListResult | null;
   selectedAgentId?: string | null;
   agentsSelectedId?: string | null;
@@ -634,7 +635,11 @@ export function syncTabWithLocation(host: SettingsHost, replace: boolean) {
   if (typeof window === "undefined") {
     return;
   }
-  const route = resolveRouteFromPathname(window.location.pathname, host.basePath);
+  const route = resolveRouteFromPathname(
+    window.location.pathname,
+    host.basePath,
+    host.geoOnly === true,
+  );
   setTabFromRoute(host, route.tab);
   if (route.canonicalPathname) {
     const url = new URL(window.location.href);
@@ -650,7 +655,11 @@ export function onPopState(host: SettingsHost) {
   if (typeof window === "undefined") {
     return;
   }
-  const route = resolveRouteFromPathname(window.location.pathname, host.basePath);
+  const route = resolveRouteFromPathname(
+    window.location.pathname,
+    host.basePath,
+    host.geoOnly === true,
+  );
 
   const url = new URL(window.location.href);
   const session = normalizeOptionalString(url.searchParams.get("session"));
@@ -698,6 +707,9 @@ function applyTabSelection(
   next: Tab,
   options: { refreshPolicy: "always" | "connected"; syncUrl?: boolean },
 ) {
+  if (host.geoOnly && next !== "geo") {
+    next = "geo";
+  }
   const prev = host.tab;
   host.tab = next;
   if (prev !== next) {

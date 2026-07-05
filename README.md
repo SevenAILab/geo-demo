@@ -27,10 +27,12 @@ pnpm openclaw config set gateway.bind lan
 pnpm openclaw config set gateway.controlUi.allowInsecureAuth true
 pnpm openclaw config set gateway.controlUi.dangerouslyDisableDeviceAuth true
 pnpm openclaw config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
+pnpm openclaw config set gateway.controlUi.geoOnly true
 pnpm openclaw gateway run
 # 另一终端启动 UI 热重载（默认 http://<本机IP>:5173，例如 http://192.168.43.63:5173）
 pnpm ui:dev
 # 获取带 Token 的连接地址
 pnpm openclaw dashboard --no-open
 
+# geoOnly 开启后仅 /geo 可访问，/chat、/overview 等路径会自动跳回 /geo
 ```

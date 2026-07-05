@@ -88,18 +88,22 @@ function getPaletteBaseItems(): PaletteItem[] {
   ];
 }
 
-function getPaletteItemsInternal(): PaletteItem[] {
+function getPaletteItemsInternal(geoOnly = false): PaletteItem[] {
+  if (geoOnly) {
+    return [];
+  }
   return [...buildSlashPaletteItems(), ...getPaletteBaseItems()];
 }
 
-export function getPaletteItems(): readonly PaletteItem[] {
-  return getPaletteItemsInternal();
+export function getPaletteItems(geoOnly = false): readonly PaletteItem[] {
+  return getPaletteItemsInternal(geoOnly);
 }
 
 export type CommandPaletteProps = {
   open: boolean;
   query: string;
   activeIndex: number;
+  geoOnly?: boolean;
   onToggle: () => void;
   onQueryChange: (query: string) => void;
   onActiveIndexChange: (index: number) => void;
@@ -107,8 +111,8 @@ export type CommandPaletteProps = {
   onSlashCommand: (command: string) => void;
 };
 
-function filteredItems(query: string): PaletteItem[] {
-  const items = getPaletteItemsInternal();
+function filteredItems(query: string, geoOnly = false): PaletteItem[] {
+  const items = getPaletteItemsInternal(geoOnly);
   if (!query) {
     return items;
   }
@@ -120,8 +124,8 @@ function filteredItems(query: string): PaletteItem[] {
   );
 }
 
-export function getFilteredPaletteItems(query: string): readonly PaletteItem[] {
-  return filteredItems(query);
+export function getFilteredPaletteItems(query: string, geoOnly = false): readonly PaletteItem[] {
+  return filteredItems(query, geoOnly);
 }
 
 function groupItems(items: PaletteItem[]): Array<[string, PaletteItem[]]> {
@@ -231,7 +235,7 @@ function handleKeydown(e: KeyboardEvent, props: CommandPaletteProps) {
     return;
   }
 
-  const items = filteredItems(props.query);
+  const items = filteredItems(props.query, props.geoOnly === true);
   if (items.length === 0 && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter")) {
     return;
   }
@@ -319,7 +323,7 @@ export function renderCommandPalette(props: CommandPaletteProps) {
     return nothing;
   }
 
-  const items = filteredItems(props.query);
+  const items = filteredItems(props.query, props.geoOnly === true);
   const grouped = groupItems(items);
   const activeItem = items[props.activeIndex];
   const activeOptionId = activeItem ? getOptionId(activeItem) : nothing;

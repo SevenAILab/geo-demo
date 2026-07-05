@@ -96,6 +96,7 @@ type LifecycleHost = {
   controlUiTabPaintSeq?: number;
   controlUiResponsivenessObserver?: { disconnect: () => void } | null;
   controlUiBootstrapReady?: Promise<void> | null;
+  geoOnly?: boolean;
   popStateHandler: () => void;
   topbarObserver: ResizeObserver | null;
 };
@@ -107,7 +108,11 @@ export function handleConnected(host: LifecycleHost) {
   host.controlUiBootstrapReady = loadControlUiBootstrapConfig(
     host as unknown as Parameters<typeof loadControlUiBootstrapConfig>[0],
     { applyIdentity: false },
-  );
+  ).then(() => {
+    if (host.geoOnly) {
+      syncTabWithLocation(host as unknown as Parameters<typeof syncTabWithLocation>[0], true);
+    }
+  });
   syncTabWithLocation(host as unknown as Parameters<typeof syncTabWithLocation>[0], true);
   const hasPendingGatewaySwitch =
     typeof host.pendingGatewayUrl === "string" && host.pendingGatewayUrl.trim();

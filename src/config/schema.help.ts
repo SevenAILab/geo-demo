@@ -547,6 +547,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Internal development toggle for the GEO demo flow. When true, Control UI skips waiting for GEO agent chat responses and uses built-in demo data instead. Keep false outside local testing.",
   "gateway.controlUi.geoPersistHistory":
     "When true, the GEO demo remembers the last analysis (site URL, phase, and chat session keys) in the browser so re-entering the demo offers to resume it from the stored server-side chat history instead of starting over. Defaults to false.",
+  "gateway.controlUi.geoOnly":
+    "When true, Control UI navigation is restricted to the GEO demo tab. Other routes such as /chat or /overview redirect to /geo.",
   "gateway.controlUi.allowedOrigins":
     'Allowed browser origins for Control UI/WebChat websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback Control UI deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback":

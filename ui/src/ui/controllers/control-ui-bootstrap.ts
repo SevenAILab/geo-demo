@@ -25,6 +25,7 @@ export type ControlUiBootstrapState = {
   chatMessageMaxWidth?: string | null;
   geoDevSkipSkillWait?: boolean;
   geoPersistHistory?: boolean;
+  geoOnly?: boolean;
   sessionKey?: string | null;
   hello?: { auth?: { deviceToken?: string | null } | null } | null;
   settings?: { token?: string | null } | null;
@@ -139,6 +140,7 @@ export async function loadControlUiBootstrapConfig(
         : null;
     state.geoDevSkipSkillWait = parsed.geoDevSkipSkillWait === true;
     state.geoPersistHistory = parsed.geoPersistHistory === true;
+    state.geoOnly = parsed.geoOnly === true;
   } catch {
     // Ignore bootstrap failures; UI will update identity after connecting.
   }

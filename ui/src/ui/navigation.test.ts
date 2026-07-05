@@ -228,6 +228,17 @@ describe("resolveRouteFromPathname", () => {
       canonicalPathname: null,
     });
   });
+
+  it("redirects non-geo paths to /geo when geoOnly is enabled", () => {
+    expect(resolveRouteFromPathname("/chat", "", true)).toEqual({
+      tab: "geo",
+      canonicalPathname: "/geo",
+    });
+    expect(resolveRouteFromPathname("/overview", "", true)).toEqual({
+      tab: "geo",
+      canonicalPathname: "/geo",
+    });
+  });
 });
 
 describe("inferBasePathFromPathname", () => {

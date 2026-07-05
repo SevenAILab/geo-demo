@@ -184,7 +184,26 @@ export type ResolvedRoute = {
   canonicalPathname: string | null;
 };
 
-export function resolveRouteFromPathname(pathname: string, basePath = ""): ResolvedRoute {
+export function isGeoOnlyTab(tab: Tab, geoOnly: boolean): boolean {
+  return geoOnly ? tab === "geo" : true;
+}
+
+export function coerceGeoOnlyRoute(
+  route: ResolvedRoute,
+  basePath: string,
+  geoOnly: boolean,
+): ResolvedRoute {
+  if (!geoOnly || route.tab === "geo") {
+    return route;
+  }
+  return { tab: "geo", canonicalPathname: pathForTab("geo", basePath) };
+}
+
+export function resolveRouteFromPathname(
+  pathname: string,
+  basePath = "",
+  geoOnly = false,
+): ResolvedRoute {
   const tab = tabFromPath(pathname, basePath) ?? "chat";
   const base = normalizeBasePath(basePath);
   let path = pathname || "/";
@@ -199,7 +218,7 @@ export function resolveRouteFromPathname(pathname: string, basePath = ""): Resol
   if (normalized === "/geo/chat" || normalized === "/") {
     return { tab: "geo", canonicalPathname: pathForTab("geo", basePath) };
   }
-  return { tab, canonicalPathname: null };
+  return coerceGeoOnlyRoute({ tab, canonicalPathname: null }, basePath, geoOnly);
 }
 
 export function inferBasePathFromPathname(pathname: string): string {

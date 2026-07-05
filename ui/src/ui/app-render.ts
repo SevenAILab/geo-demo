@@ -2278,7 +2278,11 @@ export function renderApp(state: AppViewState) {
       open: state.paletteOpen,
       query: state.paletteQuery,
       activeIndex: state.paletteActiveIndex,
+      geoOnly: state.geoOnly,
       onToggle: () => {
+        if (state.geoOnly) {
+          return;
+        }
         state.paletteOpen = !state.paletteOpen;
       },
       onQueryChange: (q) => {
@@ -2288,9 +2292,15 @@ export function renderApp(state: AppViewState) {
         state.paletteActiveIndex = i;
       },
       onNavigate: (tab) => {
+        if (state.geoOnly) {
+          return;
+        }
         state.setTab(tab as import("./navigation.ts").Tab);
       },
       onSlashCommand: (cmd) => {
+        if (state.geoOnly) {
+          return;
+        }
         state.setTab("chat" as import("./navigation.ts").Tab);
         state.handleChatDraftChange(cmd.endsWith(" ") ? cmd : `${cmd} `);
       },
@@ -2342,17 +2352,21 @@ export function renderApp(state: AppViewState) {
             ></dashboard-header>
           </div>
           <div class="topnav-shell__actions">
-            <button
-              class="topbar-search"
-              @click=${() => {
-                state.paletteOpen = !state.paletteOpen;
-              }}
-              title=${t("chat.commandPaletteTitle")}
-              aria-label=${t("chat.openCommandPalette")}
-            >
-              <span class="topbar-search__label">${t("common.search")}</span>
-              <kbd class="topbar-search__kbd">⌘K</kbd>
-            </button>
+            ${state.geoOnly
+              ? nothing
+              : html`
+                  <button
+                    class="topbar-search"
+                    @click=${() => {
+                      state.paletteOpen = !state.paletteOpen;
+                    }}
+                    title=${t("chat.commandPaletteTitle")}
+                    aria-label=${t("chat.openCommandPalette")}
+                  >
+                    <span class="topbar-search__label">${t("common.search")}</span>
+                    <kbd class="topbar-search__kbd">⌘K</kbd>
+                  </button>
+                `}
             <div class="topbar-status">${renderTopbarThemeModeToggle(state)}</div>
           </div>
         </div>
@@ -2700,6 +2714,9 @@ export function renderApp(state: AppViewState) {
                   }, 2000);
                 },
                 onExitToConsole: () => {
+                  if (state.geoOnly) {
+                    return;
+                  }
                   state.setTab("overview" as Tab);
                 },
               }),

@@ -103,6 +103,7 @@ export type AppViewState = {
   chatMessageMaxWidth?: string | null;
   geoDevSkipSkillWait: boolean;
   geoPersistHistory: boolean;
+  geoOnly: boolean;
   sessionKey: string;
   chatSessionMessageSubscriptionKey?: string | null;
   chatSessionMessageSubscriptionRequestedKey?: string | null;

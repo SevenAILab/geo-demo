@@ -257,6 +257,7 @@ export class OpenClawApp extends LitElement {
   @state() chatMessageMaxWidth: string | null = null;
   @state() geoDevSkipSkillWait = false;
   @state() geoPersistHistory = false;
+  @state() geoOnly = false;
   @state() serverVersion: string | null = null;
 
   @state() sessionKey = this.settings.sessionKey;
@@ -760,6 +761,9 @@ export class OpenClawApp extends LitElement {
     onPopStateInternal(this as unknown as Parameters<typeof onPopStateInternal>[0]);
   topbarObserver: ResizeObserver | null = null;
   private globalKeydownHandler = (e: KeyboardEvent) => {
+    if (this.geoOnly) {
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === "k") {
       e.preventDefault();
       this.paletteOpen = !this.paletteOpen;

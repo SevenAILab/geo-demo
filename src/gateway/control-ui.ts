@@ -924,6 +924,7 @@ export async function handleControlUiHttpRequest(
       chatMessageMaxWidth: config?.gateway?.controlUi?.chatMessageMaxWidth,
       geoDevSkipSkillWait: config?.gateway?.controlUi?.geoDevSkipSkillWait === true,
       geoPersistHistory: config?.gateway?.controlUi?.geoPersistHistory === true,
+      geoOnly: config?.gateway?.controlUi?.geoOnly === true,
     } satisfies ControlUiBootstrapConfig);
     return true;
   }

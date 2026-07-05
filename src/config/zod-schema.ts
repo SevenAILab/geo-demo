@@ -987,6 +987,7 @@ export const OpenClawSchema = z
               .optional(),
             geoDevSkipSkillWait: z.boolean().optional(),
             geoPersistHistory: z.boolean().optional(),
+            geoOnly: z.boolean().optional(),
             allowedOrigins: z.array(z.string()).optional(),
             dangerouslyAllowHostHeaderOriginFallback: z.boolean().optional(),
             allowInsecureAuth: z.boolean().optional(),

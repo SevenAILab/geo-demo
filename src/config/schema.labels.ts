@@ -347,6 +347,7 @@ export const FIELD_LABELS: Record<string, string> = {
   "gateway.controlUi.chatMessageMaxWidth": "Control UI Chat Message Max Width",
   "gateway.controlUi.geoDevSkipSkillWait": "GEO Dev Skip Skill Wait",
   "gateway.controlUi.geoPersistHistory": "GEO Persist Chat History",
+  "gateway.controlUi.geoOnly": "GEO Only Mode",
   "gateway.controlUi.allowedOrigins": "Control UI Allowed Origins",
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback":
     "Dangerously Allow Host-Header Origin Fallback",

@@ -217,6 +217,27 @@ function resolveOpenClawConfigPath(): string {
   return path.join(home, ".openclaw", "openclaw.json");
 }
 
+type GeoDemoControlUiConfig = {
+  geoDevSkipSkillWait?: boolean;
+  geoPersistHistory?: boolean;
+  geoOnly?: boolean;
+};
+
+/** Dev stub: read geo-demo defaults from repo config when local openclaw.json lacks them. */
+function resolveGeoDemoControlUiConfig(): GeoDemoControlUiConfig {
+  try {
+    const geoDemoConfigPath = path.join(repoRoot, "config", "openclaw.geo-demo.json");
+    if (!fs.existsSync(geoDemoConfigPath)) {
+      return {};
+    }
+    const raw = fs.readFileSync(geoDemoConfigPath, "utf8");
+    const cfg = JSON.parse(raw) as { gateway?: { controlUi?: GeoDemoControlUiConfig } };
+    return cfg.gateway?.controlUi ?? {};
+  } catch {
+    return {};
+  }
+}
+
 /** Loopback dev only: hydrate Control UI auth from env or local openclaw.json. */
 export function resolveDevGatewayNativeAuth(): DevGatewayNativeAuth | null {
   const envToken = process.env.OPENCLAW_GATEWAY_TOKEN?.trim();
@@ -342,12 +363,16 @@ export default function controlUiViteConfig(): UserConfig {
             );
           }
           server.middlewares.use("/__openclaw/control-ui-config.json", (_req, res) => {
+            const geoDemoControlUi = resolveGeoDemoControlUiConfig();
             res.setHeader("Content-Type", "application/json");
             res.end(
               JSON.stringify({
                 basePath: "/",
                 assistantName: "",
                 assistantAvatar: "",
+                geoDevSkipSkillWait: geoDemoControlUi.geoDevSkipSkillWait === true,
+                geoPersistHistory: geoDemoControlUi.geoPersistHistory === true,
+                geoOnly: geoDemoControlUi.geoOnly === true,
               }),
             );
           });
