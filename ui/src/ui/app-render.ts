@@ -124,7 +124,6 @@ import {
   openGeoMonitoringPanel,
   openGeoOutputCenter,
   openGeoRepairPack,
-  reassessGeo,
   restoreGeoRun,
   restoreGeoRunById,
   restoreGeoSessionForPhase,
@@ -2680,7 +2679,10 @@ export function renderApp(state: AppViewState) {
                 onConfirmGenerate: () => void openGeoOutputCenter(state as never),
                 onOpenRepairPack: () => void openGeoRepairPack(state as never),
                 onOpenMonitoringPanel: () => void openGeoMonitoringPanel(state as never),
-                onReassess: () => void reassessGeo(state as never),
+                onReassess: () => {
+                  backToGeoAssessment(state);
+                  restoreGeoSessionForPhase(state);
+                },
                 onRetryBrandStory: () => void openGeoBrandStory(state as never, { force: true }),
                 onRetryOutput: () => void openGeoOutputCenter(state as never, { force: true }),
                 onRetryRepairPack: () => void openGeoRepairPack(state as never, { force: true }),

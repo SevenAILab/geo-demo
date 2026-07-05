@@ -1,6 +1,7 @@
-# 基于OpenClaw 的独立站GEO实现品牌 AI 可见度检测报告
+# 概述
+本项目是基于 OpenClaw 的独立站 GEO（Generative Engine Optimization） 演示：输入品牌网站 URL，经 AI Agent 多阶段分析，输出 AI 可见度体检 → 品牌故事 → 修复方案 → 技术修复包 → 监测面板 的完整闭环。
 
-开发循环：
+开发环境
 
 ```bash
 # 安装
