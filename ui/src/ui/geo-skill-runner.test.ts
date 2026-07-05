@@ -10,7 +10,8 @@ vi.mock("./geo-session.ts", () => ({
   beginGeoSkillSession: vi.fn(async () => "geo-session"),
 }));
 
-vi.mock("./geo-parsers.ts", () => ({
+vi.mock("./geo-parsers.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./geo-parsers.ts")>()),
   syncGeoStateFromChat: vi.fn(),
 }));
 

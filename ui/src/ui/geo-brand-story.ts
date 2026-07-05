@@ -30,6 +30,7 @@ export async function requestGeoBrandStory(params: {
   client: Pick<GatewayBrowserClient, "request">;
   currentSessionKey: string;
   prompt: string;
+  timeoutMs?: number;
 }): Promise<GeoBrandStory | null> {
   const agentId = resolveAgentIdFromSessionKey(params.currentSessionKey);
   const sessionKey = buildAgentMainSessionKey({ agentId, mainKey: "geo-brand-story" });
@@ -50,7 +51,7 @@ export async function requestGeoBrandStory(params: {
   }
   const wait = await params.client.request<AgentWaitResult>("agent.wait", {
     runId,
-    timeoutMs: GEO_BRAND_STORY_WAIT_MS,
+    timeoutMs: params.timeoutMs ?? GEO_BRAND_STORY_WAIT_MS,
   });
   if (wait.status !== "ok") {
     return null;

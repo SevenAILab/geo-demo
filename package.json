@@ -1531,6 +1531,7 @@
     "format:fix": "oxfmt --write --threads=1",
     "format:swift": "swiftformat --lint --config config/swiftformat --exclude '**/apps/swabble,**/apps/android,**/apps/ios,**/apps/shared,**/OpenClawProtocol,**/HostEnvSecurityPolicy.generated.swift' apps/macos/Sources apps/ios/Sources apps/shared/OpenClawKit/Sources",
     "gateway:dev": "node scripts/run-with-env.mjs OPENCLAW_SKIP_CHANNELS=1 -- node scripts/run-node.mjs --dev gateway",
+    "geo:dev": "cd geo-scoring-kit && node scripts/geo-dev-server.mjs",
     "gateway:dev:reset": "node scripts/run-with-env.mjs OPENCLAW_SKIP_CHANNELS=1 -- node scripts/run-node.mjs --dev gateway --reset",
     "gateway:watch": "node scripts/gateway-watch-tmux.mjs gateway --force",
     "gateway:watch:raw": "node scripts/watch-node.mjs gateway --force",

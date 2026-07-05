@@ -2677,7 +2677,7 @@ export function renderApp(state: AppViewState) {
                   backToGeoOutputCenter(state);
                   restoreGeoSessionForPhase(state);
                 },
-                onFixGaps: () => void openGeoOutputCenter(state as never),
+                onFixGaps: () => void openGeoBrandStory(state as never),
                 onConfirmGenerate: () => void openGeoOutputCenter(state as never),
                 onOpenRepairPack: () => void openGeoRepairPack(state as never),
                 onOpenMonitoringPanel: () => void openGeoMonitoringPanel(state as never),

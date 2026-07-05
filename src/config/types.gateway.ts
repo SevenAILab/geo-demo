@@ -134,7 +134,7 @@ export type GatewayControlUiConfig = {
   geoPersistHistory?: boolean;
   /** Dev convenience: auto-spawn the GEO scoring backend (geo-scoring-kit) as a gateway child process. */
   geoScoreService?: boolean;
-  /** Port for the auto-spawned GEO scoring backend (default 8799). */
+  /** Port for the auto-spawned GEO scoring backend (default 18790). */
   geoScoreServicePort?: number;
   /** Allowed browser origins for Control UI/WebChat websocket connections. */
   allowedOrigins?: string[];

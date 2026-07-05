@@ -548,7 +548,7 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.controlUi.geoScoreService":
     "Dev convenience toggle. When true, the gateway auto-spawns the GEO scoring backend (geo-scoring-kit/scripts/geo-dev-server.mjs) as a child process on startup and stops it on shutdown, so you do not need to run it manually. Keep false outside local GEO demo use.",
   "gateway.controlUi.geoScoreServicePort":
-    "Port for the auto-spawned GEO scoring backend (default 8799). Only used when geoScoreService is true.",
+    "Port for the auto-spawned GEO scoring backend (default 18790). Only used when geoScoreService is true.",
   "gateway.controlUi.allowedOrigins":
     'Allowed browser origins for Control UI/WebChat websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback Control UI deployments unless dangerous Host-header fallback is explicitly enabled. Setting ["*"] means allow any browser origin and should be avoided outside tightly controlled local testing.',
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback":

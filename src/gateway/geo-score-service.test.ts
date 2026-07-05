@@ -23,9 +23,9 @@ describe("geoScoreServiceEnabled", () => {
 });
 
 describe("geoScoreServicePort", () => {
-  it("defaults to 8799", () => {
-    expect(geoScoreServicePort(undefined)).toBe(8799);
-    expect(geoScoreServicePort(cfg({ geoScoreService: true }))).toBe(8799);
+  it("defaults to 18790", () => {
+    expect(geoScoreServicePort(undefined)).toBe(18790);
+    expect(geoScoreServicePort(cfg({ geoScoreService: true }))).toBe(18790);
   });
 
   it("honors a valid configured port", () => {
@@ -33,9 +33,9 @@ describe("geoScoreServicePort", () => {
   });
 
   it("falls back to default for invalid ports", () => {
-    expect(geoScoreServicePort(cfg({ geoScoreServicePort: 0 }))).toBe(8799);
-    expect(geoScoreServicePort(cfg({ geoScoreServicePort: 70000 }))).toBe(8799);
-    expect(geoScoreServicePort(cfg({ geoScoreServicePort: 1.5 }))).toBe(8799);
+    expect(geoScoreServicePort(cfg({ geoScoreServicePort: 0 }))).toBe(18790);
+    expect(geoScoreServicePort(cfg({ geoScoreServicePort: 70000 }))).toBe(18790);
+    expect(geoScoreServicePort(cfg({ geoScoreServicePort: 1.5 }))).toBe(18790);
   });
 });
 

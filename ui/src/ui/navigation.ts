@@ -196,7 +196,10 @@ export function resolveRouteFromPathname(pathname: string, basePath = ""): Resol
     }
   }
   const normalized = normalizeLowercaseStringOrEmpty(normalizePath(path));
-  if (normalized === "/geo/chat" || normalized === "/") {
+  if (normalized === "/geo/chat") {
+    return { tab: "geo", canonicalPathname: pathForTab("geo", basePath) };
+  }
+  if (normalized === "/") {
     return { tab: "geo", canonicalPathname: pathForTab("geo", basePath) };
   }
   return { tab, canonicalPathname: null };

@@ -45,6 +45,7 @@ export type GeoSkillHost = GeoSyncHost &
     geoLiveScore?: boolean;
     geoLiveProbe?: boolean;
     geoDevSkipSkillWait?: boolean;
+    geoPhase?: string;
     requestUpdate?: () => void;
   };
 
@@ -354,6 +355,7 @@ export async function runGeoSkill(host: GeoSkillHost, action: GeoSkillAction): P
         client,
         currentSessionKey: host.sessionKey,
         prompt,
+        timeoutMs: 45_000,
       });
       if (story) {
         host.geoBrandStory = story;

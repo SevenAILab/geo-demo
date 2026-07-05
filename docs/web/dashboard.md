@@ -6,7 +6,7 @@ title: "Dashboard"
 ---
 
 The Gateway dashboard is the browser Control UI served at `/` by default
-(override with `gateway.controlUi.basePath`).
+(override with `gateway.controlUi.basePath`). GEO is not part of the Dashboard route; run it as a separate business UI on `http://127.0.0.1:18790/` and configure its service token server-side. See [GEO business UI](/web/geo).
 
 Quick open (local Gateway):
 

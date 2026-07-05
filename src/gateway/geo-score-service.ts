@@ -8,7 +8,7 @@ import type { OpenClawConfig } from "../config/config.js";
 // 纯 dev 便利：默认关闭，仅当 gateway.controlUi.geoScoreService === true 才启动。
 // 一切 spawn 失败都吞掉、绝不抛，避免影响网关自身启动。
 
-const DEFAULT_PORT = 8799;
+const DEFAULT_PORT = 18790;
 
 export type GeoScoreServiceLog = {
   info?: (msg: string) => void;
@@ -20,7 +20,7 @@ export function geoScoreServiceEnabled(cfg: OpenClawConfig | undefined): boolean
   return cfg?.gateway?.controlUi?.geoScoreService === true;
 }
 
-/** 端口：配置优先，否则默认 8799。 */
+/** 端口：配置优先，否则默认 18790。 */
 export function geoScoreServicePort(cfg: OpenClawConfig | undefined): number {
   const raw = cfg?.gateway?.controlUi?.geoScoreServicePort;
   return typeof raw === "number" && Number.isInteger(raw) && raw > 0 && raw < 65536

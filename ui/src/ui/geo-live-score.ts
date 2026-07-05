@@ -1,5 +1,5 @@
 // geo-live-score.ts — 联调：从真实评分后端（geo-scoring-kit/geo-dev-server）取 scorecard，
-// 映射成 UI 的 GeoReport。dev-only：默认打 127.0.0.1:8799，可用 window.__GEO_SCORE_ENDPOINT__ 覆盖。
+// 映射成 UI 的 GeoReport。dev-only：默认打 127.0.0.1:18790，可用 window.__GEO_SCORE_ENDPOINT__ 覆盖。
 import { deriveBrandNameFromUrl } from "./geo-demo-data.ts";
 import { type GeoOutputCenter, parseGeoOutputCenterJson } from "./geo-parsers.ts";
 import type {
@@ -10,7 +10,7 @@ import type {
   GeoReportRating,
 } from "./geo-report.ts";
 
-const DEFAULT_ENDPOINT = "http://127.0.0.1:8799";
+const DEFAULT_ENDPOINT = "http://127.0.0.1:18790";
 
 // 后端 scorecard 的最小结构（只取用到的字段）
 type Scorecard = {

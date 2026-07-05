@@ -4,8 +4,13 @@
 // 只绑 127.0.0.1，不做鉴权/限流，严禁上生产。
 //
 // 用法:
-//   node scripts/geo-dev-server.mjs            # 默认 http://127.0.0.1:8799
-//   PORT=9000 node scripts/geo-dev-server.mjs  # 换端口
+//   node scripts/geo-dev-server.mjs             # 默认 http://127.0.0.1:18790
+//   GEO_PORT=9000 node scripts/geo-dev-server.mjs  # 换端口
+//
+// 配置:
+//   GEO_CONFIG_PATH=../config/openclaw.geo-demo.json
+//   OPENCLAW_BASE_URL=http://127.0.0.1:18789
+//   OPENCLAW_SERVICE_TOKEN=...
 //
 // 路由:
 //   GET /               表单页（url 输入，默认案例站）
@@ -27,8 +32,28 @@ import { logScoreRun } from "./score-log.mjs";
 const KIT_DIR = path.dirname(path.dirname(fileURLToPath(import.meta.url))); // geo-scoring-kit/
 dotenv.config({ path: path.join(KIT_DIR, ".env") });
 
-const PORT = Number(process.env.PORT) || 8799;
-const HOST = "127.0.0.1";
+function readProjectGeoConfig() {
+  const candidates = [
+    process.env.GEO_CONFIG_PATH,
+    path.resolve(KIT_DIR, "..", "config", "openclaw.geo-demo.json"),
+  ].filter(Boolean);
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(candidate, "utf8"));
+      return parsed.geo && typeof parsed.geo === "object" ? parsed.geo : {};
+    } catch {
+      // 配置缺失时保持 dev 默认值。
+    }
+  }
+  return {};
+}
+
+const GEO_CONFIG = readProjectGeoConfig();
+const PORT = Number(process.env.GEO_PORT || process.env.PORT || GEO_CONFIG.port) || 18790;
+const HOST = process.env.GEO_HOST || GEO_CONFIG.host || "127.0.0.1";
+const OPENCLAW_BASE_URL =
+  process.env.OPENCLAW_BASE_URL || GEO_CONFIG.openclawBaseUrl || "http://127.0.0.1:18789";
+const OPENCLAW_SERVICE_TOKEN = process.env.OPENCLAW_SERVICE_TOKEN || "";
 const DEFAULT_URL = "https://www.cloudflare.com/"; // 案例默认站，可在表单里改
 
 // probe 输入文件（有 key 才用；缺失/无 key 时 scoreUrl 静默降级为 on-page）
@@ -260,6 +285,45 @@ function send(res, code, body, type = "text/html; charset=utf-8") {
   res.end(body);
 }
 
+async function readBody(req) {
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function proxyOpenClaw(req, res, requestUrl) {
+  if (!OPENCLAW_SERVICE_TOKEN) {
+    return send(
+      res,
+      500,
+      JSON.stringify({ error: "missing OPENCLAW_SERVICE_TOKEN" }),
+      "application/json; charset=utf-8",
+    );
+  }
+  const body = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
+  const incoming = new URL(requestUrl, `http://${HOST}:${PORT}`);
+  const target = new URL(
+    incoming.pathname.replace(/^\/api\/openclaw/, "") || "/",
+    OPENCLAW_BASE_URL,
+  );
+  target.search = incoming.search;
+  const response = await fetch(target, {
+    method: req.method,
+    headers: {
+      authorization: `Bearer ${OPENCLAW_SERVICE_TOKEN}`,
+      "content-type": req.headers["content-type"] || "application/json",
+    },
+    body,
+  });
+  const text = await response.text();
+  return send(
+    res,
+    response.status,
+    text,
+    response.headers.get("content-type") || "application/json; charset=utf-8",
+  );
+}
+
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://${HOST}:${PORT}`);
   cors(res);
@@ -268,6 +332,9 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
   try {
+    if (u.pathname.startsWith("/api/openclaw/")) {
+      return proxyOpenClaw(req, res, req.url);
+    }
     if (u.pathname === "/") {
       return send(res, 200, formPage(u.searchParams.get("url") || DEFAULT_URL));
     }
@@ -314,6 +381,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.error(`\n  ★ GEO 打分测试入口 (DEV ONLY) ★`);
   console.error(`  → http://${HOST}:${PORT}`);
+  console.error(`  OpenClaw: ${OPENCLAW_BASE_URL}`);
+  console.error(`  Service token: ${OPENCLAW_SERVICE_TOKEN ? "configured" : "missing"}`);
   console.error(`  默认案例站: ${DEFAULT_URL}`);
   console.error(`  JSON: http://${HOST}:${PORT}/api/score?url=<URL>\n`);
 });
