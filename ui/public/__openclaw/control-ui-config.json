@@ -1,0 +1,8 @@
+{
+  "basePath": "",
+  "assistantName": "BrandGEO",
+  "assistantAvatar": "",
+  "geoDevSkipSkillWait": true,
+  "geoPersistHistory": true,
+  "geoOnly": true
+}
